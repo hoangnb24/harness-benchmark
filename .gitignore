@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.db
+.env
+*.log
+
+# Keep run results (they are the benchmark data)
+# !benchmark/runs/
