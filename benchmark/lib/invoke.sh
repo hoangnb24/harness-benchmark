@@ -69,10 +69,15 @@ invoke_codex() {
   # Build the command
   local cmd=(timeout "$TASK_TIMEOUT" codex exec
     --sandbox workspace-write
-    --ask-for-approval never
     --json
     --color never
   )
+
+  # Codex CLI 0.133.0 removed --ask-for-approval. Keep older CLI support
+  # without passing an unknown option to newer versions.
+  if codex exec --help 2>/dev/null | grep -q -- '--ask-for-approval'; then
+    cmd+=(--ask-for-approval never)
+  fi
 
   # Optional model override
   if [ -n "${MODEL:-}" ]; then
@@ -169,6 +174,10 @@ parse_codex_events() {
   # Cost estimate: ~$3/M input, ~$12/M output (o4-mini approximate)
   local cost
   cost=$(echo "scale=4; ($input_tokens * 0.000003) + ($output_tokens * 0.000012)" | bc 2>/dev/null || echo "0")
+  case "$cost" in
+    .*) cost="0$cost" ;;
+    -.*) cost="-0${cost#-}" ;;
+  esac
 
   cat > "$outdir/tokens.json" <<EOF
 {
@@ -181,7 +190,7 @@ parse_codex_events() {
 EOF
 
   # Extract the final agent message
-  jq -r 'select(.type=="item.completed") | select(.item.item_type=="assistant_message" or .item.type=="assistant_message") | .item.text // empty' \
+  jq -r 'select(.type=="item.completed") | select(.item.item_type=="assistant_message" or .item.type=="assistant_message" or .item.type=="agent_message") | .item.text // empty' \
     "$events_file" 2>/dev/null | tail -1 > "$outdir/agent-output.log"
 
   # Extract thread ID
