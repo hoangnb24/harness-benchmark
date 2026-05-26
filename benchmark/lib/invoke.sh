@@ -68,7 +68,7 @@ invoke_codex() {
 
   # Build the command
   local cmd=(timeout "$TASK_TIMEOUT" codex exec
-    --sandbox workspace-write
+    --sandbox danger-full-access
     --json
     --color never
   )

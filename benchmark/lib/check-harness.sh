@@ -79,14 +79,16 @@ EOF
 }
 
 # Helper: add a check result
+# Uses eval+indirect rather than local -n for Bash 3 compatibility
 add_harness_check() {
-  local -n arr=$1
+  local arr="$1"
   local name="$2"
   local pass_int="$3"
 
   local pass=false
   [ "$pass_int" -gt 0 ] && pass=true
-  arr+=("{\"name\":\"$name\",\"pass\":$pass}")
+
+  eval "${arr}+=(\"{\\\"name\\\":\\\"$name\\\",\\\"pass\\\":$pass}\")"
 }
 
 # Helper: write JSON
