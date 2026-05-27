@@ -3,6 +3,7 @@ dist/
 *.db
 .env
 *.log
+.DS_Store
 
 # Keep run results (they are the benchmark data)
 # !benchmark/runs/
