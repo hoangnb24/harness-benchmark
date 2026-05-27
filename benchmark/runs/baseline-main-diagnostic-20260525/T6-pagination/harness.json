@@ -1,0 +1,1 @@
+{"db_exists":true,"checks":[{"name":"intake_recorded","pass":true},{"name":"correct_lane","pass":true},{"name":"story_created","pass":true},{"name":"trace_recorded","pass":true},{"name":"friction_captured","pass":false}]}

@@ -1,0 +1,12 @@
+{
+  "run_id": "baseline-main",
+  "date": "2026-05-25T14:31:12Z",
+  "harness_ref": "main",
+  "agent": "codex",
+  "model": "",
+  "task_timeout_seconds": 1200,
+  "isolated": false,
+  "original_project_dir": "/private/tmp/harness-benchmark-baseline-main-manual-20260525212943",
+  "workspace_dir": "/private/tmp/harness-benchmark-baseline-main-manual-20260525212943",
+  "benchmark_sha": "658e000dc9d7dd525d1d5492c41b95616af8d987"
+}

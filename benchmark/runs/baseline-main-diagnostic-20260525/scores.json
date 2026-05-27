@@ -1,0 +1,17 @@
+{
+  "run_id": "baseline-main",
+  "task_count": 6,
+  "total_wall_seconds": 2383,
+  "total_input_tokens": 4734519,
+  "total_output_tokens": 48906,
+  "total_tokens": 4783425,
+  "estimated_total_cost_usd": 14.790429,
+  "functional_pass": 0,
+  "functional_total": 0,
+  "functional_pct": 0,
+  "harness_pass": 23,
+  "harness_total": 31,
+  "harness_pct": 74.1,
+  "avg_trace_quality": 1.5,
+  "lane_accuracy": "5/6"
+}
