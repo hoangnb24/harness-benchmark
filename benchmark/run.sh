@@ -129,6 +129,11 @@ for task in "${TASKS[@]}"; do
   TASK_DIR="$RUN_DIR/$task"
   mkdir -p "$TASK_DIR"
 
+  # Snapshot durable-layer counts before the agent runs so harness scoring is
+  # per-task instead of cumulative across the full benchmark.
+  source "$SCRIPT_DIR/lib/check-harness.sh"
+  record_harness_baseline "$TASK_DIR" "$PROJECT_DIR"
+
   # Invoke agent
   source "$SCRIPT_DIR/lib/invoke.sh"
   invoke_agent "$AGENT" "$task" "$TASK_DIR" "$PROJECT_DIR" || true
@@ -138,7 +143,6 @@ for task in "${TASKS[@]}"; do
   source "$SCRIPT_DIR/lib/check-functional.sh"
   check_functional "$task" "$TASK_DIR" "$PROJECT_DIR" || true
 
-  source "$SCRIPT_DIR/lib/check-harness.sh"
   check_harness "$task" "$TASK_DIR" "$PROJECT_DIR" || true
 
   source "$SCRIPT_DIR/lib/check-quality.sh"
