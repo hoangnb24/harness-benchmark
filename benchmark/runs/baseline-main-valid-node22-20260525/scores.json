@@ -1,0 +1,17 @@
+{
+  "run_id": "baseline-main-valid-node22",
+  "task_count": 6,
+  "total_wall_seconds": 1251,
+  "total_input_tokens": 5650150,
+  "total_output_tokens": 52220,
+  "total_tokens": 5702370,
+  "estimated_total_cost_usd": 17.577090,
+  "functional_pass": 35,
+  "functional_total": 35,
+  "functional_pct": 100.0,
+  "harness_pass": 26,
+  "harness_total": 31,
+  "harness_pct": 83.8,
+  "avg_trace_quality": 1.8,
+  "lane_accuracy": "6/6"
+}

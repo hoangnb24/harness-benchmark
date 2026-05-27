@@ -1,0 +1,1 @@
+{"server_started":true,"checks":[{"name":"health_status","pass":true,"expected":200,"actual":200},{"name":"health_body","pass":true,"expected":200,"actual":200}]}

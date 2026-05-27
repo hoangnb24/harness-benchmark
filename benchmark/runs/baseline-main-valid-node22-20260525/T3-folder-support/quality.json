@@ -1,0 +1,9 @@
+{
+  "trace_quality": "standard",
+  "trace_quality_score": 2,
+  "summary_length": 54,
+  "actions_length": 132,
+  "files_changed_length": 110,
+  "errors_length": 0,
+  "friction_length": 0
+}
