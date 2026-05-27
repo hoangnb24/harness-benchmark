@@ -14,9 +14,9 @@
 
 | # | Check | Query |
 |---|-------|-------|
-| 1 | Intake recorded | `SELECT COUNT(*) FROM intake` > 0 |
-| 2 | Risk lane = tiny | `SELECT risk_lane FROM intake ORDER BY id DESC LIMIT 1` = "tiny" |
-| 3 | Trace recorded | `SELECT COUNT(*) FROM trace` > 0 |
+| 1 | Intake recorded | `intake` row count increased during this task |
+| 2 | Risk lane = tiny | New latest intake `risk_lane` = "tiny" |
+| 3 | Trace recorded | `trace` row count increased during this task |
 
 ## Quality Indicators
 

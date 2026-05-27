@@ -16,10 +16,10 @@
 
 | # | Check | Query |
 |---|-------|-------|
-| 1 | Intake recorded | Latest intake exists |
-| 2 | Risk lane = normal | Latest `risk_lane` = "normal" |
-| 3 | Trace recorded | Latest trace exists |
-| 4 | Friction captured | Trace has `harness_friction` comment |
+| 1 | Intake recorded | `intake` row count increased during this task |
+| 2 | Risk lane = normal | New latest intake `risk_lane` = "normal" |
+| 3 | Trace recorded | `trace` row count increased during this task |
+| 4 | Friction captured | New latest trace has `harness_friction` comment |
 
 ## Quality Indicators
 

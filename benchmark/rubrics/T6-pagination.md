@@ -18,10 +18,10 @@
 
 | # | Check | Query |
 |---|-------|-------|
-| 1 | Intake recorded | Latest intake exists |
-| 2 | Risk lane = normal | Latest `risk_lane` = "normal" |
+| 1 | Intake recorded | `intake` row count increased during this task |
+| 2 | Risk lane = normal | New latest intake `risk_lane` = "normal" |
 | 3 | Story created | New story for this task |
-| 4 | Trace recorded | Latest trace exists |
+| 4 | Trace recorded | `trace` row count increased during this task |
 
 ## Quality Indicators
 

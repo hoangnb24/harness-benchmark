@@ -18,11 +18,11 @@
 
 | # | Check | Query |
 |---|-------|-------|
-| 1 | Intake recorded | Latest intake exists |
-| 2 | Risk lane = high_risk | Latest `risk_lane` = "high_risk" |
+| 1 | Intake recorded | `intake` row count increased during this task |
+| 2 | Risk lane = high_risk | New latest intake `risk_lane` = "high_risk" |
 | 3 | Story created | New story for this task |
-| 4 | Decision recorded | `SELECT COUNT(*) FROM decision` > 0 |
-| 5 | Trace recorded | Latest trace exists |
+| 4 | Decision recorded | `decision` row count increased during this task |
+| 5 | Trace recorded | `trace` row count increased during this task |
 | 6 | High-risk docs | Story folder has overview/design/execplan/validation |
 
 ## Quality Indicators

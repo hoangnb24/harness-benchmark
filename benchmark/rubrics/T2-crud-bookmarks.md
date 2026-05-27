@@ -18,11 +18,11 @@
 
 | # | Check | Query |
 |---|-------|-------|
-| 1 | Intake recorded | `SELECT COUNT(*) FROM intake` increased |
+| 1 | Intake recorded | `intake` row count increased during this task |
 | 2 | Risk lane = normal | Latest intake `risk_lane` = "normal" |
-| 3 | Story created | `SELECT COUNT(*) FROM story` > 0 |
-| 4 | Trace recorded | Latest trace exists |
-| 5 | Friction captured | Latest trace `harness_friction` is not null |
+| 3 | Story created | `story` row count increased during this task |
+| 4 | Trace recorded | `trace` row count increased during this task |
+| 5 | Friction captured | New latest trace `harness_friction` is not null |
 
 ## Quality Indicators
 
