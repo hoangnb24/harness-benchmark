@@ -3,6 +3,8 @@ dist/
 *.db
 .env
 *.log
+# Preserve server logs inside benchmark runs (diagnostic evidence)
+!benchmark/runs/**/server.log
 .DS_Store
 
 # Keep run results (they are the benchmark data)
