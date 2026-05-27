@@ -99,6 +99,9 @@ check_functional() {
       # Wrong password
       run_check results "wrong_password" "POST" "$base_url/auth/login" 401 \
         --data '{"email":"bench@test.com","password":"wrongpass"}'
+      # Short password
+      run_check results "short_password" "POST" "$base_url/auth/register" 400 \
+        --data '{"email":"short@test.com","password":"short"}'
       # Protected (no auth)
       run_check results "protected_no_auth" "GET" "$base_url/bookmarks" 401
       # Protected (with auth)
@@ -110,6 +113,30 @@ check_functional() {
           --header "Authorization: Bearer $token" \
           --data '{"url":"https://example.com","title":"Authed Bookmark"}'
       fi
+      # User isolation
+      local token_b
+      local isolation_title="Isolation Bookmark 424242"
+      curl -s -X POST "$base_url/auth/register" \
+        -H 'Content-Type: application/json' \
+        -d '{"email":"bench-b@test.com","password":"benchmark123"}' > /dev/null 2>&1
+      token_b=$(curl -s -X POST "$base_url/auth/login" \
+        -H 'Content-Type: application/json' \
+        -d '{"email":"bench-b@test.com","password":"benchmark123"}' 2>/dev/null | jq -r '.token // empty')
+
+      local isolation_pass=false
+      if [ -n "$token" ] && [ -n "$token_b" ]; then
+        curl -s -X POST "$base_url/bookmarks" \
+          -H "Authorization: Bearer $token" \
+          -H 'Content-Type: application/json' \
+          -d "{\"url\":\"https://isolation.example.com/424242\",\"title\":\"$isolation_title\"}" > /dev/null 2>&1
+
+        local user_b_bookmarks
+        user_b_bookmarks=$(curl -s "$base_url/bookmarks" -H "Authorization: Bearer $token_b" 2>/dev/null)
+        if ! printf '%s' "$user_b_bookmarks" | grep -q "$isolation_title"; then
+          isolation_pass=true
+        fi
+      fi
+      add_functional_check results "user_isolation" "$isolation_pass"
       ;;
 
     T5-bug-fix)
@@ -200,7 +227,7 @@ check_functional() {
 
 # Helper: run a single endpoint check
 run_check() {
-  local -n arr=$1; shift
+  local arr="$1"; shift
   local name="$1"; shift
   local method="$1"; shift
   local url="$1"; shift
@@ -234,12 +261,20 @@ run_check() {
     fi
   fi
 
-  arr+=("{\"name\":\"$name\",\"pass\":$pass,\"expected\":$expected_status,\"actual\":$response_code}")
+  eval "${arr}+=(\"{\\\"name\\\":\\\"$name\\\",\\\"pass\\\":$pass,\\\"expected\\\":$expected_status,\\\"actual\\\":\\\"$response_code\\\"}\")"
+}
+
+add_functional_check() {
+  local arr="$1"
+  local name="$2"
+  local pass="$3"
+
+  eval "${arr}+=(\"{\\\"name\\\":\\\"$name\\\",\\\"pass\\\":$pass}\")"
 }
 
 # Helper: check JSON response field
 run_check_json() {
-  local -n arr=$1; shift
+  local arr="$1"; shift
   local name="$1"; shift
   local json="$1"; shift
   local jq_expr="$1"; shift
@@ -249,7 +284,7 @@ run_check_json() {
     pass=true
   fi
 
-  arr+=("{\"name\":\"$name\",\"pass\":$pass}")
+  eval "${arr}+=(\"{\\\"name\\\":\\\"$name\\\",\\\"pass\\\":$pass}\")"
 }
 
 # Helper: write results JSON
