@@ -1,0 +1,1 @@
+{"server_started":true,"checks":[{"name":"register","pass":false,"expected":201,"actual":500},{"name":"duplicate_email","pass":false,"expected":409,"actual":500},{"name":"login","pass":false,"expected":200,"actual":401},{"name":"wrong_password","pass":true,"expected":401,"actual":401},{"name":"protected_no_auth","pass":true,"expected":401,"actual":401}]}

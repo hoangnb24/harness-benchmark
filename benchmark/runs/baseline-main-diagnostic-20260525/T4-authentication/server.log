@@ -1,0 +1,5 @@
+
+> harness-benchmark@1.0.0 dev
+> tsx watch src/index.ts
+
+sh: tsx: command not found

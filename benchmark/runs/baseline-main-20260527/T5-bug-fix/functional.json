@@ -1,0 +1,1 @@
+{"server_started":true,"checks":[{"name":"empty_title_400","pass":true,"expected":400,"actual":"400"},{"name":"empty_url_400","pass":true,"expected":400,"actual":"400"},{"name":"valid_still_works","pass":true,"expected":201,"actual":"201"},{"name":"empty_folder_name","pass":true,"expected":400,"actual":"400"}]}
