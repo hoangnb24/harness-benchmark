@@ -11,21 +11,46 @@ check_functional() {
   local port=3000
   local base_url="http://localhost:$port"
 
-  # Try to start the server
+  # Pre-flight: ensure dependencies are installed
+  if [ ! -d "$project_dir/node_modules" ]; then
+    echo "  node_modules missing — running npm install"
+    (cd "$project_dir" && npm install --ignore-scripts 2>&1) | tail -5
+    if [ ! -d "$project_dir/node_modules" ]; then
+      echo "  FAIL: npm install could not create node_modules"
+      local diag="deps_missing: node_modules not found after npm install"
+      echo "{\"checks\":[],\"server_started\":false,\"error\":\"$diag\"}" > "$outdir/functional.json"
+      return 1
+    fi
+  fi
+
+  # Kill any leftover process on the target port
+  local existing_pid
+  existing_pid=$(lsof -ti :$port 2>/dev/null || true)
+  if [ -n "$existing_pid" ]; then
+    echo "  Killing existing process on port $port (PID $existing_pid)"
+    kill $existing_pid 2>/dev/null || true
+    sleep 1
+  fi
+
+  # Start the server
   (cd "$project_dir" && npm run dev > "$outdir/server.log" 2>&1) &
   server_pid=$!
   sleep 3
 
-  # Check if server is alive
+  # Check if server process is alive
   if ! kill -0 $server_pid 2>/dev/null; then
     echo "  Server failed to start"
-    echo '{"checks":[],"server_started":false}' > "$outdir/functional.json"
+    if [ -f "$outdir/server.log" ]; then
+      echo "  Server log (last 10 lines):"
+      tail -10 "$outdir/server.log" | sed 's/^/    /'
+    fi
+    echo "{\"checks\":[],\"server_started\":false,\"error\":\"process_exited\"}" > "$outdir/functional.json"
     return 1
   fi
 
-  # Wait for port to be ready (up to 10s)
+  # Wait for port to be ready (up to 15s)
   local ready=false
-  for i in $(seq 1 10); do
+  for i in $(seq 1 15); do
     if curl -s -o /dev/null -w "%{http_code}" "$base_url/health" 2>/dev/null | grep -q "200\|404\|500"; then
       ready=true
       break
@@ -34,9 +59,13 @@ check_functional() {
   done
 
   if [ "$ready" = "false" ]; then
-    echo "  Server not responding on port $port"
+    echo "  Server not responding on port $port after 15s"
+    if [ -f "$outdir/server.log" ]; then
+      echo "  Server log (last 10 lines):"
+      tail -10 "$outdir/server.log" | sed 's/^/    /'
+    fi
     kill $server_pid 2>/dev/null || true
-    echo '{"checks":[],"server_started":false}' > "$outdir/functional.json"
+    echo "{\"checks\":[],\"server_started\":false,\"error\":\"port_not_ready\"}" > "$outdir/functional.json"
     return 1
   fi
 
