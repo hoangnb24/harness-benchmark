@@ -22,7 +22,7 @@ install_harness() {
 
   # Run the harness installer into the benchmark project
   if [ -f "$harness_dir/scripts/install-harness.sh" ]; then
-    (cd "$project_dir" && bash "$harness_dir/scripts/install-harness.sh")
+    (cd "$project_dir" && bash "$harness_dir/scripts/install-harness.sh" --yes --merge)
   else
     echo "  WARNING: No install-harness.sh found at ref '$harness_ref'"
     echo "  Copying harness files manually..."
