@@ -1,0 +1,17 @@
+{
+  "run_id": "phase-2-observability-taxonomy",
+  "task_count": 6,
+  "total_wall_seconds": 1816,
+  "total_input_tokens": 6680869,
+  "total_output_tokens": 56286,
+  "total_tokens": 6737155,
+  "estimated_total_cost_usd": 20.718039,
+  "functional_pass": 37,
+  "functional_total": 37,
+  "functional_pct": 100.0,
+  "harness_pass": 30,
+  "harness_total": 31,
+  "harness_pct": 96.7,
+  "avg_trace_quality": 2.6,
+  "lane_accuracy": "6/6"
+}

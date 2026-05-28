@@ -1,0 +1,32 @@
+
+> harness-benchmark@1.0.0 dev
+> tsx watch src/index.ts
+
+Server running on port 3000
+6:40:58 PM [tsx] change in ./src/index.ts Restarting...
+cnode:events:497
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Function.listen (/private/tmp/harness-benchmark-phase-2-observability-taxonomy-codex-feature-phase-2-observability-taxonomy-default/node_modules/express/lib/application.js:635:24)
+    at jwt (/private/tmp/harness-benchmark-phase-2-observability-taxonomy-codex-feature-phase-2-observability-taxonomy-default/src/index.ts:568:5)
+    at Object.<anonymous> (/private/tmp/harness-benchmark-phase-2-observability-taxonomy-codex-feature-phase-2-observability-taxonomy-default/src/index.ts:572:16)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+    at Object.transformer (/private/tmp/harness-benchmark-phase-2-observability-taxonomy-codex-feature-phase-2-observability-taxonomy-default/node_modules/tsx/dist/register-BOkp8V6j.cjs:9:3176)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
+
+Node.js v22.22.3

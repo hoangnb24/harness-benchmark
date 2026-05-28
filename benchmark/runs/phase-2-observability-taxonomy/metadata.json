@@ -1,0 +1,12 @@
+{
+  "run_id": "phase-2-observability-taxonomy",
+  "date": "2026-05-28T11:13:41Z",
+  "harness_ref": "feature/phase-2-observability-taxonomy",
+  "agent": "codex",
+  "model": "",
+  "task_timeout_seconds": 1200,
+  "isolated": true,
+  "original_project_dir": "/Users/tubakhuym/Documents/harness-benchmark",
+  "workspace_dir": "/tmp/harness-benchmark-phase-2-observability-taxonomy-codex-feature-phase-2-observability-taxonomy-default",
+  "benchmark_sha": "1daccfc5b43c59ade73514161e9f4f7cdd7d6f98"
+}
