@@ -49,7 +49,44 @@ This benchmark measures whether harness-experimental improves AI agent productiv
 ./benchmark/compare.sh <run-id-1> <run-id-2>
 ```
 
-Reads `scores.json` from both runs and outputs a side-by-side diff table.
+Reads `scores.json` from both runs and outputs a side-by-side diff table
+followed by **component-level attribution**.
+
+### Component Attribution (US-014)
+
+When score deltas exist between runs, the comparison script attributes each
+change to one of the 11 Runtime Substrate responsibilities from
+`HARNESS_COMPONENTS.md`. Attribution works at two levels:
+
+**Harness compliance checks** — each check maps to a responsibility:
+
+| Check | Responsibility |
+|-------|---------------|
+| `intake_recorded` | Task specification |
+| `correct_lane` | Task specification |
+| `story_created` | Task state |
+| `high_risk_docs` | Task specification |
+| `decision_recorded` | Intervention recording |
+| `trace_recorded` | Observability |
+| `friction_captured` | Failure attribution |
+
+**Trace quality fields** — each field maps to a responsibility:
+
+| Field | Responsibility |
+|-------|---------------|
+| `task_summary`, `agent`, `actions_taken`, `duration_or_note`, `token_estimate_or_note` | Observability |
+| `outcome`, `files_changed` | Task state |
+| `files_read` | Context selection |
+| `errors_or_friction`, `errors_explicit`, `friction_explicit` | Failure attribution |
+| `decisions_made` | Intervention recording |
+
+The output shows per-task deltas (e.g. `friction_captured: ✗→✓ (Failure
+attribution)`) and a responsibility summary with net direction (↑ improved /
+↓ regressed / ~ mixed).
+
+For runs using the older `quality.json` format (length-based fields), the
+script falls back to comparing `trace_quality_score` as a whole, attributed
+to Observability.
 
 ## Expected Results Per Phase
 
