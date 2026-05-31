@@ -1,0 +1,12 @@
+{
+  "run_id": "phase-3-active-observability-cli-1.4.1-rerun-20260531",
+  "date": "2026-05-31T01:23:54Z",
+  "harness_ref": "feature/phase-3-active-observability",
+  "agent": "codex",
+  "model": "",
+  "task_timeout_seconds": 1200,
+  "isolated": true,
+  "original_project_dir": "/Users/tubakhuym/Documents/harness-benchmark",
+  "workspace_dir": "/tmp/harness-benchmark-phase-3-active-observability-cli-1.4.1-rerun-20260531-codex-feature-phase-3-active-observability-default",
+  "benchmark_sha": "c178f2b1aecbcde4e37bc051f12fa16710b3d7ff"
+}

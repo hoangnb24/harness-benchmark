@@ -1,0 +1,17 @@
+{
+  "run_id": "phase-3-active-observability-cli-1.4.1-rerun-20260531",
+  "task_count": 6,
+  "total_wall_seconds": 1749,
+  "total_input_tokens": 7061198,
+  "total_output_tokens": 65610,
+  "total_tokens": 7126808,
+  "estimated_total_cost_usd": 21.970914,
+  "functional_pass": 37,
+  "functional_total": 37,
+  "functional_pct": 100.0,
+  "harness_pass": 31,
+  "harness_total": 31,
+  "harness_pct": 100.0,
+  "avg_trace_quality": 2.5,
+  "lane_accuracy": "6/6"
+}
