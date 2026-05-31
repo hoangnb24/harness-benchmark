@@ -6,6 +6,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Source attribution library
+source "$SCRIPT_DIR/lib/attribute.sh"
+
 if [ $# -lt 2 ]; then
   echo "Usage: $0 <run-id-1> <run-id-2>"
   echo "Example: $0 baseline phase-2"
@@ -92,3 +95,6 @@ if [[ "$quality_delta" != "?" ]] && (( $(echo "$quality_delta > 0.5" | bc 2>/dev
 fi
 
 echo ""
+
+# Component-level attribution
+generate_attribution "$RUN1" "$RUN2" "$SCRIPT_DIR/runs"
