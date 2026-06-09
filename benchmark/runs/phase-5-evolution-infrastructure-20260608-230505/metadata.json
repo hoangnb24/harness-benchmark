@@ -1,0 +1,12 @@
+{
+  "run_id": "phase-5-evolution-infrastructure-20260608-230505",
+  "date": "2026-06-08T16:06:25Z",
+  "harness_ref": "devin/1780546348-phase-5-evolution-infrastructure",
+  "agent": "codex",
+  "model": "",
+  "task_timeout_seconds": 1200,
+  "isolated": true,
+  "original_project_dir": "/Users/tubakhuym/Documents/harness-benchmark",
+  "workspace_dir": "/tmp/harness-benchmark-phase-5-evolution-infrastructure-20260608-230505-codex-devin-1780546348-phase-5-evolution-infrastructure-default",
+  "benchmark_sha": "d4bdf09e3447aa34d8079c1ee2ce53527a6bc668"
+}
