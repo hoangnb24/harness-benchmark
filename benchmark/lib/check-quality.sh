@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # benchmark/lib/check-quality.sh — Trace quality assessment via TRACE_SPEC.md
 #
-# Scores the latest trace in harness.db using field-presence rules aligned
-# with docs/TRACE_SPEC.md quality tiers (minimal / standard / detailed).
+# Scores the latest trace created during the current task using field-presence
+# rules aligned with docs/TRACE_SPEC.md quality tiers (minimal / standard / detailed).
 # Previous versions used character-length heuristics; this version checks
 # whether each required field is present and non-empty per the spec.
 
@@ -12,6 +12,12 @@ check_quality() {
   local project_dir="$3"
 
   local db="$project_dir/harness.db"
+  local baseline="$outdir/harness-baseline.env"
+  local trace_before_max_id=0
+
+  if [ -f "$baseline" ]; then
+    . "$baseline"
+  fi
 
   # No harness DB → score 0
   if [ ! -f "$db" ]; then
@@ -19,19 +25,21 @@ check_quality() {
     return 0
   fi
 
-  # No traces at all → score 0
+  # No fresh trace for this task → score 0. This avoids assigning a stale
+  # trace from an earlier task to the current task's quality score.
   local trace_count
-  trace_count=$(sqlite3 "$db" "SELECT COUNT(*) FROM trace;" 2>/dev/null || echo 0)
+  trace_count=$(sqlite3 "$db" "SELECT COUNT(*) FROM trace WHERE id > $trace_before_max_id;" 2>/dev/null || echo 0)
   if [ "$trace_count" -eq 0 ]; then
-    write_quality_json "$outdir" "none" 0 0 0 0 0 0 0 0 0 0 0 0
+    write_quality_json "$outdir" "none" 0 0 0 0 0 0 0 0 0 0 0 0 0 null
     return 0
   fi
 
-  # Query field-presence flags from the latest trace (single query).
+  # Query field-presence flags from the latest fresh trace (single query).
   # Each column returns 1 (present) or 0 (missing) per TRACE_SPEC.md rules.
   local flags
   flags=$(sqlite3 "$db" "
     SELECT
+      id,
       -- Minimal tier
       CASE WHEN length(coalesce(trim(task_summary),'')) >= 10
            THEN 1 ELSE 0 END,
@@ -69,7 +77,7 @@ check_quality() {
                     OR lower(notes) LIKE '%not available%'
                     OR lower(notes) LIKE '%unknown%'))
            THEN 1 ELSE 0 END
-    FROM trace ORDER BY id DESC LIMIT 1;
+    FROM trace WHERE id > $trace_before_max_id ORDER BY id DESC LIMIT 1;
   " 2>/dev/null)
 
   if [ -z "$flags" ]; then
@@ -79,7 +87,7 @@ check_quality() {
 
   # Parse pipe-separated values
   IFS='|' read -r \
-    has_summary has_outcome \
+    trace_id has_summary has_outcome \
     has_agent has_actions has_files_read has_files_changed has_errors_or_friction \
     has_decisions has_errors_explicit has_friction_explicit has_duration has_tokens \
     <<< "$flags"
@@ -131,7 +139,7 @@ check_quality() {
     "$has_agent" "$has_actions" "$has_files_read" "$has_files_changed" \
     "$has_errors_or_friction" \
     "$has_decisions" "$has_errors_explicit" "$has_friction_explicit" \
-    "$has_duration" "$has_tokens"
+    "$has_duration" "$has_tokens" 1 "$trace_id"
 }
 
 # Write quality.json with field-presence flags
@@ -142,6 +150,13 @@ write_quality_json() {
   local s_files_changed="${9:-0}" s_errors_or_friction="${10:-0}"
   local s_decisions="${11:-0}" s_errors="${12:-0}" s_friction="${13:-0}"
   local s_duration="${14:-0}" s_tokens="${15:-0}"
+  local s_fresh="${16:-0}" trace_id="${17:-null}"
+
+  local trace_id_json="null"
+  case "$trace_id" in
+    ''|*[!0-9]*) trace_id_json="null" ;;
+    *) trace_id_json="$trace_id" ;;
+  esac
 
   to_bool() { if [ "$1" -eq 1 ] 2>/dev/null; then echo "true"; else echo "false"; fi; }
 
@@ -149,6 +164,8 @@ write_quality_json() {
 {
   "trace_quality": "$quality",
   "trace_quality_score": $score,
+  "trace_fresh": $(to_bool "$s_fresh"),
+  "trace_id": $trace_id_json,
   "fields": {
     "task_summary": $(to_bool "$s_summary"),
     "outcome": $(to_bool "$s_outcome"),

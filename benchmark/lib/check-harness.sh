@@ -14,6 +14,10 @@ record_harness_baseline() {
     echo "story_before=$(harness_table_count "$db" story)"
     echo "decision_before=$(harness_table_count "$db" decision)"
     echo "trace_before=$(harness_table_count "$db" trace)"
+    echo "intake_before_max_id=$(harness_table_max_id "$db" intake)"
+    echo "story_before_max_id=$(harness_table_max_id "$db" story)"
+    echo "decision_before_max_id=$(harness_table_max_id "$db" decision)"
+    echo "trace_before_max_id=$(harness_table_max_id "$db" trace)"
     echo "high_risk_docs_before=$(count_high_risk_doc_sets "$project_dir")"
   } > "$outfile"
 }
@@ -30,6 +34,10 @@ check_harness() {
   local story_before=0
   local decision_before=0
   local trace_before=0
+  local intake_before_max_id=0
+  local story_before_max_id=0
+  local decision_before_max_id=0
+  local trace_before_max_id=0
   local high_risk_docs_before=0
 
   if [ -f "$baseline" ]; then
@@ -45,8 +53,8 @@ check_harness() {
 
   # Check: Intake recorded for this task?
   local intake_count intake_delta
-  intake_count=$(harness_table_count "$db" intake)
-  intake_delta=$((intake_count - intake_before))
+  intake_count=$(harness_table_count_after_id "$db" intake "$intake_before_max_id")
+  intake_delta=$intake_count
   add_harness_check results "intake_recorded" "$((intake_delta > 0))"
 
   # Check: Risk lane assigned correctly?
@@ -57,22 +65,27 @@ check_harness() {
     *)    expected_lane="normal" ;;
   esac
 
-  local actual_lane
-  actual_lane=$(sqlite3 "$db" "SELECT risk_lane FROM intake ORDER BY id DESC LIMIT 1;" 2>/dev/null || echo "")
+  local actual_lane=""
+  local lane_fresh=false
+  if [ "$intake_delta" -gt 0 ]; then
+    actual_lane=$(sqlite3 "$db" "SELECT risk_lane FROM intake WHERE id > $intake_before_max_id ORDER BY id DESC LIMIT 1;" 2>/dev/null || echo "")
+    lane_fresh=true
+  fi
   local lane_match=0
-  [ "$intake_delta" -gt 0 ] && [ "$actual_lane" = "$expected_lane" ] && lane_match=1
+  [ "$lane_fresh" = "true" ] && [ "$actual_lane" = "$expected_lane" ] && lane_match=1
   add_harness_check results "correct_lane" "$lane_match"
 
-  # Save lane data for reporting
+  # Save lane data for reporting. `fresh=false` means no intake was created
+  # during this task, so report aggregation must not count a stale lane.
   cat > "$outdir/lane.json" <<EOF
-{"expected": "$expected_lane", "actual": "$actual_lane"}
+{"expected": "$expected_lane", "actual": "$actual_lane", "fresh": $lane_fresh}
 EOF
 
   # Check: Story created (for normal+ tasks)?
   if [ "$expected_lane" != "tiny" ]; then
     local story_count story_delta
-    story_count=$(harness_table_count "$db" story)
-    story_delta=$((story_count - story_before))
+    story_count=$(harness_table_count_after_id "$db" story "$story_before_max_id")
+    story_delta=$story_count
     add_harness_check results "story_created" "$((story_delta > 0))"
   fi
 
@@ -91,20 +104,20 @@ EOF
 
     # Decision record for high-risk
     local decision_count decision_delta
-    decision_count=$(harness_table_count "$db" decision)
-    decision_delta=$((decision_count - decision_before))
+    decision_count=$(harness_table_count_after_id "$db" decision "$decision_before_max_id")
+    decision_delta=$decision_count
     add_harness_check results "decision_recorded" "$((decision_delta > 0))"
   fi
 
   # Check: Trace recorded?
   local trace_count trace_delta
-  trace_count=$(harness_table_count "$db" trace)
-  trace_delta=$((trace_count - trace_before))
+  trace_count=$(harness_table_count_after_id "$db" trace "$trace_before_max_id")
+  trace_delta=$trace_count
   add_harness_check results "trace_recorded" "$((trace_delta > 0))"
 
   # Check: Friction captured?
   local latest_friction
-  latest_friction=$(sqlite3 "$db" "SELECT harness_friction FROM trace ORDER BY id DESC LIMIT 1;" 2>/dev/null || echo "")
+  latest_friction=$(sqlite3 "$db" "SELECT harness_friction FROM trace WHERE id > $trace_before_max_id ORDER BY id DESC LIMIT 1;" 2>/dev/null || echo "")
   local friction_captured=0
   [ "$trace_delta" -gt 0 ] && [ -n "$latest_friction" ] && friction_captured=1
   add_harness_check results "friction_captured" "$friction_captured"
@@ -123,6 +136,31 @@ harness_table_count() {
   fi
 
   sqlite3 "$db" "SELECT COUNT(*) FROM $table;" 2>/dev/null || echo 0
+}
+
+harness_table_max_id() {
+  local db="$1"
+  local table="$2"
+
+  if [ ! -f "$db" ]; then
+    echo 0
+    return
+  fi
+
+  sqlite3 "$db" "SELECT COALESCE(MAX(id), 0) FROM $table;" 2>/dev/null || echo 0
+}
+
+harness_table_count_after_id() {
+  local db="$1"
+  local table="$2"
+  local after_id="$3"
+
+  if [ ! -f "$db" ]; then
+    echo 0
+    return
+  fi
+
+  sqlite3 "$db" "SELECT COUNT(*) FROM $table WHERE id > $after_id;" 2>/dev/null || echo 0
 }
 
 has_new_high_risk_docs() {

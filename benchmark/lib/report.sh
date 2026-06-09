@@ -62,12 +62,14 @@ generate_report() {
       total_quality_score=$((total_quality_score + q_score))
     fi
 
-    # Lane accuracy
+    # Lane accuracy: only fresh intake records count. Without fresh=true,
+    # a task could inherit a stale lane from a previous task and look correct.
     if [ -f "$task_dir/lane.json" ]; then
-      local expected actual
+      local expected actual fresh
       expected=$(jq -r '.expected // ""' "$task_dir/lane.json" 2>/dev/null || echo "")
       actual=$(jq -r '.actual // ""' "$task_dir/lane.json" 2>/dev/null || echo "")
-      [ "$expected" = "$actual" ] && correct_lanes=$((correct_lanes + 1))
+      fresh=$(jq -r '.fresh // false' "$task_dir/lane.json" 2>/dev/null || echo "false")
+      [ "$fresh" = "true" ] && [ "$expected" = "$actual" ] && correct_lanes=$((correct_lanes + 1))
     fi
   done
 

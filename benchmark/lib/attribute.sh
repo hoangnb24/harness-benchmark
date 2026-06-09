@@ -39,6 +39,16 @@ quality_field_to_responsibility() {
   esac
 }
 
+check_value_from_list() {
+  local checks="$1"
+  local expected_name="$2"
+
+  printf '%s\n' "$checks" | awk -F= -v expected_name="$expected_name" '
+    $1 == expected_name { print $2; found = 1; exit }
+    END { if (!found) print "missing" }
+  '
+}
+
 # Compare harness compliance checks for a single task between two runs.
 # Prints lines like: "  intake_recorded: ✗→✓ (Task specification)"
 compare_harness_checks() {
@@ -57,16 +67,7 @@ compare_harness_checks() {
   checks1=$(jq -r '.checks[]? | "\(.name)=\(.pass)"' "$h1" 2>/dev/null || true)
   checks2=$(jq -r '.checks[]? | "\(.name)=\(.pass)"' "$h2" 2>/dev/null || true)
 
-  # Build associative arrays
-  declare -A r1_checks r2_checks
-  while IFS='=' read -r name pass; do
-    [ -z "$name" ] && continue
-    r1_checks["$name"]="$pass"
-  done <<< "$checks1"
-  while IFS='=' read -r name pass; do
-    [ -z "$name" ] && continue
-    r2_checks["$name"]="$pass"
-  done <<< "$checks2"
+  # Bash 3-compatible lookup: avoid associative arrays for macOS /bin/bash.
 
   # Union of all check names
   local all_checks
@@ -74,8 +75,9 @@ compare_harness_checks() {
 
   while read -r check; do
     [ -z "$check" ] && continue
-    local v1="${r1_checks[$check]:-missing}"
-    local v2="${r2_checks[$check]:-missing}"
+    local v1 v2
+    v1=$(check_value_from_list "$checks1" "$check")
+    v2=$(check_value_from_list "$checks2" "$check")
     local resp
     resp=$(check_to_responsibility "$check")
 
@@ -86,7 +88,7 @@ compare_harness_checks() {
     local s1 s2
     s1=$([ "$v1" = "true" ] && echo "✓" || echo "✗")
     s2=$([ "$v2" = "true" ] && echo "✓" || echo "✗")
-    echo "  $check: $s1→$s2 ($resp)"
+    echo "  $check: ${s1}→${s2} ($resp)"
   done <<< "$all_checks"
 }
 
@@ -130,7 +132,7 @@ compare_quality_fields() {
       local s1 s2
       s1=$([ "$v1" = "true" ] && echo "✓" || echo "✗")
       s2=$([ "$v2" = "true" ] && echo "✓" || echo "✗")
-      echo "  $field: $s1→$s2 ($resp)"
+      echo "  $field: ${s1}→${s2} ($resp)"
     done
   else
     # Old format or mixed: compare trace_quality_score as a whole
@@ -142,9 +144,9 @@ compare_quality_fields() {
 
     if [ "$score1" != "$score2" ]; then
       if [ "$score2" -gt "$score1" ]; then
-        echo "  trace_quality: $tier1→$tier2 ($score1→$score2/3) (Observability)"
+        echo "  trace_quality: ${tier1}→${tier2} (${score1}→${score2}/3) (Observability)"
       else
-        echo "  trace_quality: $tier1→$tier2 ($score1→$score2/3) (Observability)"
+        echo "  trace_quality: ${tier1}→${tier2} (${score1}→${score2}/3) (Observability)"
       fi
     fi
   fi
@@ -164,7 +166,9 @@ generate_attribution() {
   echo "Component Attribution:"
   echo ""
 
-  declare -A improved regressed
+  local summary_file
+  summary_file=$(mktemp "${TMPDIR:-/tmp}/harness-attribute.XXXXXX")
+  : > "$summary_file"
 
   for task_dir in "$run1_dir"/T*; do
     [ -d "$task_dir" ] || continue
@@ -204,74 +208,63 @@ generate_attribution() {
     fi
     echo ""
 
-    # Track responsibility-level summary
+    # Track responsibility-level summary in a temp file for Bash 3 compatibility.
     local all_changes
     all_changes=$(echo "$harness_changes"$'\n'"$quality_changes")
     while IFS= read -r line; do
       [ -z "$line" ] && continue
-      # Extract the responsibility name from parentheses at end of line
+      # Extract the responsibility name from parentheses at end of line.
       local resp
-      resp=$(echo "$line" | grep -oP '\(([^)]+)\)$' | tr -d '()')
+      resp=$(echo "$line" | sed -n 's/.*(\([^()]*\))$/\1/p')
       [ -z "$resp" ] && continue
 
       if echo "$line" | grep -q '✗→✓'; then
-        improved["$resp"]=$(( ${improved["$resp"]:-0} + 1 ))
+        printf '%s|improved\n' "$resp" >> "$summary_file"
       elif echo "$line" | grep -q '✓→✗'; then
-        regressed["$resp"]=$(( ${regressed["$resp"]:-0} + 1 ))
+        printf '%s|regressed\n' "$resp" >> "$summary_file"
       else
-        # Old-format quality: check if score improved or regressed
+        # Old-format quality: check if score improved or regressed.
         # Format: "trace_quality: tier1→tier2 (score1→score2/3) (Responsibility)"
-        local scores
-        scores=$(echo "$line" | grep -oP '\((\d+)→(\d+)/3\)' || true)
+        local scores s1 s2
+        scores=$(echo "$line" | sed -n 's/.*(\([0-9][0-9]*\)→\([0-9][0-9]*\)\/3).*/\1 \2/p')
         if [ -n "$scores" ]; then
-          local s1 s2
-          s1=$(echo "$scores" | grep -oP '^\(\K\d+')
-          s2=$(echo "$scores" | grep -oP '→\K\d+')
-          if [ -n "$s1" ] && [ -n "$s2" ]; then
-            if [ "$s2" -gt "$s1" ]; then
-              improved["$resp"]=$(( ${improved["$resp"]:-0} + 1 ))
-            elif [ "$s2" -lt "$s1" ]; then
-              regressed["$resp"]=$(( ${regressed["$resp"]:-0} + 1 ))
-            fi
+          set -- $scores
+          s1="$1"
+          s2="$2"
+          if [ "$s2" -gt "$s1" ]; then
+            printf '%s|improved\n' "$resp" >> "$summary_file"
+          elif [ "$s2" -lt "$s1" ]; then
+            printf '%s|regressed\n' "$resp" >> "$summary_file"
           fi
         fi
       fi
     done <<< "$all_changes"
   done
 
-  # Summary — use a delimiter that won't appear in responsibility names
-  if [ ${#improved[@]} -gt 0 ] || [ ${#regressed[@]} -gt 0 ]; then
+  # Summary — use awk arrays for Bash 3 compatibility.
+  if [ -s "$summary_file" ]; then
     echo "  Responsibility Summary:"
     echo ""
-
-    # Collect unique responsibility names via a temp associative array
-    declare -A all_resps_set
-    for key in "${!improved[@]}"; do
-      all_resps_set["$key"]=1
-    done
-    for key in "${!regressed[@]}"; do
-      all_resps_set["$key"]=1
-    done
-
-    for resp in "${!all_resps_set[@]}"; do
-      [ -z "$resp" ] && continue
-      local imp_count reg_count
-      imp_count=${improved["$resp"]:-0}
-      reg_count=${regressed["$resp"]:-0}
-      local net=$((imp_count - reg_count))
-      local indicator
-      if [ "$net" -gt 0 ]; then
-        indicator="↑ improved"
-      elif [ "$net" -lt 0 ]; then
-        indicator="↓ regressed"
-      else
-        indicator="~ mixed"
-      fi
-      printf "    %-24s  +%d/-%d checks  %s\n" "$resp" "$imp_count" "$reg_count" "$indicator"
-    done | sort
+    awk -F'|' '
+      $2 == "improved" { improved[$1]++; keys[$1] = 1 }
+      $2 == "regressed" { regressed[$1]++; keys[$1] = 1 }
+      END {
+        for (resp in keys) {
+          imp = improved[resp] + 0
+          reg = regressed[resp] + 0
+          net = imp - reg
+          if (net > 0) indicator = "↑ improved"
+          else if (net < 0) indicator = "↓ regressed"
+          else indicator = "~ mixed"
+          printf "    %-24s  +%d/-%d checks  %s\n", resp, imp, reg, indicator
+        }
+      }
+    ' "$summary_file" | sort
     echo ""
   else
     echo "  No per-check changes detected between runs."
     echo ""
   fi
+
+  rm -f "$summary_file"
 }
