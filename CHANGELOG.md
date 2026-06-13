@@ -10,8 +10,9 @@
   `repository-harness` capabilities.
 - The plan covers four workstreams with testable acceptance criteria:
   multi-agent/multi-model usage + cost accounting with a manual pricing table,
-  Phase 5 capability + evolution tests (T7–T12), a clean-architecture/DI
-  orchestrator restructure, and resumable/retryable runs.
+  more T1–T6-style challenge tasks plus a log/trace-derived harness-adherence
+  review series, a clean-architecture/DI orchestrator restructure, and
+  resumable/retryable runs.
 
 ### Verification
 

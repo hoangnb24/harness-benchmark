@@ -1,111 +1,126 @@
-# Workstream 02 — Phase 5 capability tests & the evolution challenge
+# Workstream 02 — More challenge tasks + harness-adherence review from logs
 
 > Addresses request #2: *"introduce new tests which aim to test most of the repository-harness … phase 5
-> with lots of new capabilities. Beside correctness in implementation, think of other aspects and maybe
+> with lots of new capabilities. Besides correctness in implementation, think of other aspects and maybe
 > suggestion to evolve, propose after finishing the test. Previous benchmark can't do that, and an agent
 > without the benchmark can't do that either. Make sure the outcome is clear, acceptance criteria
 > testable."*
+>
+> **Reframed per review:** keep adding **more challenge tasks in the same style as T1–T6** to restore
+> difficulty headroom, and add a **new series of checks that review the run's logs/traces/`harness.db`**
+> to judge whether the agent actually followed the harness — instead of tasks that instruct the agent to
+> run `harness-cli audit`/`propose` directly.
 
 ## Problem
 
-Today every automated check is an HTTP probe against the Bookmark Manager API the agent builds
-(`benchmark/lib/check-functional.sh`). The harness checks (`check-harness.sh`) only count
-intake/story/decision/trace rows and the lane. **No task uses any Phase 5 capability**, and there is
-no metric for the agent's ability to **evolve the project** (audit drift, propose improvements).
+1. The functional difficulty has been **mastered**: the latest run scores 37/37 functional and 31/31
+   harness (`benchmark/runs/phase-5-evolution-infrastructure-20260608-230505/scores.json`). T1–T6 no
+   longer separate a good agent from a great one.
+2. There is **no measurement of Phase 5 harness adherence**. The harness records intake, stories,
+   decisions, traces, friction, tools, interventions, and a backlog into `harness.db`, and exposes
+   `audit`/`score-context`/`propose` — but the benchmark never inspects any of that to ask *"did the
+   agent actually work the harness way?"* All automated checks today are HTTP probes
+   (`benchmark/lib/check-functional.sh`).
 
-That is the precise capability the user calls out: an agent *with* the Phase 5 harness can audit and
-propose; an agent *without* it cannot; and the *old* benchmark could not measure it.
+The fix is two complementary parts.
 
-## Design overview
+---
 
-Add a **Phase 5 capability suite** — tasks **T7–T12** — that runs after the functional baseline
-(T1–T6). Each task:
+## Part A — Keep adding challenge tasks (same kind as T1–T6)
 
-- has a **clear deliverable** and a **machine-checkable** rubric (jq over `--json` output, `harness-cli`
-  exit codes, row counts in `harness.db`);
-- maps to one or more of the **11 Runtime Substrate responsibilities** (see
-  `repository-harness/docs/HARNESS_COMPONENTS.md`), prioritizing the three Phase 5 *added* (Tool access,
-  Entropy auditing, Intervention recording) and the three *partial* (Observability, Failure
-  attribution, Permissions);
-- emits a new `capability.json` (and, for the capstone, `evolution.json`).
+Extend the existing series with **harder feature work** on the Bookmark Manager API, in the exact
+task/rubric format already used (`benchmark/tasks/T*.md` = `## Context / ## Task / ## Acceptance
+Criteria / ## Notes`; `benchmark/rubrics/T*.md` = `## Functional Checks | ## Harness Compliance |
+## Quality Indicators`). Functional checks stay HTTP-testable, exactly like T1–T6.
 
-The new tasks follow the existing doc format: `benchmark/tasks/T*.md`
-(`## Context / ## Task / ## Acceptance Criteria / ## Notes`) and `benchmark/rubrics/T*.md`
-(`## Functional Checks` | `## Harness Compliance` | `## Quality Indicators`).
+Illustrative next tasks (final list TBD with you):
 
-## Proposed tasks
-
-| Task | Capability under test | Phase 5 cmd(s) | Responsibility |
+| Task | Challenge | Risk lane | Why it's harder |
 | --- | --- | --- | --- |
-| **T7 — Tool registry & discovery** | Register a project tool, discover it, remove it | `tool register`, `query tools --json`, `tool remove` | Tool access |
-| **T8 — Verification gate** | Add stories with verify commands; batch-verify | `story verify-all` | Verification |
-| **T9 — Intervention recording** | Record interventions; query by trace/type | `intervention add`, `query interventions` | Intervention recording |
-| **T10 — Context discipline** | Produce a trace, score its context compliance, act on advisories | `score-context <trace-id>` | Context selection / Observability |
-| **T11 — Drift audit** | Introduce drift, then reduce the entropy score | `audit` | Entropy auditing |
-| **T12 — Evolution proposal (capstone)** | Turn seeded friction into a structured improvement proposal + a written evolution suggestion | `propose [--commit]` | Failure attribution / Entropy auditing |
+| **T7 — Tags (many-to-many)** | bookmarks↔tags, filter by multiple tags | normal | join modeling + query correctness |
+| **T8 — Full-text search** | search title/description/url with ranking | normal | non-trivial query + ordering assertions |
+| **T9 — Import / export** | Netscape-HTML or JSON import with idempotent dedupe | normal | parsing + idempotency under re-run |
+| **T10 — Folder sharing & permissions** | share folders read-only with other users | **high_risk** | authz boundaries; exercises high-risk lane + decision records |
+| **T11 — Concurrency safety** | optimistic locking / conflict handling on update | normal | race conditions, 409 semantics |
+| **T12 — Scale & cursor pagination** | cursor pagination + N+1 fix over a large seeded dataset | normal | performance correctness at volume |
 
-### Example — T11 (Drift audit), testable end to end
+These restore headroom on the **functional** dimension. They are deliberately not "maxable" the way
+T1–T6 became, and the difficulty curve can keep growing (T13+). Workstream
+[03](03-clean-architecture-and-di.md) is what makes "keep adding" cheap: a task is just a `task.md` +
+`rubric.md` + a declarative set of HTTP checks, registered by data — no edits to the orchestrator.
 
-- **Context**: the seeded repo has an orphaned doc and an unverified story (drift).
-- **Task**: run `harness-cli audit`; resolve enough findings to bring the **entropy score** down by a
-  target margin; record a trace explaining what was fixed.
-- **Acceptance criteria** (each a command with a pass condition):
-
-| # | Check | Method | Pass criteria |
-| --- | --- | --- | --- |
-| 1 | Baseline drift exists | `harness-cli audit` (pre) | entropy score ≥ seeded threshold |
-| 2 | Agent reduced drift | `harness-cli audit` (post) | entropy score ≤ target (e.g. ≥ 30-point drop) |
-| 3 | No new orphaned docs introduced | parse `audit` categories | `orphaned == 0` in changed set |
-| 4 | Fix is traced | `query` latest trace | trace references `audit` + the resolved findings |
-
-The entropy formula is fixed and known (`repository-harness/PHASE5.md`, US-023:
-`orphaned×10 + unverified_stories×5 + unverified_decisions×5 + open_backlog×2 + stale×3 + broken_tools×8`,
-capped at 100), so "reduced by ≥ N" is deterministic and testable.
-
-### Example — T12 (Evolution capstone), the "propose to evolve" test
-
-- **Context**: the run has accumulated real friction (from T1–T11) plus seeded interventions.
-- **Task**: run `harness-cli propose` to generate improvement proposals from that friction; select the
-  best, `propose --commit` it into the backlog; then **write a short `EVOLUTION.md`** arguing what the
-  *project or the harness itself* should change next and why.
-- **Acceptance criteria**:
-
-| # | Check | Method | Pass criteria |
-| --- | --- | --- | --- |
-| 1 | At least one proposal generated | `harness-cli propose` | ≥ 1 proposal, each with all required fields (problem, evidence, suggested change, confidence ∈ {High,Med,Low}) |
-| 2 | Proposal committed to backlog | `harness-cli backlog list` / `query` | committed item present with `source = propose` |
-| 3 | Evolution deliverable exists & is grounded | check `EVOLUTION.md` | references ≥ 1 concrete friction/intervention id and a specific harness responsibility |
-| 4 | Proposal is non-trivial | rubric scorer | evolution score ≥ threshold (see scoring) |
-
-This is the explicit "an agent **without** the benchmark can't do this" test: without the Phase 5
-harness there is no `propose`/`audit`/backlog to drive it, and without the benchmark nobody grades the
-quality of the resulting evolution.
-
-## New metrics (additive to `scores.json`)
-
-- **`capability_pass` / `capability_total`** — automated Phase 5 checks across T7–T12.
-- **`evolution_score`** (0–N) — grades T12 proposal quality, scored on a rubric (problem clearly
-  stated; evidence cites real ids; suggested change is actionable; confidence justified; the written
-  suggestion targets a real responsibility/gap). Presence alone is **not** enough — this prevents the
-  new task from becoming trivially maxable like the current ones.
-- Existing dimensions (functional/harness/trace/lane/cost) are unchanged.
-
-## Acceptance criteria (workstream-level, testable)
+### Part A acceptance criteria (testable)
 
 | # | Criterion | How to verify |
 | --- | --- | --- |
-| 1 | Each of T7–T12 has a task doc + rubric in the existing format | files exist; rubric tables parse |
-| 2 | Each capability check is **machine-evaluated** (no human judgement) | check scripts return pass/fail purely from `--json`/exit codes/db rows |
-| 3 | Capability checks **fail** when run against a pre-Phase-5 harness ref | run T7–T12 against an older `--harness` ref ⇒ capability_pass < total |
-| 4 | `audit`-based tasks assert a **numeric** entropy delta, not presence | T11 check compares pre/post entropy integers |
-| 5 | Evolution score is reproducible for a fixed proposal fixture | unit test scores a recorded `propose` output to a known value |
-| 6 | New tasks integrate with resume/checkpoint (Workstream 04) | `--only T11` restores prior checkpoint and runs just T11 |
-| 7 | `scores.json` gains `capability_*` and `evolution_score`; old keys unchanged | schema test |
+| A1 | Each new task has a `tasks/T*.md` + `rubrics/T*.md` in the existing format | files exist; rubric tables parse |
+| A2 | Each functional check is an automated HTTP probe with explicit pass criteria | runs via the existing `run_check`/`run_check_json` style; pass/fail from status + body |
+| A3 | Adding a task requires **no orchestrator code change** (data-registered) | add a dummy task fixture; it runs without touching `run.sh`/use cases |
+| A4 | The high-risk task (T10) drives the `high_risk` lane + a decision record | lane.json `expected == high_risk`; decision row present |
+
+---
+
+## Part B — Harness-adherence & evolution review (from logs/traces/db)
+
+A **new check category** the benchmark computes *after* each task by **reviewing evidence the agent left
+behind** — `harness.db` rows, the agent's `events.jsonl`/output logs, and the recorded traces. The agent
+is **not** told to run any harness command; we measure whether a good harness-using agent naturally did
+the right things. This is the "new series of checks from the logs."
+
+Crucially, the **benchmark** runs the Phase 5 review commands as *measurement* (read-only, against the
+agent's output), e.g. `harness-cli score-context <trace-id>`, `harness-cli audit`, `harness-cli propose`
+— so we score the *outcome/quality* of the agent's work, not whether it was spoon-fed a command.
+
+| Check (review series) | Source reviewed | Phase 5 cmd used for measurement | Responsibility |
+| --- | --- | --- | --- |
+| **Tool registry hygiene** | `harness.db` tool rows + agent logs | `query tools --json` | Tool access |
+| **Verification discipline** | story rows + verify commands | `story verify-all` (review) | Verification |
+| **Intervention capture** | intervention rows vs. corrections seen in logs | `query interventions` | Intervention recording |
+| **Context compliance** | the agent's recorded trace | `score-context <trace-id>` | Context selection / Observability |
+| **Drift / entropy outcome** | resulting repo + docs/state | `audit` → entropy score | Entropy auditing |
+| **Evolution signal** | friction/backlog + agent output | `propose` over recorded friction | Failure attribution |
+
+### How each becomes testable
+
+- **Context compliance**: benchmark runs `score-context` on the trace the agent wrote for the task and
+  asserts the returned compliance tier ≥ threshold for the task's lane.
+- **Drift / entropy outcome**: benchmark runs `audit` on the post-task repo; a good agent leaves **low**
+  entropy (e.g. no orphaned docs, stories verified). Score = `entropy_max - entropy_actual`, a deterministic
+  integer from the known formula (`repository-harness/PHASE5.md` US-023:
+  `orphaned×10 + unverified_stories×5 + unverified_decisions×5 + open_backlog×2 + stale×3 + broken_tools×8`,
+  cap 100).
+- **Evolution signal**: benchmark runs `propose` over the friction the agent recorded; the check passes
+  if there is enough well-formed signal to generate ≥1 structured proposal (problem/evidence/suggested
+  change/confidence). This captures *"suggestion to evolve, propose after finishing"* **from evidence the
+  agent left**, not from a scripted step. An agent that ignored the harness leaves nothing to propose →
+  it scores zero here; an agent **without** the harness can't produce these logs at all.
+
+### New metric: harness-adherence score (log-derived)
+
+- **`adherence_pass` / `adherence_total`** — the review-series checks above, rolled into `scores.json`.
+- An optional **`evolution_score`** grades the *quality* of the proposable signal (does recorded friction
+  cite real ids; is the resulting proposal actionable), so this dimension is not trivially maxable.
+- Existing dimensions (functional/harness/trace/lane/cost) are unchanged and remain backward-compatible.
+
+### Part B acceptance criteria (testable)
+
+| # | Criterion | How to verify |
+| --- | --- | --- |
+| B1 | Every review check is **purely log/db-derived** — no agent instruction to run harness commands | check reads `harness.db` + logs/traces only; task docs contain no "run harness-cli X" steps |
+| B2 | Review checks are **machine-evaluated** (jq over `--json`, exit codes, db row counts) | check scripts return pass/fail with no human judgement |
+| B3 | Context compliance asserts a **numeric** tier from `score-context` on the agent's trace | unit/integration test on a recorded trace fixture |
+| B4 | Entropy outcome is a **numeric** value from `audit` on the post-task repo | integration test compares against a seeded fixture repo |
+| B5 | Evolution signal passes only with **well-formed** proposable friction; empty/ignored harness ⇒ fail | run review on a "harness-ignored" fixture ⇒ adherence fails; on a "harness-followed" fixture ⇒ passes |
+| B6 | Running the review series against a **pre-Phase-5** harness ref reduces adherence (commands/data absent) | run vs. older `--harness` ref ⇒ adherence_pass < total |
+| B7 | `scores.json` gains `adherence_*` (+ optional `evolution_score`); old keys unchanged | schema test |
+
+---
 
 ## Touch points
 
-- New: `benchmark/tasks/T7..T12-*.md`, `benchmark/rubrics/T7..T12-*.md`,
-  `benchmark/lib/check-capability.sh` (or the TS `HarnessGateway` probes), `benchmark/seeds/phase5/*`
-  (seed fixtures for drift/friction/interventions).
+- New challenge tasks: `benchmark/tasks/T7..T12-*.md`, `benchmark/rubrics/T7..T12-*.md` (Part A).
+- New review layer: `benchmark/lib/check-adherence.sh` (or the TS `HarnessGateway` review probes) that
+  reads `harness.db` + `events.jsonl`/logs and shells `score-context`/`audit`/`propose` for measurement;
+  optional seed fixtures under `benchmark/seeds/phase5/*`.
 - Updates: `benchmark/run.sh` task list, `benchmark/lib/report.sh` roll-up, `benchmark/PROTOCOL.md`.
 - Reference (read-only): `repository-harness/PHASE5.md`, `…/docs/HARNESS_COMPONENTS.md`.

@@ -62,8 +62,8 @@ the benchmark can't do either."*
 | --- | --- | --- | --- |
 | Agents | `codex` fully parsed; `claude` & `custom` write **zero** tokens | `benchmark/lib/invoke.sh:104-150` | [01](01-multi-agent-and-cost.md) |
 | Cost | single hardcoded rate `$3/M in, $12/M out` for **all** models | `benchmark/lib/invoke.sh:174-176` | [01](01-multi-agent-and-cost.md) |
-| Phase 5 caps | not tested; checks are 100% HTTP probes | `benchmark/lib/check-functional.sh` | [02](02-phase5-capability-tests.md) |
-| Evolution | no task requires `audit`/`propose`; no evolution metric | `benchmark/lib/report.sh:87-` scores.json | [02](02-phase5-capability-tests.md) |
+| Difficulty | T1–T6 mastered (37/37); no harder challenge tasks | latest `scores.json` | [02](02-phase5-capability-tests.md) |
+| Harness adherence | logs/`harness.db` never reviewed; no Phase 5 adherence metric | `benchmark/lib/check-functional.sh` (all HTTP) | [02](02-phase5-capability-tests.md) |
 | Architecture | sourced Bash + globals (`AGENT`, `RUN_ID`, …) | `benchmark/run.sh`, `benchmark/lib/*.sh` | [03](03-clean-architecture-and-di.md) |
 | Resume | linear `for task in T1..T6`; no checkpoint; `seeds/` empty | `benchmark/run.sh:117-152`, `benchmark/seeds/.gitkeep` | [04](04-resumable-runs.md) |
 
@@ -95,8 +95,9 @@ is injected into use cases through **ports**:
 
 - **Workstream 01** adds `AgentAdapter`, `UsageParser` (per provider), `PricingProvider`, and the
   `CostModel` domain logic.
-- **Workstream 02** adds Phase 5 capability probes behind `HarnessGateway` plus new domain
-  `Score` dimensions (capability, evolution) and new task specs/rubrics.
+- **Workstream 02** adds (a) more T1–T6-style challenge tasks and (b) a log/trace/`harness.db`
+  **review** layer behind `HarnessGateway` (the benchmark runs `score-context`/`audit`/`propose` as
+  read-only *measurement* of the agent's output) plus a new `adherence` `Score` dimension.
 - **Workstream 03** is the skeleton itself (ports + composition root + DI) and the migration path
   off the current Bash globals.
 - **Workstream 04** adds `CheckpointStore` and the `ResumeRun` use case + run-state machine.
@@ -109,7 +110,7 @@ is injected into use cases through **ports**:
 | **M1 — Parity** | Port existing codex + scorers onto the new architecture | A golden run reproduces the current `scores.json`/`report.md` byte-for-byte (modulo timestamps) |
 | **M2 — Multi-model + cost** | Workstream [01](01-multi-agent-and-cost.md) | Provider parsers + pricing table green against fixtures; missing-price guard fails the run |
 | **M3 — Resumable runs** | Workstream [04](04-resumable-runs.md) | Kill-after-T3 → `--resume` continues at T4; `--only T5` restores prior checkpoint |
-| **M4 — Phase 5 tasks** | Workstream [02](02-phase5-capability-tests.md) | New T7–T12 with automated checks; capability + evolution scores reported |
+| **M4 — Challenge tasks + adherence review** | Workstream [02](02-phase5-capability-tests.md) | New T7+ challenge tasks (HTTP-checked) **and** the log/trace review series; `adherence` score reported |
 | **M5 — Harden** | CI workflow, docs, changelog | CI runs unit tests + lints on PRs; `PROTOCOL.md` + `README.md` updated |
 
 M0/M1 are foundational and must land before 01/02/04 to avoid building three features on top of
