@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-06-13
+
+### Changed
+
+- Added `benchmark/upgrade-plan/` — a proposal (no behavior change) for the next
+  benchmark iteration, motivated by recent runs maxing out functional (37/37),
+  harness (31/31), and lane (6/6) metrics while exercising none of the Phase 5
+  `repository-harness` capabilities.
+- The plan covers four workstreams with testable acceptance criteria:
+  multi-agent/multi-model usage + cost accounting with a manual pricing table,
+  Phase 5 capability + evolution tests (T7–T12), a clean-architecture/DI
+  orchestrator restructure, and resumable/retryable runs.
+
+### Verification
+
+- Plan-only PR: no scripts changed. Markdown reviewed for internal link and
+  file/line references against the current tree.
+
 ## 2026-06-08
 
 ### Changed
