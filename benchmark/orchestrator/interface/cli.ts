@@ -7,7 +7,9 @@ import { PrepareRun } from '../application/PrepareRun';
 import { ResumeRun, type ResumeMode } from '../application/ResumeRun';
 import { FsAdherenceArtifactWriter } from '../infrastructure/FsAdherenceArtifactWriter';
 import { FsCheckpointStore } from '../infrastructure/FsCheckpointStore';
+import { CommandAdherenceEvidenceProvider } from '../infrastructure/CommandAdherenceEvidenceProvider';
 import { JsonAdherenceEvidenceProvider } from '../infrastructure/JsonAdherenceEvidenceProvider';
+import { NodeCommandRunner } from '../infrastructure/NodeCommandRunner';
 import { TaskManifestLoader } from '../infrastructure/TaskManifestLoader';
 
 interface CliIo {
@@ -31,6 +33,10 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
     return scoreAdherence(rest, io);
   }
 
+  if (area === 'adherence' && command === 'collect') {
+    return collectAdherence(rest, io);
+  }
+
   if (area === 'report' && command === 'generate') {
     return generateReport(rest, io);
   }
@@ -44,6 +50,7 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
       'Usage:',
       '  harness-bench pricing validate [--pricing benchmark/pricing/models.json]',
       '  harness-bench adherence score --evidence evidence.json --out adherence.json',
+      '  harness-bench adherence collect --cwd DIR --trace-id TRACE --out adherence.json [--log events.jsonl]',
       '  harness-bench report generate --run-id RUN --run-dir DIR [--scores-out scores.json] [--report-out report.md]',
       '  harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json] [--pricing benchmark/pricing/models.json]',
       '  harness-bench run --dry-run --resume RUN --run-dir DIR [--only TASK|--from TASK|--steps T1,T2|--retry-failed] [--force]',
@@ -51,6 +58,45 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
     ].join('\n'),
   );
   return 1;
+}
+
+async function collectAdherence(args: string[], io: CliIo): Promise<number> {
+  const cwd = readFlag(args, '--cwd');
+  const traceId = readFlag(args, '--trace-id');
+  const outPath = readFlag(args, '--out');
+  const requiredContextTier = Number(readFlag(args, '--required-context-tier') ?? '2');
+  const maxEntropyScore = Number(readFlag(args, '--max-entropy-score') ?? '20');
+
+  if (!cwd || !traceId || !outPath) {
+    io.stderr(
+      'Usage: harness-bench adherence collect --cwd DIR --trace-id TRACE --out adherence.json [--log events.jsonl]\n',
+    );
+    return 1;
+  }
+
+  try {
+    const score = await new ScoreAdherence(
+      new CommandAdherenceEvidenceProvider(new NodeCommandRunner(), {
+        cwd,
+        traceId,
+        requiredContextTier,
+        maxEntropyScore,
+        command: readFlag(args, '--command'),
+        logPath: readFlag(args, '--log'),
+      }),
+      new FsAdherenceArtifactWriter(outPath),
+    ).run();
+
+    io.stdout(
+      `Adherence collected: ${score.adherence_pass}/${score.adherence_total} -> ${outPath}\n`,
+    );
+    return 0;
+  } catch (error) {
+    io.stderr(
+      `Adherence collection failed: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    return 1;
+  }
 }
 
 async function generateReport(args: string[], io: CliIo): Promise<number> {

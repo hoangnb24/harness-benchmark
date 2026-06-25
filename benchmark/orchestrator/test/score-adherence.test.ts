@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -60,4 +60,70 @@ describe('ScoreAdherence', () => {
     expect(stdout).toContain('Adherence scored: 6/6');
     await expect(readFile(outPath, 'utf8')).resolves.toContain('"adherence_total": 6');
   });
+
+  it('collects and scores adherence evidence through the CLI', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'collect-adherence-cli-'));
+    const commandPath = path.join(dir, 'fake-harness');
+    const logPath = path.join(dir, 'events.jsonl');
+    const outPath = path.join(dir, 'adherence.json');
+    await writeFile(logPath, 'retry after timeout\n');
+    await writeFile(commandPath, fakeHarnessScript());
+    await chmod(commandPath, 0o755);
+
+    let stdout = '';
+    const code = await runCli(
+      [
+        'adherence',
+        'collect',
+        '--cwd',
+        dir,
+        '--trace-id',
+        'trace-1',
+        '--out',
+        outPath,
+        '--log',
+        logPath,
+        '--command',
+        commandPath,
+      ],
+      {
+        stdout: (message) => {
+          stdout += message;
+        },
+        stderr: () => {},
+      },
+    );
+
+    expect(code).toBe(0);
+    expect(stdout).toContain('Adherence collected: 6/6');
+    await expect(readFile(outPath, 'utf8')).resolves.toContain('"adherence_pass": 6');
+  });
 });
+
+function fakeHarnessScript(): string {
+  return `#!/bin/sh
+case "$*" in
+  "query tools --json")
+    echo '{"tools":[{"name":"curl","responsibility":"HTTP validation","verifyCommand":"curl --version"}]}'
+    ;;
+  "story verify-all --json")
+    echo '{"ok":true,"unverified_stories":0}'
+    ;;
+  "query interventions --json")
+    echo '{"interventions":[{"traceId":"trace-1","type":"retry"}]}'
+    ;;
+  "score-context trace-1 --json")
+    echo '{"tier":2}'
+    ;;
+  "audit --json")
+    echo '{"entropy_score":0}'
+    ;;
+  "propose --json")
+    echo '{"proposals":[{"problem":"Trace friction","evidence":"trace:trace-1 friction:f1","suggested_change":"Add check","confidence":0.8}]}'
+    ;;
+  *)
+    echo '{}'
+    ;;
+esac
+`;
+}
