@@ -1,0 +1,5 @@
+{
+  "harness_ref": "main",
+  "agent": "codex",
+  "model": "gpt-5.5"
+}

@@ -1,0 +1,17 @@
+{
+  "run_id": "phase-5-evolution-infrastructure-20260605-rerun",
+  "task_count": 6,
+  "total_wall_seconds": 822,
+  "total_input_tokens": 3061128,
+  "total_output_tokens": 29233,
+  "total_tokens": 3090361,
+  "estimated_total_cost_usd": 9.534180,
+  "functional_pass": 15,
+  "functional_total": 22,
+  "functional_pct": 68.1,
+  "harness_pass": 14,
+  "harness_total": 31,
+  "harness_pct": 45.1,
+  "avg_trace_quality": 2.0,
+  "lane_accuracy": "5/6"
+}

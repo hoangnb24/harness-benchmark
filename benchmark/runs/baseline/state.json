@@ -1,0 +1,70 @@
+{
+  "runId": "baseline",
+  "agent": "codex",
+  "model": "gpt-5.5",
+  "harnessRef": "main",
+  "workspaceDir": "/Users/tubakhuym/Documents/harness-benchmark",
+  "steps": [
+    {
+      "task": "T1-project-setup",
+      "status": "running",
+      "failureClass": null,
+      "startedAt": "2026-06-25T07:10:44.678Z"
+    },
+    {
+      "task": "T2-crud-bookmarks",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T3-folder-support",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T4-authentication",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T5-bug-fix",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T6-pagination",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T7-tags",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T8-search",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T9-import-export",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T10-folder-sharing",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T11-concurrency",
+      "status": "pending",
+      "failureClass": null
+    },
+    {
+      "task": "T12-cursor-pagination",
+      "status": "pending",
+      "failureClass": null
+    }
+  ]
+}

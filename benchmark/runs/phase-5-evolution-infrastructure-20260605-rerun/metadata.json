@@ -1,0 +1,12 @@
+{
+  "run_id": "phase-5-evolution-infrastructure-20260605-rerun",
+  "date": "2026-06-05T08:52:37Z",
+  "harness_ref": "local-phase5-benchmark",
+  "agent": "codex",
+  "model": "",
+  "task_timeout_seconds": 600,
+  "isolated": true,
+  "original_project_dir": "/Users/tubakhuym/Documents/harness-benchmark",
+  "workspace_dir": "/tmp/harness-benchmark-phase-5-evolution-infrastructure-20260605-rerun-codex-local-phase5-benchmark-default",
+  "benchmark_sha": "8b88e1bd385a192f0d7517c60b7fe7443fc9fe71"
+}

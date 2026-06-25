@@ -1,0 +1,12 @@
+{
+  "run_id": "phase-4-mechanical-verification-20260531",
+  "date": "2026-05-31T15:31:14Z",
+  "harness_ref": "feature/phase-4-mechanical-verification",
+  "agent": "codex",
+  "model": "",
+  "task_timeout_seconds": 1200,
+  "isolated": true,
+  "original_project_dir": "/Users/tubakhuym/Documents/harness-benchmark",
+  "workspace_dir": "/tmp/harness-benchmark-phase-4-mechanical-verification-20260531-codex-feature-phase-4-mechanical-verification-default",
+  "benchmark_sha": "8b88e1bd385a192f0d7517c60b7fe7443fc9fe71"
+}
