@@ -1,8 +1,8 @@
 # Benchmark Upgrade Plan
 
-> Status: **Implemented in progress**. The TypeScript orchestrator, task manifest,
-> usage/cost accounting, adherence review, checkpoint/resume support, docs, and CI
-> are now present on `devin/1781350935-benchmark-upgrade-plan`.
+> Status: **Implemented** on `devin/1781350935-benchmark-upgrade-plan`.
+> The branch now contains the TypeScript orchestrator, task manifest, provider usage/cost
+> accounting, adherence review, checkpoint/resume support, docs, and CI validation.
 > Target: `harness-benchmark` orchestrator + task suite.
 > Motivation: `repository-harness` has reached **Phase 5 (Evolution Infrastructure)**, but this
 > benchmark has not kept pace. Recent runs **max out** the metrics it measures, so it can no
@@ -133,14 +133,15 @@ is injected into use cases through **ports**:
 | **M4 — Challenge tasks + adherence review** | Workstream [02](02-phase5-capability-tests.md) | New T7+ challenge tasks (HTTP-checked) **and** the log/trace review series; `adherence` score reported |
 | **M5 — Harden** | CI workflow, docs, changelog | CI runs unit tests + lints on PRs; `PROTOCOL.md` + `README.md` updated |
 
-M0/M1 are foundational and must land before 01/02/04 to avoid building three features on top of
-the current global-variable runner. 03 is therefore sequenced first even though the user listed it third.
+Implementation evidence:
 
-Pragmatic exception: a narrow checkpoint/resume slice from Workstream 04 may land before the full
-TypeScript migration if run cost becomes the immediate pain. That slice should be deliberately small:
-write `state.json`, create pre-task/post-task checkpoints with explicit exclusions, and support
-`--resume` for the first failed step. It should still preserve the later TypeScript state-machine
-shape so it can be ported instead of discarded.
+| Milestone | Evidence now in branch |
+| --- | --- |
+| **M0/M1** | `benchmark/orchestrator/**` layers, composition root, architecture-boundary test, and golden `scores.json` / `report.md` parity tests |
+| **M2** | Provider usage parsers, `RecordUsage`, pricing guard, `models.local.json` overrides, per-model report rollups |
+| **M3** | `state.json`, atomic checkpoint store, workspace snapshots, resume selectors, and CLI resume execution smoke test |
+| **M4** | T7-T12 manifest tasks, declarative checks, adherence scoring/collection, pre-Phase-5 reduced-adherence test |
+| **M5** | GitHub Actions orchestrator workflow plus updated `README.md`, `benchmark/PROTOCOL.md`, and generated report behavior |
 
 ## 7. Cross-cutting acceptance criteria
 
@@ -165,12 +166,11 @@ Each workstream doc owns its detailed, testable acceptance criteria. At the prog
 | Phase 5 tasks need seeded harness state | Ship **seed fixtures** and self-seeding steps; reuse the checkpoint mechanism from Workstream 04 |
 | New tasks could also become "maxable" | Add harder tasks incrementally and keep adherence/evolution checks deterministic: score exact rows, JSON fields, thresholds, and fixture-backed pass/fail cases |
 
-## 9. Open questions for review
+## 9. Decisions recorded by implementation
 
-1. **Orchestrator language** — TypeScript (reuses the repo's existing `tsx`/`tsc`/`vitest` toolchain
-   and gives real constructor DI) vs. a disciplined Bash refactor. This plan recommends **TypeScript**;
-   see [03](03-clean-architecture-and-di.md) §Decision. Confirm before M0.
-2. **New task count** — propose six (T7–T12). Is that the right breadth, or should evolution be a
-   single capstone (T12) with the rest folded into existing tasks?
-3. **Pricing source of truth** — a single `benchmark/pricing/models.json` committed to the repo, vs.
-   an uncommitted local override file. Plan proposes committed defaults + optional local override.
+1. **Orchestrator language** — TypeScript, using the repo's `tsx`/`tsc`/`vitest` toolchain and
+   constructor-injected ports.
+2. **New task count** — six new challenge tasks, T7-T12, added to the manifest while preserving T1-T6
+   as the historical baseline.
+3. **Pricing source of truth** — committed defaults in `benchmark/pricing/models.json`, with an
+   ignored `benchmark/pricing/models.local.json` override for private experiments.
