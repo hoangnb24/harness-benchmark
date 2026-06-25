@@ -132,6 +132,46 @@ describe('RunBenchmark', () => {
     ]);
   });
 
+  it('restores configured checkpoints before invoking selected tasks', async () => {
+    const order: string[] = [];
+    const snapshots = new RecordingSnapshotStore(order);
+    const runner = new RunBenchmark({
+      agent: {
+        async invoke(taskDefinition) {
+          order.push(`invoke:${taskDefinition.id}`);
+          return { exitCode: 0 };
+        },
+      },
+      functional: {
+        async run() {
+          return [{ name: 'ok', pass: true }];
+        },
+      },
+      snapshots,
+      clock: fixedClock(),
+    });
+
+    await runner.run(
+      { runId: 'restore-run', tasks: [task('T2-crud-bookmarks')] },
+      {
+        projectDir: '/tmp/project',
+        runDir: '/tmp/run',
+        restoreCheckpoints: { 'T2-crud-bookmarks': 'checkpoints/T1-project-setup' },
+      },
+    );
+
+    expect(snapshots.restored.map((snapshot) => snapshot.checkpointDir)).toEqual([
+      '/tmp/run/checkpoints/T1-project-setup',
+    ]);
+    expect(snapshots.saved.map((snapshot) => snapshot.checkpointDir)).toEqual([
+      '/tmp/run/checkpoints/T2-crud-bookmarks',
+    ]);
+    expect(order).toEqual([
+      'restore:/tmp/run/checkpoints/T1-project-setup',
+      'invoke:T2-crud-bookmarks',
+    ]);
+  });
+
   it('classifies agent and functional failures in checkpoint state', async () => {
     const checkpoints = new RecordingCheckpointStore();
     const runner = new RunBenchmark({
@@ -181,12 +221,18 @@ class RecordingCheckpointStore implements CheckpointStore {
 
 class RecordingSnapshotStore implements WorkspaceSnapshotStore {
   readonly saved: WorkspaceSnapshotOptions[] = [];
+  readonly restored: WorkspaceSnapshotOptions[] = [];
+
+  constructor(private readonly order: string[] = []) {}
 
   async save(options: WorkspaceSnapshotOptions): Promise<void> {
     this.saved.push(options);
   }
 
-  async restore(): Promise<void> {}
+  async restore(options: WorkspaceSnapshotOptions): Promise<void> {
+    this.restored.push(options);
+    this.order.push(`restore:${options.checkpointDir}`);
+  }
 }
 
 function fixedClock(): Clock {

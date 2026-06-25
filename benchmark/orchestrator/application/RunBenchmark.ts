@@ -31,6 +31,7 @@ export interface RunBenchmarkContext {
   runDir: string;
   model?: string;
   checkpointState?: CheckpointState;
+  restoreCheckpoints?: Record<string, string>;
 }
 
 export interface RunBenchmarkResult {
@@ -54,7 +55,7 @@ export class RunBenchmark {
         steps: plan.tasks.map((task) => ({ task: task.id, status: 'pending', failureClass: null })),
       } satisfies CheckpointState);
 
-    if (shouldSavePreRunSnapshot(context.checkpointState)) {
+    if (shouldSavePreRunSnapshot(context.checkpointState, context.restoreCheckpoints)) {
       await this.deps.snapshots?.save({
         runId: plan.runId,
         workspaceDir: context.projectDir,
@@ -63,6 +64,15 @@ export class RunBenchmark {
     }
 
     for (const task of plan.tasks) {
+      const restoreCheckpoint = context.restoreCheckpoints?.[task.id];
+      if (restoreCheckpoint) {
+        await this.deps.snapshots?.restore({
+          runId: plan.runId,
+          workspaceDir: context.projectDir,
+          checkpointDir: path.join(context.runDir, restoreCheckpoint),
+        });
+      }
+
       const artifactsDir = `${context.runDir}/${task.id}`;
       const invocationContext: AgentInvocationContext = {
         runId: plan.runId,
@@ -133,6 +143,12 @@ function checkpointDir(runDir: string, checkpointName: string): string {
   return path.join(runDir, 'checkpoints', checkpointName);
 }
 
-function shouldSavePreRunSnapshot(state: CheckpointState | undefined): boolean {
-  return !state || state.steps.every((step) => step.status === 'pending');
+function shouldSavePreRunSnapshot(
+  state: CheckpointState | undefined,
+  restoreCheckpoints: Record<string, string> | undefined,
+): boolean {
+  return (
+    !restoreCheckpoints &&
+    (!state || state.steps.every((step) => step.status === 'pending'))
+  );
 }
