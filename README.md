@@ -24,8 +24,8 @@ sqlite3 --version  # for harness compliance checks
 ### Run the Benchmark
 
 ```bash
-# Legacy Bash run (against harness main branch)
-./benchmark/run.sh --agent codex --harness main --run-id baseline
+# Validate the committed pricing table before a paid run
+npm run harness-bench -- pricing validate --pricing benchmark/pricing/models.json
 
 # TypeScript orchestrator dry-run planning
 npm run harness-bench -- run --dry-run --run-id baseline --run-dir benchmark/runs/baseline --model gpt-5.4
@@ -35,6 +35,41 @@ npm run harness-bench -- run --execute --run-id baseline --run-dir benchmark/run
 
 # Compare results
 ./benchmark/compare.sh baseline phase-2
+```
+
+The legacy Bash runner is still available for historical comparison:
+
+```bash
+./benchmark/run.sh --agent codex --harness main --run-id baseline
+```
+
+### Resume, Retry, And Report
+
+The TypeScript orchestrator writes `state.json`, per-task checkpoints, `usage.json`, compatibility
+`tokens.json`, `scores.json`, and `report.md` under `benchmark/runs/<run-id>/`.
+
+```bash
+# Continue from the first failed or pending step
+npm run harness-bench -- run --execute --resume baseline --run-dir benchmark/runs/baseline --workspace "$PWD"
+
+# Re-run one task from its prior checkpoint
+npm run harness-bench -- run --execute --resume baseline --run-dir benchmark/runs/baseline --workspace "$PWD" --only T5-bug-fix --force
+
+# Regenerate scores and markdown report
+npm run harness-bench -- report generate --run-id baseline --run-dir benchmark/runs/baseline
+```
+
+### Pricing And Adherence
+
+Model prices are read from `benchmark/pricing/models.json`. For private experiments, add
+`benchmark/pricing/models.local.json`; it is ignored by git and overrides the committed table.
+
+```bash
+# Score recorded Phase 5 evidence
+npm run harness-bench -- adherence score --evidence evidence.json --out adherence.json
+
+# Collect read-only Phase 5 evidence from a harness workspace
+npm run harness-bench -- adherence collect --cwd "$PWD" --trace-id TRACE --out benchmark/runs/baseline/T1-project-setup/adherence.json --log benchmark/runs/baseline/T1-project-setup/events.jsonl
 ```
 
 ### View Results
