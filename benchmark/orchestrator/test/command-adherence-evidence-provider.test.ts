@@ -78,6 +78,26 @@ describe('CommandAdherenceEvidenceProvider', () => {
       }).load(),
     ).rejects.toThrow(/adherence command failed \(audit\) with exit code 1/);
   });
+
+  it('can degrade missing pre-Phase-5 commands into low evidence', async () => {
+    const runner = new FixtureCommandRunner({}, new Set(['audit --json']));
+
+    const evidence = await new CommandAdherenceEvidenceProvider(runner, {
+      cwd: '/tmp/workspace',
+      traceId: 'trace-1',
+      requiredContextTier: 2,
+      maxEntropyScore: 20,
+      allowCommandFailures: true,
+    }).load();
+
+    expect(evidence).toMatchObject({
+      tools: [],
+      storyVerifyAll: { ok: false, unverifiedStories: 0 },
+      contextTier: 0,
+      entropyScore: 0,
+      proposals: [],
+    });
+  });
 });
 
 class FixtureCommandRunner implements CommandRunner {

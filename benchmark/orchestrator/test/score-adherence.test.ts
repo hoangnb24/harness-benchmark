@@ -98,6 +98,41 @@ describe('ScoreAdherence', () => {
     expect(stdout).toContain('Adherence collected: 6/6');
     await expect(readFile(outPath, 'utf8')).resolves.toContain('"adherence_pass": 6');
   });
+
+  it('can score pre-Phase-5 missing review commands as reduced adherence', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'collect-adherence-missing-cli-'));
+    const commandPath = path.join(dir, 'old-harness');
+    const outPath = path.join(dir, 'adherence.json');
+    await writeFile(commandPath, '#!/bin/sh\nexit 1\n');
+    await chmod(commandPath, 0o755);
+
+    const code = await runCli(
+      [
+        'adherence',
+        'collect',
+        '--cwd',
+        dir,
+        '--trace-id',
+        'trace-1',
+        '--out',
+        outPath,
+        '--command',
+        commandPath,
+        '--allow-missing-commands',
+      ],
+      {
+        stdout: () => {},
+        stderr: () => {},
+      },
+    );
+
+    expect(code).toBe(0);
+    const score = JSON.parse(await readFile(outPath, 'utf8')) as {
+      adherence_pass: number;
+      adherence_total: number;
+    };
+    expect(score.adherence_pass).toBeLessThan(score.adherence_total);
+  });
 });
 
 function fakeHarnessScript(): string {

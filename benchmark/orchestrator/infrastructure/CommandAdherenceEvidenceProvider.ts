@@ -12,6 +12,7 @@ export interface CommandAdherenceEvidenceOptions {
   maxEntropyScore: number;
   command?: string;
   logPath?: string;
+  allowCommandFailures?: boolean;
 }
 
 export class CommandAdherenceEvidenceProvider implements AdherenceEvidenceProvider {
@@ -59,6 +60,10 @@ export class CommandAdherenceEvidenceProvider implements AdherenceEvidenceProvid
       });
 
       if (result.exitCode !== 0) {
+        if (this.options.allowCommandFailures) {
+          return {};
+        }
+
         throw new Error(`adherence command failed (${label}) with exit code ${result.exitCode}`);
       }
 
