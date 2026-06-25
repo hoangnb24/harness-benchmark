@@ -57,6 +57,7 @@ describe('CLI', () => {
 
     expect(code).toBe(1);
     expect(stderr).toContain('Pricing table invalid');
+    expect(stderr).toContain(`invalid pricing JSON in ${pricingPath}`);
   });
 
   it('generates scores and markdown reports from a run directory', async () => {

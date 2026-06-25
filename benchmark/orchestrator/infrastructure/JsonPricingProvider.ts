@@ -49,7 +49,7 @@ export class JsonPricingProvider implements PricingProvider {
       return this.table;
     }
 
-    const parsed = JSON.parse(await readFile(this.pricingPath, 'utf8')) as PricingTableFile;
+    const parsed = await readPricingTable(this.pricingPath);
     const local = await readOptionalPricingTable(this.localPricingPath);
     const models = { ...parsed.models, ...(local?.models ?? {}) };
     this.table = new Map(
@@ -72,10 +72,22 @@ export class JsonPricingProvider implements PricingProvider {
 
 async function readOptionalPricingTable(filePath: string): Promise<PricingTableFile | undefined> {
   try {
-    return JSON.parse(await readFile(filePath, 'utf8')) as PricingTableFile;
+    return await readPricingTable(filePath);
   } catch (error) {
     if (isNotFound(error)) {
       return undefined;
+    }
+
+    throw error;
+  }
+}
+
+async function readPricingTable(filePath: string): Promise<PricingTableFile> {
+  try {
+    return JSON.parse(await readFile(filePath, 'utf8')) as PricingTableFile;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`invalid pricing JSON in ${filePath}: ${error.message}`);
     }
 
     throw error;
