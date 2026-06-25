@@ -4,7 +4,7 @@ A controlled benchmark for measuring the effectiveness of [harness-experimental]
 
 ## What This Is
 
-A pre-seeded TypeScript/Express project with **6 fixed tasks** (T1–T6) that an AI agent executes. The benchmark measures time, token cost, code quality, and harness compliance. By re-running after each harness phase, we objectively measure whether the harness improved agent productivity.
+A pre-seeded TypeScript/Express project with **12 manifest-driven tasks** (T1–T12) that an AI agent executes. The benchmark measures time, token cost, functional behavior, harness compliance, trace quality, lane accuracy, and Phase 5 harness-adherence evidence. By re-running after each harness phase, we objectively measure whether the harness improved agent productivity.
 
 ## Quick Start
 
@@ -24,11 +24,14 @@ sqlite3 --version  # for harness compliance checks
 ### Run the Benchmark
 
 ```bash
-# Baseline run (against harness main branch)
+# Legacy Bash run (against harness main branch)
 ./benchmark/run.sh --agent codex --harness main --run-id baseline
 
-# Phase 2 run (against feature branch)
-./benchmark/run.sh --agent codex --harness phase-2/observability-taxonomy --run-id phase-2
+# TypeScript orchestrator dry-run planning
+npm run harness-bench -- run --dry-run --run-id baseline --run-dir benchmark/runs/baseline --model gpt-5.4
+
+# TypeScript orchestrator execution
+npm run harness-bench -- run --execute --run-id baseline --run-dir benchmark/runs/baseline --workspace "$PWD" --agent codex --model gpt-5.4
 
 # Compare results
 ./benchmark/compare.sh baseline phase-2
@@ -53,10 +56,11 @@ harness-benchmark/
 │   └── index.ts              # Empty entrypoint (agent builds from here)
 ├── benchmark/
 │   ├── PROTOCOL.md           # How runs work, what's measured, rules
-│   ├── run.sh                # Main orchestrator script
+│   ├── run.sh                # Legacy orchestrator script
 │   ├── compare.sh            # Compare two run results
-│   ├── tasks/                # Task prompts (T1-T6.md)
+│   ├── tasks/                # Task prompts, manifest, and declarative checks (T1-T12)
 │   ├── rubrics/              # Objective scoring checklists
+│   ├── orchestrator/         # TypeScript runner, ports, adapters, and CLI
 │   ├── lib/                  # Runner helper scripts
 │   │   ├── prepare.sh        # Harness installation
 │   │   ├── invoke.sh         # Agent invocation + telemetry
@@ -74,7 +78,7 @@ harness-benchmark/
 
 1. **Tag** benchmark repo → `benchmark-v1`
 2. **Install harness** from target ref (main, feature branch)
-3. **Run T1–T6** sequentially via Codex CLI
+3. **Run T1–T12** sequentially from `benchmark/tasks/manifest.json`
 4. **Score** against objective rubrics
 5. **Compare** to previous runs
 
@@ -90,17 +94,24 @@ Each phase must **earn its merge** by moving the numbers.
 | T4 | Authentication | high-risk | Complex feature with security implications |
 | T5 | Bug Fix | normal | Diagnosis and targeted fix |
 | T6 | Pagination | normal | Refactoring existing API responses |
+| T7 | Tags | normal | Tagging and many-to-many API behavior |
+| T8 | Search | normal | Full-text search behavior |
+| T9 | Import / Export | normal | Bulk data movement |
+| T10 | Folder Sharing | high-risk | Authorization boundaries |
+| T11 | Concurrency Safety | normal | Conflicting writes and idempotency |
+| T12 | Scale and Cursor Pagination | normal | Large result sets and cursor paging |
 
 ## Metrics
 
 | Metric | What It Measures | Source |
 |--------|-----------------|--------|
 | Wall time | Speed of completion | `timing.json` |
-| Token cost | API cost efficiency | `tokens.json` (from Codex JSONL) |
-| Functional score | Does the code work? | `check-functional.sh` (curl tests) |
+| Token cost | API cost efficiency | `usage.json` and compatibility `tokens.json` |
+| Functional score | Does the code work? | Declarative HTTP checks |
 | Harness compliance | Did the agent use the harness? | `check-harness.sh` (sqlite3 queries) |
 | Trace quality | How detailed are the traces? | `check-quality.sh` |
 | Lane accuracy | Correct risk classification? | `lane.json` |
+| Harness adherence | Phase 5 evidence quality | `adherence.json` from review commands |
 
 ## License
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-06-25
+
+### Added
+
+- Added the TypeScript benchmark orchestrator path with manifest-loaded T1-T12
+  tasks, dry-run planning, real `run --execute`, report generation, and
+  adherence collection CLI commands.
+- Added multi-agent adapter wiring for Codex, Claude, and custom commands,
+  provider-specific usage parsing, a manual pricing guard, per-interaction
+  `usage.json`, and compatibility `tokens.json`.
+- Added resumable run state, resume selectors, workspace checkpoint
+  save/restore, pre-run checkpoints, post-pass task checkpoints, and
+  restore-aware execution planning.
+- Added deterministic Phase 5 harness-adherence scoring and command-backed
+  evidence collection from read-only harness review commands.
+
+### Verification
+
+- `npm run typecheck:orchestrator`
+- `npm test`
+
 ## 2026-06-13
 
 ### Changed
