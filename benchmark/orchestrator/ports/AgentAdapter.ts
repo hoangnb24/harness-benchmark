@@ -9,6 +9,7 @@ export interface AgentInvocationContext {
 
 export interface RawAgentOutput {
   exitCode: number;
+  stderr?: string;
   stdoutPath?: string;
   stderrPath?: string;
   eventsPath?: string;

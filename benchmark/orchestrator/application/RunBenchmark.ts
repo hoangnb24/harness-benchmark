@@ -1,16 +1,28 @@
 import { validateRunPlan, type RunPlan, type TaskResult } from '../domain/task';
+import {
+  classifyFailure,
+  markStepFailed,
+  markStepPassed,
+  markStepRunning,
+  type CheckpointState,
+} from '../domain/checkpoint';
 import type { AgentAdapter, AgentInvocationContext } from '../ports/AgentAdapter';
+import type { CheckpointStore } from '../ports/CheckpointStore';
+import type { Clock } from '../ports/Clock';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
 
 export interface RunBenchmarkDeps {
   agent: AgentAdapter;
   functional: FunctionalProbe;
+  checkpoints?: CheckpointStore;
+  clock?: Clock;
 }
 
 export interface RunBenchmarkContext {
   projectDir: string;
   runDir: string;
   model?: string;
+  checkpointState?: CheckpointState;
 }
 
 export interface RunBenchmarkResult {
@@ -25,6 +37,15 @@ export class RunBenchmark {
     validateRunPlan(plan);
 
     const tasks: TaskResult[] = [];
+    let checkpointState =
+      context.checkpointState ??
+      ({
+        runId: plan.runId,
+        model: context.model,
+        workspaceDir: context.projectDir,
+        steps: plan.tasks.map((task) => ({ task: task.id, status: 'pending', failureClass: null })),
+      } satisfies CheckpointState);
+
     for (const task of plan.tasks) {
       const artifactsDir = `${context.runDir}/${task.id}`;
       const invocationContext: AgentInvocationContext = {
@@ -34,17 +55,54 @@ export class RunBenchmark {
         model: context.model,
       };
 
+      checkpointState = markStepRunning(checkpointState, task.id, this.timestamp());
+      await this.deps.checkpoints?.save(checkpointState);
+
       const raw = await this.deps.agent.invoke(task, invocationContext);
       const checks = await this.deps.functional.run(task, context.projectDir);
       const checksPassed = checks.every((check) => check.pass);
+      const taskPassed = raw.exitCode === 0 && checksPassed;
+
+      if (taskPassed) {
+        checkpointState = markStepPassed(
+          checkpointState,
+          task.id,
+          `checkpoints/${task.id}`,
+          this.timestamp(),
+        );
+      } else if (raw.exitCode !== 0) {
+        checkpointState = markStepFailed(
+          checkpointState,
+          task.id,
+          classifyFailure(raw.exitCode, raw.stderr ?? ''),
+          raw.exitCode,
+          `agent exited with code ${raw.exitCode}`,
+          this.timestamp(),
+        );
+      } else {
+        const failedChecks = checks.filter((check) => !check.pass).map((check) => check.name);
+        checkpointState = markStepFailed(
+          checkpointState,
+          task.id,
+          'fatal',
+          0,
+          `functional checks failed: ${failedChecks.join(', ')}`,
+          this.timestamp(),
+        );
+      }
+      await this.deps.checkpoints?.save(checkpointState);
 
       tasks.push({
         taskId: task.id,
-        status: raw.exitCode === 0 && checksPassed ? 'passed' : 'failed',
+        status: taskPassed ? 'passed' : 'failed',
         artifactsDir,
       });
     }
 
     return { runId: plan.runId, tasks };
+  }
+
+  private timestamp(): string {
+    return (this.deps.clock?.now() ?? new Date()).toISOString();
   }
 }
