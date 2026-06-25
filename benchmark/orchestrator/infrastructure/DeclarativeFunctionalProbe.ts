@@ -79,12 +79,24 @@ export class DeclarativeFunctionalProbe implements FunctionalProbe {
     definition: HttpCheckDefinition,
     variables: Record<string, string>,
   ): Promise<FunctionalCheckResult> {
-    const response = await this.options.http.request({
-      method: definition.request.method,
-      url: `${this.options.baseUrl}${renderTemplate(definition.request.path, variables)}`,
-      headers: renderRecord(definition.request.headers ?? {}, variables),
-      body: renderValue(definition.request.body, variables),
-    });
+    const url = `${this.options.baseUrl}${renderTemplate(definition.request.path, variables)}`;
+    const response = await this.options.http
+      .request({
+        method: definition.request.method,
+        url,
+        headers: renderRecord(definition.request.headers ?? {}, variables),
+        body: renderValue(definition.request.body, variables),
+      })
+      .catch((error: unknown) => undefined);
+
+    if (!response) {
+      return {
+        name: definition.name,
+        pass: false,
+        expected: definition.expect.status ?? definition.expect.statusOneOf?.join('|') ?? 200,
+        actual: `request failed: ${url}`,
+      };
+    }
 
     const expectedStatuses = definition.expect.statusOneOf ?? [definition.expect.status ?? 200];
     const statusPass = expectedStatuses.includes(response.status);

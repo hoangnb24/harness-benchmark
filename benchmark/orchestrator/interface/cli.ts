@@ -9,6 +9,7 @@ import { ResumeRun, type ResumeMode } from '../application/ResumeRun';
 import { buildRunner, type RunnerAgent } from './composition-root';
 import { DeclarativeFunctionalProbe } from '../infrastructure/DeclarativeFunctionalProbe';
 import { FetchHttpClient } from '../infrastructure/FetchHttpClient';
+import { ServerManagedFunctionalProbe } from '../infrastructure/ServerManagedFunctionalProbe';
 import type { CheckpointState } from '../domain/checkpoint';
 import type { RunPlan } from '../domain/task';
 import { FsAdherenceArtifactWriter } from '../infrastructure/FsAdherenceArtifactWriter';
@@ -113,15 +114,20 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
     if (executionPlan.plan.tasks.length === 0) {
       io.stdout(`No tasks to run for ${runId}\n`);
     } else {
+      const baseUrl = readFlag(args, '--base-url') ?? 'http://localhost:3000';
+      const functional = new ServerManagedFunctionalProbe(
+        new DeclarativeFunctionalProbe({
+          baseUrl,
+          http: new FetchHttpClient(),
+        }),
+        { baseUrl },
+      );
       const runner = buildRunner({
         agent,
         commandRunner: new NodeCommandRunner(),
         customCommand: readFlag(args, '--agent-cmd'),
         customArgs: readCsvFlag(args, '--agent-args'),
-        functional: new DeclarativeFunctionalProbe({
-          baseUrl: readFlag(args, '--base-url') ?? 'http://localhost:3000',
-          http: new FetchHttpClient(),
-        }),
+        functional,
         model,
         pricingPath,
         recordUsage: true,
