@@ -8,10 +8,16 @@ const taskIds = [
   'T4-authentication',
   'T5-bug-fix',
   'T6-pagination',
+  'T7-tags',
+  'T8-search',
+  'T9-import-export',
+  'T10-folder-sharing',
+  'T11-concurrency',
+  'T12-cursor-pagination',
 ];
 
 describe('FunctionalCheckLoader', () => {
-  it('loads all committed T1-T6 declarative check manifests', async () => {
+  it('loads all committed declarative check manifests', async () => {
     const loader = new FunctionalCheckLoader();
 
     for (const taskId of taskIds) {

@@ -60,13 +60,48 @@ describe('DeclarativeFunctionalProbe', () => {
           statusOneOf: [200, 201],
           json: [
             { path: '.data', type: 'array' },
-            { path: '.page', exists: true },
+            { path: '.page', exists: true, equals: 1 },
           ],
         },
       },
     ]);
 
     expect(result).toMatchObject({ name: 'data_is_array', pass: true, expected: '200|201', actual: 200 });
+  });
+
+  it('renders captured variables in paths and request bodies', async () => {
+    const requests: Array<{ url: string; body?: unknown }> = [];
+    const probe = new DeclarativeFunctionalProbe({
+      baseUrl: 'http://localhost:3000',
+      http: {
+        async request(input) {
+          requests.push(input);
+          if (input.url.endsWith('/tags')) {
+            return { status: 201, body: JSON.stringify({ id: 9 }) };
+          }
+          return { status: 200, body: JSON.stringify({ id: 9 }) };
+        },
+      },
+    });
+
+    const results = await probe.runDefinitions([
+      {
+        name: 'create_tag',
+        request: { method: 'POST', path: '/tags', capture: { tagId: '.id' } },
+        expect: { status: 201 },
+      },
+      {
+        name: 'update_tag',
+        request: { method: 'PUT', path: '/tags/{{tagId}}', body: { parent: '{{tagId}}' } },
+        expect: { status: 200 },
+      },
+    ]);
+
+    expect(results.map((result) => result.pass)).toEqual([true, true]);
+    expect(requests[1]).toMatchObject({
+      url: 'http://localhost:3000/tags/9',
+      body: { parent: '9' },
+    });
   });
 
   it('fails missing scripted checks explicitly', async () => {

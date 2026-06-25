@@ -35,6 +35,7 @@ export interface JsonExpectation {
   path: string;
   exists?: boolean;
   type?: 'array' | 'object' | 'string' | 'number' | 'boolean' | 'null';
+  equals?: unknown;
 }
 
 export interface FunctionalCheckResult {

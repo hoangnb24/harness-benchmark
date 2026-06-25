@@ -81,9 +81,9 @@ export class DeclarativeFunctionalProbe implements FunctionalProbe {
   ): Promise<FunctionalCheckResult> {
     const response = await this.options.http.request({
       method: definition.request.method,
-      url: `${this.options.baseUrl}${definition.request.path}`,
+      url: `${this.options.baseUrl}${renderTemplate(definition.request.path, variables)}`,
       headers: renderRecord(definition.request.headers ?? {}, variables),
-      body: definition.request.body,
+      body: renderValue(definition.request.body, variables),
     });
 
     const expectedStatuses = definition.expect.statusOneOf ?? [definition.expect.status ?? 200];
@@ -116,6 +116,22 @@ function renderRecord(record: Record<string, string>, variables: Record<string, 
 
 function renderTemplate(value: string, variables: Record<string, string>): string {
   return value.replace(/\{\{([A-Za-z0-9_-]+)\}\}/g, (_match, name: string) => variables[name] ?? '');
+}
+
+function renderValue(value: unknown, variables: Record<string, string>): unknown {
+  if (typeof value === 'string') {
+    return renderTemplate(value, variables);
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => renderValue(item, variables));
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, renderValue(item, variables)]),
+    );
+  }
+
+  return value;
 }
 
 function captureVariables(
@@ -151,6 +167,13 @@ function evaluateJsonExpectations(
       return {
         pass: false,
         reason: `${expectation.path} type ${jsonType(value)} != ${expectation.type}`,
+      };
+    }
+
+    if ('equals' in expectation && !jsonEquals(value, expectation.equals)) {
+      return {
+        pass: false,
+        reason: `${expectation.path} value ${JSON.stringify(value)} != ${JSON.stringify(expectation.equals)}`,
       };
     }
   }
@@ -197,4 +220,8 @@ function jsonType(value: unknown): JsonExpectation['type'] | 'undefined' {
     return 'array';
   }
   return typeof value as JsonExpectation['type'];
+}
+
+function jsonEquals(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
 }

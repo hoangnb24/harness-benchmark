@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "statusOneOf": [201, 409] }
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "benchmark123" },
+        "capture": { "token": ".token" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "seed_cursor_bookmark_a",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "url": "https://cursor-a.example.com", "title": "Cursor A" }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "seed_cursor_bookmark_b",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "url": "https://cursor-b.example.com", "title": "Cursor B" }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "cursor_first_page",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?cursor=&limit=2",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "capture": { "nextCursor": ".nextCursor" }
+      },
+      "expect": {
+        "status": 200,
+        "json": [
+          { "path": ".data", "type": "array" },
+          { "path": ".limit", "equals": 2 },
+          { "path": ".nextCursor", "exists": true },
+          { "path": ".hasMore", "type": "boolean" }
+        ]
+      }
+    },
+    {
+      "name": "cursor_second_page",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?cursor={{nextCursor}}&limit=2",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".data", "type": "array" }] }
+    },
+    {
+      "name": "invalid_cursor",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?cursor=not-a-valid-cursor",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "offset_compatibility",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?page=1&limit=2",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": {
+        "status": 200,
+        "json": [
+          { "path": ".page", "equals": 1 },
+          { "path": ".total", "exists": true }
+        ]
+      }
+    },
+    {
+      "name": "cursor_auth_required",
+      "request": { "method": "GET", "path": "/bookmarks?cursor=&limit=2" },
+      "expect": { "status": 401 }
+    }
+  ]
+}

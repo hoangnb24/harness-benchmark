@@ -15,6 +15,12 @@ describe('TaskManifestLoader', () => {
       'T4-authentication',
       'T5-bug-fix',
       'T6-pagination',
+      'T7-tags',
+      'T8-search',
+      'T9-import-export',
+      'T10-folder-sharing',
+      'T11-concurrency',
+      'T12-cursor-pagination',
     ]);
     expect(plan.tasks[0]).toMatchObject({
       expectedLane: 'tiny',
@@ -23,6 +29,11 @@ describe('TaskManifestLoader', () => {
     expect(plan.tasks[3]).toMatchObject({
       expectedLane: 'high_risk',
       dependencies: ['T3-folder-support'],
+    });
+    expect(plan.tasks[9]).toMatchObject({
+      id: 'T10-folder-sharing',
+      expectedLane: 'high_risk',
+      dependencies: ['T9-import-export'],
     });
   });
 
