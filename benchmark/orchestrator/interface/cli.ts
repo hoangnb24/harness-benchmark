@@ -37,7 +37,7 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
       'Usage:',
       '  harness-bench pricing validate [--pricing benchmark/pricing/models.json]',
       '  harness-bench adherence score --evidence evidence.json --out adherence.json',
-      '  harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json]',
+      '  harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json] [--pricing benchmark/pricing/models.json]',
       '  harness-bench run --dry-run --resume RUN --run-dir DIR [--only TASK|--from TASK|--steps T1,T2|--retry-failed] [--force]',
       '',
     ].join('\n'),
@@ -72,6 +72,7 @@ async function dryRunBenchmark(args: string[], io: CliIo): Promise<number> {
         throw new Error(`state.json not found for run: ${resumeRunId}`);
       }
 
+      await validateRunPricing(state.model ?? model, args, io);
       const resumePlan = new ResumeRun().plan(state, selector ?? { kind: 'resume' });
       io.stdout(`Planned run ${resumePlan.runId}: ${resumePlan.steps.length} tasks\n`);
       for (const step of resumePlan.steps) {
@@ -85,6 +86,7 @@ async function dryRunBenchmark(args: string[], io: CliIo): Promise<number> {
       return 0;
     }
 
+    await validateRunPricing(model, args, io);
     const plan = await new TaskManifestLoader(manifestPath).load(runId);
     const prepared = await new PrepareRun(checkpointStore).prepare(plan, {
       agent,
@@ -112,6 +114,31 @@ async function dryRunBenchmark(args: string[], io: CliIo): Promise<number> {
   } catch (error) {
     io.stderr(`Dry run failed: ${error instanceof Error ? error.message : String(error)}\n`);
     return 1;
+  }
+}
+
+async function validateRunPricing(
+  model: string | undefined,
+  args: string[],
+  io: CliIo,
+): Promise<void> {
+  if (!model) {
+    return;
+  }
+
+  const pricingPath = readFlag(args, '--pricing') ?? 'benchmark/pricing/models.json';
+  try {
+    await new JsonPricingProvider(pricingPath).requireRate(model);
+  } catch (error) {
+    if (hasFlag(args, '--allow-missing-pricing')) {
+      io.stderr(`Warning: missing pricing for model ${model}; cost will be recorded as null\n`);
+      return;
+    }
+
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `${message}. Update ${pricingPath} or pass --allow-missing-pricing to continue with null cost.`,
+    );
   }
 }
 

@@ -117,4 +117,52 @@ describe('PrepareRun', () => {
     expect(code).toBe(1);
     expect(stderr).toContain('choose only one resume selector');
   });
+
+  it('fails fast when the requested model is missing from pricing', async () => {
+    const runDir = await mkdtemp(path.join(tmpdir(), 'prepare-run-pricing-missing-'));
+    let stderr = '';
+    const code = await runCli(
+      ['run', '--dry-run', '--run-id', 'missing-pricing', '--run-dir', runDir, '--model', 'nope'],
+      {
+        stdout: () => {},
+        stderr: (message) => {
+          stderr += message;
+        },
+      },
+    );
+
+    expect(code).toBe(1);
+    expect(stderr).toContain('missing pricing for model: nope');
+    expect(stderr).toContain('--allow-missing-pricing');
+  });
+
+  it('allows missing pricing only when explicitly requested', async () => {
+    const runDir = await mkdtemp(path.join(tmpdir(), 'prepare-run-pricing-allowed-'));
+    let stderr = '';
+    const code = await runCli(
+      [
+        'run',
+        '--dry-run',
+        '--run-id',
+        'allowed-pricing',
+        '--run-dir',
+        runDir,
+        '--model',
+        'nope',
+        '--allow-missing-pricing',
+      ],
+      {
+        stdout: () => {},
+        stderr: (message) => {
+          stderr += message;
+        },
+      },
+    );
+
+    expect(code).toBe(0);
+    expect(stderr).toContain('Warning: missing pricing for model nope');
+    await expect(readFile(path.join(runDir, 'state.json'), 'utf8')).resolves.toContain(
+      '"model": "nope"',
+    );
+  });
 });
