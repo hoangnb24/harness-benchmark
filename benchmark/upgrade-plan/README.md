@@ -1,6 +1,8 @@
 # Benchmark Upgrade Plan
 
-> Status: **Proposal** (no behavior changed by this PR — this directory is the plan only).
+> Status: **Implemented in progress**. The TypeScript orchestrator, task manifest,
+> usage/cost accounting, adherence review, checkpoint/resume support, docs, and CI
+> are now present on `devin/1781350935-benchmark-upgrade-plan`.
 > Target: `harness-benchmark` orchestrator + task suite.
 > Motivation: `repository-harness` has reached **Phase 5 (Evolution Infrastructure)**, but this
 > benchmark has not kept pace. Recent runs **max out** the metrics it measures, so it can no
@@ -68,15 +70,13 @@ exactly what *"a previous benchmark can't do, and an agent without the benchmark
 4. **Resumable / retryable runs**: continue from the last failed step, or re-run a chosen step,
    instead of restarting the whole ~25-minute / ~$19 run after an out-of-credits or network blip.
 
-## 3. Non-goals (for this plan PR)
+## 3. Non-goals
 
-- This PR **does not implement** any of the four workstreams. It only proposes the design and the
-  acceptance criteria. Each workstream below is sized to land as its own follow-up PR.
 - We do not change the system-under-test (the Bookmark Manager API spec in `PRODUCT_SPEC.md`) except
   to *add* new task tiers; the existing T1–T6 remain the functional-correctness baseline.
 - We do not change `repository-harness`.
 
-## 4. Current-state assessment (what backs each workstream)
+## 4. Original-state assessment (what motivated each workstream)
 
 | Area | Today | Evidence | Workstream |
 | --- | --- | --- | --- |
