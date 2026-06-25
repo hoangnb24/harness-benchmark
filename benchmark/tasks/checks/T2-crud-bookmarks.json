@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "create_bookmark",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "body": { "url": "https://example.com", "title": "Test Bookmark" }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "list_bookmarks",
+      "request": { "method": "GET", "path": "/bookmarks" },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "get_bookmark",
+      "request": { "method": "GET", "path": "/bookmarks/1" },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "update_bookmark",
+      "request": {
+        "method": "PUT",
+        "path": "/bookmarks/1",
+        "body": { "title": "Updated Title" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "delete_bookmark",
+      "request": { "method": "DELETE", "path": "/bookmarks/1" },
+      "expect": { "status": 204 }
+    },
+    {
+      "name": "missing_title",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "body": { "url": "https://example.com" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "missing_url",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "body": { "title": "No URL" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "health_regression",
+      "request": { "method": "GET", "path": "/health" },
+      "expect": { "status": 200 }
+    }
+  ]
+}

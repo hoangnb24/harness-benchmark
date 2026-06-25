@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "health_status",
+      "request": { "method": "GET", "path": "/health" },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "health_body",
+      "request": { "method": "GET", "path": "/health" },
+      "expect": { "status": 200, "bodyContains": "\"status\"" }
+    }
+  ]
+}
