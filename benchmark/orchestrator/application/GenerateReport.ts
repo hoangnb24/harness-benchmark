@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
+import type { CheckpointState } from '../domain/checkpoint';
 
 interface TimingJson {
   wall_seconds?: number;
@@ -91,10 +92,7 @@ export interface GeneratedReport {
 
 export class GenerateReport {
   async generate(runId: string, runDir: string, generatedAt: Date = new Date()): Promise<GeneratedReport> {
-    const taskNames = (await readdir(runDir, { withFileTypes: true }))
-      .filter((entry) => entry.isDirectory() && entry.name.startsWith('T'))
-      .map((entry) => entry.name)
-      .sort();
+    const taskNames = await this.discoverTaskNames(runDir);
 
     const tasks = await Promise.all(
       taskNames.map((taskName) => this.readTaskSummary(runDir, taskName)),
@@ -162,10 +160,26 @@ export class GenerateReport {
       harnessPass: harnessCounts.pass,
       harnessTotal: harnessCounts.total,
       qualityScore: quality.trace_quality_score ?? 0,
-      laneCorrect: lane.expected === lane.actual,
+      laneCorrect: lane.expected !== undefined && lane.actual !== undefined && lane.expected === lane.actual,
       adherencePass: adherence?.adherence_pass,
       adherenceTotal: adherence?.adherence_total,
     };
+  }
+
+  private async discoverTaskNames(runDir: string): Promise<string[]> {
+    const state = await readOptionalJson<CheckpointState>(path.join(runDir, 'state.json'));
+    const artifactTaskNames = (await readdir(runDir, { withFileTypes: true }))
+      .filter((entry) => entry.isDirectory() && entry.name.startsWith('T'))
+      .map((entry) => entry.name)
+      .sort();
+
+    if (!state) {
+      return artifactTaskNames;
+    }
+
+    const ordered = state.steps.map((step) => step.task);
+    const planned = new Set(ordered);
+    return [...ordered, ...artifactTaskNames.filter((taskName) => !planned.has(taskName))];
   }
 
   private buildScores(runId: string, tasks: TaskSummary[]): ScoresJson {

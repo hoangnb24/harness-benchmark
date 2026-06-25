@@ -133,6 +133,47 @@ describe('GenerateReport', () => {
     );
     expect(generated.reportMarkdown).toContain('| Estimated cost | unknown |');
   });
+
+  it('generates a report from partial state.json when later task artifacts are missing', async () => {
+    const runDir = path.join(tmpdir(), `partial-state-report-${Date.now()}`);
+    await writeMinimalTask(runDir, 'T1-example');
+    await writeJson(path.join(runDir, 'state.json'), {
+      runId: 'partial-state-run',
+      agent: 'custom',
+      model: 'gpt-test',
+      harnessRef: 'main',
+      workspaceDir: '/tmp/workspace',
+      steps: [
+        {
+          task: 'T1-example',
+          status: 'passed',
+          checkpoint: 'checkpoints/T1-example',
+          failureClass: null,
+        },
+        {
+          task: 'T2-example',
+          status: 'failed',
+          failureClass: 'retriable',
+          exitCode: 124,
+          detail: 'agent timeout',
+        },
+      ],
+    });
+
+    const generated = await new GenerateReport().generate(
+      'partial-state-run',
+      runDir,
+      new Date('2026-06-25T00:00:00Z'),
+    );
+
+    expect(generated.scores).toMatchObject({
+      run_id: 'partial-state-run',
+      task_count: 2,
+      lane_accuracy: '1/2',
+    });
+    expect(generated.reportMarkdown).toContain('| T1-example | 1s | 0 | 1/1 | 1/1 | 1/3 |');
+    expect(generated.reportMarkdown).toContain('| T2-example | 0s | 0 | 0/0 | 0/0 | 0/3 |');
+  });
 });
 
 async function writeJson(filePath: string, value: unknown) {
