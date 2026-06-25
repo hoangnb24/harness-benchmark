@@ -1,4 +1,7 @@
 import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
+import { ScoreAdherence } from '../application/ScoreAdherence';
+import { FsAdherenceArtifactWriter } from '../infrastructure/FsAdherenceArtifactWriter';
+import { JsonAdherenceEvidenceProvider } from '../infrastructure/JsonAdherenceEvidenceProvider';
 
 interface CliIo {
   stdout: (message: string) => void;
@@ -17,7 +20,18 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
     return validatePricing(rest, io);
   }
 
-  io.stderr('Usage: harness-bench pricing validate [--pricing benchmark/pricing/models.json]\n');
+  if (area === 'adherence' && command === 'score') {
+    return scoreAdherence(rest, io);
+  }
+
+  io.stderr(
+    [
+      'Usage:',
+      '  harness-bench pricing validate [--pricing benchmark/pricing/models.json]',
+      '  harness-bench adherence score --evidence evidence.json --out adherence.json',
+      '',
+    ].join('\n'),
+  );
   return 1;
 }
 
@@ -36,6 +50,33 @@ async function validatePricing(args: string[], io: CliIo): Promise<number> {
     return 0;
   } catch (error) {
     io.stderr(`Pricing table invalid: ${pricingPath}\n${error instanceof Error ? error.message : String(error)}\n`);
+    return 1;
+  }
+}
+
+async function scoreAdherence(args: string[], io: CliIo): Promise<number> {
+  const evidencePath = readFlag(args, '--evidence');
+  const outPath = readFlag(args, '--out');
+
+  if (!evidencePath || !outPath) {
+    io.stderr('Usage: harness-bench adherence score --evidence evidence.json --out adherence.json\n');
+    return 1;
+  }
+
+  try {
+    const score = await new ScoreAdherence(
+      new JsonAdherenceEvidenceProvider(evidencePath),
+      new FsAdherenceArtifactWriter(outPath),
+    ).run();
+
+    io.stdout(
+      `Adherence scored: ${score.adherence_pass}/${score.adherence_total} -> ${outPath}\n`,
+    );
+    return 0;
+  } catch (error) {
+    io.stderr(
+      `Adherence scoring failed: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
     return 1;
   }
 }
