@@ -1,7 +1,10 @@
 import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
 import { ScoreAdherence } from '../application/ScoreAdherence';
+import { PrepareRun } from '../application/PrepareRun';
 import { FsAdherenceArtifactWriter } from '../infrastructure/FsAdherenceArtifactWriter';
+import { FsCheckpointStore } from '../infrastructure/FsCheckpointStore';
 import { JsonAdherenceEvidenceProvider } from '../infrastructure/JsonAdherenceEvidenceProvider';
+import { TaskManifestLoader } from '../infrastructure/TaskManifestLoader';
 
 interface CliIo {
   stdout: (message: string) => void;
@@ -24,15 +27,57 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
     return scoreAdherence(rest, io);
   }
 
+  if (area === 'run' && command === '--dry-run') {
+    return dryRunBenchmark(rest, io);
+  }
+
   io.stderr(
     [
       'Usage:',
       '  harness-bench pricing validate [--pricing benchmark/pricing/models.json]',
       '  harness-bench adherence score --evidence evidence.json --out adherence.json',
+      '  harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json]',
       '',
     ].join('\n'),
   );
   return 1;
+}
+
+async function dryRunBenchmark(args: string[], io: CliIo): Promise<number> {
+  const runId = readFlag(args, '--run-id');
+  const runDir = readFlag(args, '--run-dir');
+  const manifestPath = readFlag(args, '--manifest') ?? 'benchmark/tasks/manifest.json';
+  const agent = readFlag(args, '--agent') ?? 'codex';
+  const harnessRef = readFlag(args, '--harness') ?? 'main';
+  const model = readFlag(args, '--model');
+  const workspaceDir = readFlag(args, '--workspace') ?? process.cwd();
+
+  if (!runId || !runDir) {
+    io.stderr(
+      'Usage: harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json]\n',
+    );
+    return 1;
+  }
+
+  try {
+    const plan = await new TaskManifestLoader(manifestPath).load(runId);
+    const prepared = await new PrepareRun(new FsCheckpointStore(runDir)).prepare(plan, {
+      agent,
+      model,
+      harnessRef,
+      workspaceDir,
+    });
+
+    io.stdout(`Prepared run ${prepared.state.runId}: ${prepared.taskIds.length} tasks\n`);
+    for (const taskId of prepared.taskIds) {
+      io.stdout(`- ${taskId}\n`);
+    }
+    io.stdout(`State: ${runDir}/state.json\n`);
+    return 0;
+  } catch (error) {
+    io.stderr(`Dry run failed: ${error instanceof Error ? error.message : String(error)}\n`);
+    return 1;
+  }
 }
 
 async function validatePricing(args: string[], io: CliIo): Promise<number> {

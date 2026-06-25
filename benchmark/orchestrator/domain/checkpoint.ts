@@ -21,8 +21,28 @@ export interface CheckpointState {
   steps: CheckpointStep[];
 }
 
+export interface InitialCheckpointOptions {
+  runId: string;
+  agent: string;
+  model?: string;
+  harnessRef: string;
+  workspaceDir: string;
+  taskIds: string[];
+}
+
 export function firstRunnableStep(state: CheckpointState): CheckpointStep | undefined {
   return state.steps.find((step) => step.status !== 'passed' && step.status !== 'skipped');
+}
+
+export function createInitialCheckpointState(options: InitialCheckpointOptions): CheckpointState {
+  return {
+    runId: options.runId,
+    agent: options.agent,
+    model: options.model,
+    harnessRef: options.harnessRef,
+    workspaceDir: options.workspaceDir,
+    steps: options.taskIds.map((task) => ({ task, status: 'pending', failureClass: null })),
+  };
 }
 
 export function markStepRunning(
