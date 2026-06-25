@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -58,4 +58,57 @@ describe('CLI', () => {
     expect(code).toBe(1);
     expect(stderr).toContain('Pricing table invalid');
   });
+
+  it('generates scores and markdown reports from a run directory', async () => {
+    const runDir = await mkdtemp(path.join(tmpdir(), 'cli-report-'));
+    await writeMinimalTask(runDir, 'T1-example');
+
+    let stdout = '';
+    const code = await runCli(
+      ['report', 'generate', '--run-id', 'cli-report', '--run-dir', runDir],
+      {
+        stdout: (message) => {
+          stdout += message;
+        },
+        stderr: () => {},
+      },
+    );
+
+    expect(code).toBe(0);
+    expect(stdout).toContain('Report generated:');
+    await expect(readFile(path.join(runDir, 'scores.json'), 'utf8')).resolves.toContain(
+      '"run_id": "cli-report"',
+    );
+    await expect(readFile(path.join(runDir, 'report.md'), 'utf8')).resolves.toContain(
+      '# Benchmark Report: cli-report',
+    );
+  });
 });
+
+async function writeMinimalTask(runDir: string, taskName: string) {
+  await mkdir(path.join(runDir, taskName), { recursive: true });
+  await writeJson(path.join(runDir, 'metadata.json'), {
+    harness_ref: 'main',
+    agent: 'codex',
+    model: 'gpt-test',
+  });
+  await writeJson(path.join(runDir, taskName, 'timing.json'), { wall_seconds: 1 });
+  await writeJson(path.join(runDir, taskName, 'tokens.json'), {
+    input_tokens: 10,
+    output_tokens: 5,
+    total_tokens: 15,
+    estimated_cost_usd: 0.01,
+  });
+  await writeJson(path.join(runDir, taskName, 'functional.json'), { checks: [{ pass: true }] });
+  await writeJson(path.join(runDir, taskName, 'harness.json'), { checks: [{ pass: true }] });
+  await writeJson(path.join(runDir, taskName, 'quality.json'), { trace_quality_score: 1 });
+  await writeJson(path.join(runDir, taskName, 'lane.json'), {
+    expected: 'tiny',
+    actual: 'tiny',
+  });
+}
+
+async function writeJson(filePath: string, value: unknown) {
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, JSON.stringify(value));
+}

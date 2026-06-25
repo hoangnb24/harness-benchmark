@@ -1,5 +1,8 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
 import { ScoreAdherence } from '../application/ScoreAdherence';
+import { GenerateReport } from '../application/GenerateReport';
 import { PrepareRun } from '../application/PrepareRun';
 import { ResumeRun, type ResumeMode } from '../application/ResumeRun';
 import { FsAdherenceArtifactWriter } from '../infrastructure/FsAdherenceArtifactWriter';
@@ -28,6 +31,10 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
     return scoreAdherence(rest, io);
   }
 
+  if (area === 'report' && command === 'generate') {
+    return generateReport(rest, io);
+  }
+
   if (area === 'run' && command === '--dry-run') {
     return dryRunBenchmark(rest, io);
   }
@@ -37,12 +44,49 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
       'Usage:',
       '  harness-bench pricing validate [--pricing benchmark/pricing/models.json]',
       '  harness-bench adherence score --evidence evidence.json --out adherence.json',
+      '  harness-bench report generate --run-id RUN --run-dir DIR [--scores-out scores.json] [--report-out report.md]',
       '  harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json] [--pricing benchmark/pricing/models.json]',
       '  harness-bench run --dry-run --resume RUN --run-dir DIR [--only TASK|--from TASK|--steps T1,T2|--retry-failed] [--force]',
       '',
     ].join('\n'),
   );
   return 1;
+}
+
+async function generateReport(args: string[], io: CliIo): Promise<number> {
+  const runId = readFlag(args, '--run-id');
+  const runDir = readFlag(args, '--run-dir');
+
+  if (!runId || !runDir) {
+    io.stderr(
+      'Usage: harness-bench report generate --run-id RUN --run-dir DIR [--scores-out scores.json] [--report-out report.md]\n',
+    );
+    return 1;
+  }
+
+  const scoresOut = readFlag(args, '--scores-out') ?? path.join(runDir, 'scores.json');
+  const reportOut = readFlag(args, '--report-out') ?? path.join(runDir, 'report.md');
+
+  try {
+    const generator = new GenerateReport();
+    const generated = await generator.generate(runId, runDir);
+    await writeText(scoresOut, generator.renderScoresJson(generated.scores));
+    await writeText(reportOut, generated.reportMarkdown);
+
+    io.stdout(`Report generated: ${scoresOut}\n`);
+    io.stdout(`Markdown generated: ${reportOut}\n`);
+    return 0;
+  } catch (error) {
+    io.stderr(
+      `Report generation failed: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    return 1;
+  }
+}
+
+async function writeText(filePath: string, contents: string): Promise<void> {
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, contents);
 }
 
 async function dryRunBenchmark(args: string[], io: CliIo): Promise<number> {
