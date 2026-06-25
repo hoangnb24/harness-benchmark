@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import type { ModelRate } from '../domain/cost';
 import type { PricingProvider } from '../ports/PricingProvider';
 
@@ -21,7 +22,10 @@ interface PricingTableFile {
 export class JsonPricingProvider implements PricingProvider {
   private table?: Map<string, ModelRate>;
 
-  constructor(private readonly pricingPath: string) {}
+  constructor(
+    private readonly pricingPath: string,
+    private readonly localPricingPath = path.join(path.dirname(pricingPath), 'models.local.json'),
+  ) {}
 
   async rateFor(model: string): Promise<ModelRate | undefined> {
     return (await this.load()).get(model);
@@ -46,8 +50,10 @@ export class JsonPricingProvider implements PricingProvider {
     }
 
     const parsed = JSON.parse(await readFile(this.pricingPath, 'utf8')) as PricingTableFile;
+    const local = await readOptionalPricingTable(this.localPricingPath);
+    const models = { ...parsed.models, ...(local?.models ?? {}) };
     this.table = new Map(
-      Object.entries(parsed.models).map(([model, rate]) => [
+      Object.entries(models).map(([model, rate]) => [
         model,
         {
           model,
@@ -62,4 +68,25 @@ export class JsonPricingProvider implements PricingProvider {
 
     return this.table;
   }
+}
+
+async function readOptionalPricingTable(filePath: string): Promise<PricingTableFile | undefined> {
+  try {
+    return JSON.parse(await readFile(filePath, 'utf8')) as PricingTableFile;
+  } catch (error) {
+    if (isNotFound(error)) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+function isNotFound(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: string }).code === 'ENOENT'
+  );
 }

@@ -80,7 +80,12 @@ Checkpoints are copied with an explicit exclusion policy for dependencies, run a
 
 ## Usage and Cost
 
-`benchmark/pricing/models.json` is the committed manual pricing table. Run startup fails when `--model` is missing from the table unless `--allow-missing-pricing` is supplied. Provider parsers normalize OpenAI/Codex, Anthropic/Claude, and custom `usage.json` outputs into per-interaction records.
+`benchmark/pricing/models.json` is the committed manual pricing table. For private experiments,
+`benchmark/pricing/models.local.json` can override or add models locally; it is ignored by git and
+is merged over the committed table by `harness-bench pricing validate` and run startup. Run startup
+fails when `--model` is missing from the effective table unless `--allow-missing-pricing` is
+supplied. Provider parsers normalize OpenAI/Codex, Anthropic/Claude, and custom `usage.json` outputs
+into per-interaction records.
 
 ## Harness-Adherence Review
 

@@ -153,4 +153,60 @@ describe('JsonPricingProvider', () => {
     });
     await expect(provider.requireRate('missing-model')).rejects.toThrow(/missing-model/);
   });
+
+  it('merges sibling models.local.json overrides into the effective pricing table', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'pricing-local-'));
+    await writeFile(
+      path.join(dir, 'models.json'),
+      JSON.stringify({
+        version: 'base',
+        models: {
+          'gpt-test': {
+            provider: 'openai',
+            input: 1,
+            cachedInput: 0.1,
+            output: 10,
+            source: 'base',
+            updatedAt: '2026-06-25',
+          },
+        },
+      }),
+    );
+    await writeFile(
+      path.join(dir, 'models.local.json'),
+      JSON.stringify({
+        version: 'local',
+        models: {
+          'gpt-test': {
+            provider: 'openai',
+            input: 2,
+            cachedInput: 0.2,
+            output: 20,
+            source: 'local',
+            updatedAt: '2026-06-25',
+          },
+          'local-only': {
+            provider: 'custom',
+            input: 3,
+            cachedInput: 0.3,
+            output: 30,
+            source: 'local',
+            updatedAt: '2026-06-25',
+          },
+        },
+      }),
+    );
+
+    const provider = new JsonPricingProvider(path.join(dir, 'models.json'));
+
+    await expect(provider.rateFor('gpt-test')).resolves.toMatchObject({
+      inputUsdPerMillion: 2,
+      cachedInputUsdPerMillion: 0.2,
+      outputUsdPerMillion: 20,
+    });
+    await expect(provider.rateFor('local-only')).resolves.toMatchObject({
+      provider: 'custom',
+      inputUsdPerMillion: 3,
+    });
+  });
 });
