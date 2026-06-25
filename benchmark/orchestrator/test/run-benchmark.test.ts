@@ -8,6 +8,10 @@ import type { AgentAdapter } from '../ports/AgentAdapter';
 import type { CheckpointStore } from '../ports/CheckpointStore';
 import type { Clock } from '../ports/Clock';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
+import type {
+  WorkspaceSnapshotOptions,
+  WorkspaceSnapshotStore,
+} from '../ports/WorkspaceSnapshotStore';
 
 const task = (id: string, dependencies: string[] = []): TaskDefinition => ({
   id,
@@ -100,6 +104,34 @@ describe('RunBenchmark', () => {
     expect(usageCalls).toEqual([{ exitCode: 0, taskDir: '/tmp/run/T1-project-setup' }]);
   });
 
+  it('saves a pre-run checkpoint and post-task checkpoints only for passed tasks', async () => {
+    const snapshots = new RecordingSnapshotStore();
+    const runner = new RunBenchmark({
+      agent: {
+        async invoke(taskDefinition) {
+          return { exitCode: taskDefinition.id === 'T2-crud-bookmarks' ? 1 : 0 };
+        },
+      },
+      functional: {
+        async run() {
+          return [{ name: 'ok', pass: true }];
+        },
+      },
+      snapshots,
+      clock: fixedClock(),
+    });
+
+    await runner.run(
+      { runId: 'snapshot-run', tasks: [task('T1-project-setup'), task('T2-crud-bookmarks')] },
+      { projectDir: '/tmp/project', runDir: '/tmp/run' },
+    );
+
+    expect(snapshots.saved.map((snapshot) => snapshot.checkpointDir)).toEqual([
+      '/tmp/run/checkpoints/pre-run',
+      '/tmp/run/checkpoints/T1-project-setup',
+    ]);
+  });
+
   it('classifies agent and functional failures in checkpoint state', async () => {
     const checkpoints = new RecordingCheckpointStore();
     const runner = new RunBenchmark({
@@ -145,6 +177,16 @@ class RecordingCheckpointStore implements CheckpointStore {
   async save(state: CheckpointState): Promise<void> {
     this.saved.push(JSON.parse(JSON.stringify(state)) as CheckpointState);
   }
+}
+
+class RecordingSnapshotStore implements WorkspaceSnapshotStore {
+  readonly saved: WorkspaceSnapshotOptions[] = [];
+
+  async save(options: WorkspaceSnapshotOptions): Promise<void> {
+    this.saved.push(options);
+  }
+
+  async restore(): Promise<void> {}
 }
 
 function fixedClock(): Clock {

@@ -92,7 +92,11 @@ function filterAlreadyPassed(steps: CheckpointStep[], force: boolean): Checkpoin
 
 function checkpointBefore(steps: CheckpointStep[], task: string): string | undefined {
   const index = steps.findIndex((step) => step.task === task);
-  if (index <= 0) {
+  if (index === 0) {
+    return 'checkpoints/pre-run';
+  }
+
+  if (index < 0) {
     return undefined;
   }
 

@@ -9,6 +9,7 @@ import { RecordUsage } from '../application/RecordUsage';
 import { AnthropicUsageParser } from '../infrastructure/AnthropicUsageParser';
 import { CustomUsageParser } from '../infrastructure/CustomUsageParser';
 import { FsUsageArtifactWriter } from '../infrastructure/FsUsageArtifactWriter';
+import { FsWorkspaceSnapshotStore } from '../infrastructure/FsWorkspaceSnapshotStore';
 import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
 import { OpenAiUsageParser } from '../infrastructure/OpenAiUsageParser';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
@@ -27,6 +28,7 @@ export interface RunnerConfig {
   pricingVersion?: string;
   recordUsage?: boolean;
   allowMissingPricing?: boolean;
+  snapshotWorkspaces?: boolean;
 }
 
 export function buildRunner(config: RunnerConfig): RunBenchmark {
@@ -45,6 +47,7 @@ export function buildRunner(config: RunnerConfig): RunBenchmark {
     agent: agents[config.agent](),
     functional: config.functional,
     usage: config.recordUsage ? buildUsageRecorder(config) : undefined,
+    snapshots: config.snapshotWorkspaces ? new FsWorkspaceSnapshotStore() : undefined,
   });
 }
 

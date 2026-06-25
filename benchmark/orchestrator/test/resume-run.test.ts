@@ -49,7 +49,7 @@ describe('ResumeRun', () => {
     expect(resume.plan(state(), { kind: 'only', task: 'T1-project-setup' }).steps).toEqual([]);
     expect(
       resume.plan(state(), { kind: 'only', task: 'T1-project-setup', force: true }).steps,
-    ).toMatchObject([{ task: 'T1-project-setup' }]);
+    ).toMatchObject([{ task: 'T1-project-setup', restoreCheckpoint: 'checkpoints/pre-run' }]);
   });
 
   it('runs from a named task through the end', () => {

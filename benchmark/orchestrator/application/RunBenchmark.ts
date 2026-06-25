@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { validateRunPlan, type RunPlan, type TaskResult } from '../domain/task';
 import {
   classifyFailure,
@@ -10,6 +11,7 @@ import type { AgentAdapter, AgentInvocationContext, RawAgentOutput } from '../po
 import type { CheckpointStore } from '../ports/CheckpointStore';
 import type { Clock } from '../ports/Clock';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
+import type { WorkspaceSnapshotStore } from '../ports/WorkspaceSnapshotStore';
 
 export interface RunBenchmarkDeps {
   agent: AgentAdapter;
@@ -17,6 +19,7 @@ export interface RunBenchmarkDeps {
   checkpoints?: CheckpointStore;
   clock?: Clock;
   usage?: UsageRecorder;
+  snapshots?: WorkspaceSnapshotStore;
 }
 
 export interface UsageRecorder {
@@ -51,6 +54,14 @@ export class RunBenchmark {
         steps: plan.tasks.map((task) => ({ task: task.id, status: 'pending', failureClass: null })),
       } satisfies CheckpointState);
 
+    if (shouldSavePreRunSnapshot(context.checkpointState)) {
+      await this.deps.snapshots?.save({
+        runId: plan.runId,
+        workspaceDir: context.projectDir,
+        checkpointDir: checkpointDir(context.runDir, 'pre-run'),
+      });
+    }
+
     for (const task of plan.tasks) {
       const artifactsDir = `${context.runDir}/${task.id}`;
       const invocationContext: AgentInvocationContext = {
@@ -70,6 +81,11 @@ export class RunBenchmark {
       const taskPassed = raw.exitCode === 0 && checksPassed;
 
       if (taskPassed) {
+        await this.deps.snapshots?.save({
+          runId: plan.runId,
+          workspaceDir: context.projectDir,
+          checkpointDir: checkpointDir(context.runDir, task.id),
+        });
         checkpointState = markStepPassed(
           checkpointState,
           task.id,
@@ -111,4 +127,12 @@ export class RunBenchmark {
   private timestamp(): string {
     return (this.deps.clock?.now() ?? new Date()).toISOString();
   }
+}
+
+function checkpointDir(runDir: string, checkpointName: string): string {
+  return path.join(runDir, 'checkpoints', checkpointName);
+}
+
+function shouldSavePreRunSnapshot(state: CheckpointState | undefined): boolean {
+  return !state || state.steps.every((step) => step.status === 'pending');
 }

@@ -131,6 +131,31 @@ describe('buildRunner', () => {
       estimated_cost_usd: 0.000323,
     });
   });
+
+  it('can assemble workspace snapshots for Codex runs', async () => {
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'composition-snapshot-workspace-'));
+    const runDir = path.join(workspaceDir, 'benchmark/runs/snapshot-root');
+    await writeFile(path.join(await ensureDir(path.join(workspaceDir, 'src')), 'index.ts'), 'v1');
+
+    const benchmark = buildRunner({
+      agent: 'codex',
+      commandRunner: new RecordingCommandRunner(),
+      functional: passingFunctional(),
+      snapshotWorkspaces: true,
+    });
+
+    await benchmark.run(
+      { runId: 'snapshot-root', tasks: [task] },
+      { projectDir: workspaceDir, runDir },
+    );
+
+    await expect(
+      readFile(path.join(runDir, 'checkpoints/pre-run/src/index.ts'), 'utf8'),
+    ).resolves.toBe('v1');
+    await expect(
+      readFile(path.join(runDir, 'checkpoints/T1-project-setup/src/index.ts'), 'utf8'),
+    ).resolves.toBe('v1');
+  });
 });
 
 class RecordingCommandRunner implements CommandRunner {
@@ -201,4 +226,9 @@ function passingFunctional(): FunctionalProbe {
 
 async function readJson(filePath: string): Promise<unknown> {
   return JSON.parse(await readFile(filePath, 'utf8')) as unknown;
+}
+
+async function ensureDir(dir: string): Promise<string> {
+  await mkdir(dir, { recursive: true });
+  return dir;
 }
