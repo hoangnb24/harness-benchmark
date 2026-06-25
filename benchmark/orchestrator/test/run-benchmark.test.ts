@@ -59,7 +59,7 @@ describe('domain helpers', () => {
       },
     ]);
 
-    expect(totals.totalTokens).toBe(130);
+    expect(totals.totalTokens).toBe(180);
     expect(totals.reasoningTokens).toBe(10);
   });
 

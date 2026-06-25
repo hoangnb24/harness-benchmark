@@ -2,7 +2,7 @@ export type UsageProvider = 'openai' | 'anthropic' | 'custom';
 
 export interface Interaction {
   model: string;
-  inputTokens: number;
+  inputTokens: number; // fresh, non-cached input tokens
   cachedInputTokens: number;
   outputTokens: number;
   reasoningTokens?: number;
@@ -42,6 +42,6 @@ export function sumUsage(interactions: Interaction[]): UsageTotals {
     },
   );
 
-  totals.totalTokens = totals.inputTokens + totals.outputTokens;
+  totals.totalTokens = totals.inputTokens + totals.cachedInputTokens + totals.outputTokens;
   return totals;
 }
