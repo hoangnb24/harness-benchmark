@@ -1,0 +1,33 @@
+name: Benchmark Orchestrator
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'devin/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint orchestrator boundaries
+        run: npm run lint:orchestrator
+
+      - name: Typecheck orchestrator
+        run: npm run typecheck:orchestrator
+
+      - name: Run tests
+        run: npm test
