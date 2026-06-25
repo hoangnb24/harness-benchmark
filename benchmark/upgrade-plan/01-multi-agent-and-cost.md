@@ -29,8 +29,8 @@ interface Interaction {            // one API round-trip / turn
   model: string;                   // resolved model id for THIS call
   inputTokens: number;
   cachedInputTokens: number;       // billed at the cached rate
-  outputTokens: number;
-  reasoningTokens?: number;        // o-series / extended thinking
+  outputTokens: number;            // total billed output tokens, including reasoning when provider reports it that way
+  reasoningTokens?: number;        // informational breakdown only unless the provider prices it separately
 }
 interface NormalizedUsage {
   provider: 'openai' | 'anthropic' | 'custom';
@@ -78,14 +78,28 @@ A committed, human-edited table is the source of truth for "each model has its o
 > Values above are **placeholders to illustrate the schema** — the first implementation task is to
 > fill them from each provider's pricing page and record `source`/`updatedAt`.
 
-`CostModel` (pure domain) computes cost per interaction using *that interaction's* model, then sums:
+`CostModel` (pure domain) computes cost per interaction using *that interaction's* model, then sums.
+The normalization contract is important: `outputTokens` means the provider's billed output total.
+For OpenAI-style usage, reasoning tokens are usually a breakdown inside output tokens, so they must
+not be added a second time. `reasoningTokens` is billed only when a pricing table explicitly declares
+that the provider reports/prices reasoning outside `outputTokens`.
 
 ```
 cost(interaction) = input/1e6 * rate.input
                   + cachedInput/1e6 * rate.cachedInput
                   + output/1e6 * rate.output
-                  + reasoning/1e6 * (rate.reasoning ?? rate.output)
+                  + reasoningOutsideOutput/1e6 * rate.reasoning
 ```
+
+Parser fixtures must assert the invariant:
+
+```
+totalTokens == inputTokens + outputTokens
+reasoningTokens <= outputTokens   // for providers that include reasoning in output
+```
+
+If a provider reports reasoning outside output, the parser must set an explicit
+`reasoningTokensBilledSeparately: true` flag so the cost model can charge it without guessing.
 
 ### C. "Manual update before running" — make it a guarded step
 
@@ -121,11 +135,12 @@ compatibility view):
 | 1 | OpenAI parser sums a recorded codex `events.jsonl` fixture to a known total and **N interactions** | Unit test asserts `interactions.length` and `totals` against a golden fixture |
 | 2 | Anthropic parser maps `cache_read_input_tokens` → `cachedInputTokens` from a `result.json` fixture | Unit test against an Anthropic fixture |
 | 3 | `--agent claude` produces **non-zero** usage from a fixture (regression vs. today's hardcoded `0`) | Integration test: run claude adapter on fixture, assert `totals.total > 0` |
-| 4 | Cost for a fixture equals an exact expected dollar value under a **pinned** pricing table | Unit test with deterministic fixture + frozen `models.json` |
+| 4 | Cost for a fixture equals an exact expected dollar value under a **pinned** pricing table, without double-counting reasoning tokens | Unit test with deterministic fixture + frozen `models.json`; fixture includes reasoning token breakdown |
 | 5 | Per-interaction costs **sum to** the reported task/run total | Property test over generated usage records |
 | 6 | A model absent from the pricing table makes the run **exit non-zero** naming the model | Integration test: run with `--model nope`, assert exit≠0 + message; `--allow-missing-pricing` ⇒ exit 0, `cost: null` |
 | 7 | `harness-bench pricing validate` prints the effective table and fails on malformed JSON | CLI test on a good and a corrupt `models.json` |
 | 8 | Cached input is billed at the **cached** rate, not the input rate | Unit test: fixture with cached tokens yields lower cost than if billed at full input rate |
+| 9 | Unknown usage is represented as `usageKnown:false` and `costUsd:null`, never false zeroes | Custom-agent fixture without `usage.json`; report preserves null cost |
 
 ## Touch points
 

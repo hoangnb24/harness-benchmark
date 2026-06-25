@@ -6,6 +6,26 @@
 > benchmark has not kept pace. Recent runs **max out** the metrics it measures, so it can no
 > longer tell us whether the harness is actually getting better.
 
+## 0. Plain-English objective
+
+This upgrade exists because the benchmark is saturated. It can still prove that an agent can finish
+the original Bookmark Manager tasks, but it no longer separates harness versions or agent quality:
+recent runs hit 100% on functional checks, harness compliance, and lane accuracy.
+
+The goal is to restore signal. After this upgrade, the benchmark should answer:
+
+1. Which agent/model performs best on the same work, with accurate provider-specific token and cost
+   accounting?
+2. Does `repository-harness` Phase 5 leave useful evidence for audit, context scoring, intervention
+   review, and improvement proposals?
+3. Do harder tasks expose correctness, design, security, and scale differences that T1-T6 no longer
+   expose?
+4. Can an expensive long run resume from the last good checkpoint instead of starting over?
+5. Can the runner keep evolving without adding more global-state Bash branches?
+
+In short: keep T1-T6 as the historical baseline, then add enough accounting, resumability,
+architecture, harder tasks, and Phase 5 review to make future benchmark numbers meaningful again.
+
 ## 1. Why now
 
 The most recent run on record — `benchmark/runs/phase-5-evolution-infrastructure-20260608-230505/scores.json` —
@@ -32,17 +52,17 @@ shipped by `harness-cli` — verified present in `repository-harness/crates/harn
 
 …are **never invoked** by any task. The current functional checks (`benchmark/lib/check-functional.sh`)
 are *all* HTTP probes against the Bookmark Manager API the agent builds; they say nothing about
-whether the agent can use the harness to **audit drift and propose its own evolution** — which is
-the entire point of Phase 5 and exactly what *"a previous benchmark can't do, and an agent without
-the benchmark can't do either."*
+whether the agent left enough durable evidence for the benchmark to **audit drift, score context,
+review interventions, and generate improvement proposals** — which is the point of Phase 5 and
+exactly what *"a previous benchmark can't do, and an agent without the benchmark can't do either."*
 
 ## 2. Goals
 
 1. **Multi-agent / multi-model** runs with **provider-accurate usage and cost** accounting
    (OpenAI/codex, Anthropic/claude, custom), driven by a **manually-updatable pricing table**.
-2. **New, harder tasks** that exercise the breadth of Phase 5 `repository-harness` capabilities and
-   measure **evolution** (the agent must audit + propose), not just implementation correctness —
-   with **clear, machine-testable acceptance criteria**.
+2. **New, harder tasks** plus a Phase 5 review layer. The agent should naturally leave high-quality
+   harness evidence while doing implementation work; the benchmark then runs `score-context`,
+   `audit`, `query interventions`, and `propose` as read-only measurement over that evidence.
 3. A **pragmatic clean architecture** for the orchestrator: explicit layers, **dependency injection**,
    and clear macro boundaries (replacing the current sourced-Bash + global-variable design).
 4. **Resumable / retryable runs**: continue from the last failed step, or re-run a chosen step,
@@ -116,6 +136,12 @@ is injected into use cases through **ports**:
 M0/M1 are foundational and must land before 01/02/04 to avoid building three features on top of
 the current global-variable runner. 03 is therefore sequenced first even though the user listed it third.
 
+Pragmatic exception: a narrow checkpoint/resume slice from Workstream 04 may land before the full
+TypeScript migration if run cost becomes the immediate pain. That slice should be deliberately small:
+write `state.json`, create pre-task/post-task checkpoints with explicit exclusions, and support
+`--resume` for the first failed step. It should still preserve the later TypeScript state-machine
+shape so it can be ported instead of discarded.
+
 ## 7. Cross-cutting acceptance criteria
 
 Each workstream doc owns its detailed, testable acceptance criteria. At the program level:
@@ -134,10 +160,10 @@ Each workstream doc owns its detailed, testable acceptance criteria. At the prog
 | Risk | Mitigation |
 | --- | --- |
 | Bash→TS rewrite regresses scoring | **M1 parity gate**: keep the Bash runner until a golden run matches; port behind adapters incrementally |
-| Per-task workspace snapshots are large | Snapshot the project dir **excluding `node_modules`** + copy `harness.db`; or commit-per-task in a scratch git repo |
+| Per-task workspace snapshots are large or recursive | Snapshot the project dir with an explicit exclusion list (`node_modules`, run checkpoints, logs, WAL/SHM files, transient DBs as appropriate) + copy `harness.db`; or commit-per-task in a scratch git repo |
 | Provider JSON formats drift | Parsers are **fixture-driven**; pricing table carries `source_url` + `updated_at`; manual update step is documented and guarded |
 | Phase 5 tasks need seeded harness state | Ship **seed fixtures** and self-seeding steps; reuse the checkpoint mechanism from Workstream 04 |
-| New tasks could also become "maxable" | Evolution score grades **proposal quality**, not just presence; rubric thresholds tuned against a baseline run |
+| New tasks could also become "maxable" | Add harder tasks incrementally and keep adherence/evolution checks deterministic: score exact rows, JSON fields, thresholds, and fixture-backed pass/fail cases |
 
 ## 9. Open questions for review
 

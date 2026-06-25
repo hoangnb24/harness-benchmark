@@ -50,11 +50,27 @@ end of the last good step — not just re-running a command.
 
 ### B. Per-step checkpoints (what `seeds/` becomes, per run)
 
-After each **passed** step, snapshot the resumable state into
+Before T1 and after each **passed** step, snapshot the resumable state into
 `benchmark/runs/<run-id>/checkpoints/<task>/`:
 
-- the project workspace **excluding `node_modules`** (cheap; restored with `npm ci` on resume), and
+- the project workspace **excluding transient/generated paths** (cheap; restored with `npm ci` on
+  resume), and
 - a copy of `harness.db`, plus the `harness-baseline.env` for the next step.
+
+The pre-T1 checkpoint is required so `--only T1`, `--from T1`, and a failed T1 retry have a clean
+restore point after harness installation but before agent work.
+
+Minimum checkpoint exclusion list:
+
+- `node_modules`
+- `benchmark/runs/<run-id>/checkpoints`
+- other copied-back run artifacts for the same run (`events.jsonl`, `server.log`, reports, scores)
+- application transient files that should not define resumable state (`data.db-wal`, `data.db-shm`)
+- package/build caches that can be recreated
+
+The implementation should prefer an explicit allow/exclude policy over a blind recursive copy. A
+parity test must verify that a resumed run and a linear run see the same files before the resumed task
+starts.
 
 Resuming "to run step K" restores the checkpoint produced by step **K-1**, guaranteeing K starts from
 exactly the state it would have had in a clean linear run.
@@ -101,6 +117,8 @@ explicitly (`--only`). This directly serves the "out of credits / network" scena
 | 7 | `--retry-failed` re-runs only `retriable` failed steps | integration test with mixed statuses |
 | 8 | A report can be generated from a **partial** `state.json` | `GenerateReport` test on a partial run |
 | 9 | Restored workspace reproduces the same functional checks as an uninterrupted run | parity test: resumed run scores == linear run scores |
+| 10 | `--only T1` and `--from T1` restore the pre-T1 checkpoint | integration test confirms harness installed, no task artifacts present |
+| 11 | Checkpoint creation does not recursively copy checkpoints or run artifacts | fixture workspace with nested checkpoint dir; snapshot excludes it |
 
 ## Touch points
 

@@ -46,8 +46,19 @@ Illustrative next tasks (final list TBD with you):
 
 These restore headroom on the **functional** dimension. They are deliberately not "maxable" the way
 T1–T6 became, and the difficulty curve can keep growing (T13+). Workstream
-[03](03-clean-architecture-and-di.md) is what makes "keep adding" cheap: a task is just a `task.md` +
-`rubric.md` + a declarative set of HTTP checks, registered by data — no edits to the orchestrator.
+[03](03-clean-architecture-and-di.md) is what makes "keep adding" cheap, but this workstream must
+also define the task registry itself. Today tasks are hardcoded in `benchmark/run.sh` and
+`benchmark/lib/check-functional.sh`; adding T7-T12 without fixing that would repeat the current
+maintenance problem.
+
+New task registration deliverables:
+
+- `benchmark/tasks/manifest.json` (or `.yaml`) listing task id, prompt path, rubric path, expected
+  lane, dependencies, and functional-check file.
+- A declarative functional-check schema for HTTP probes: setup requests, request method/path/body,
+  expected status, JSON assertions, body assertions, and named variables such as auth tokens.
+- A loader test proving that a dummy task can be added by data only: no edits to `run.sh`, use cases,
+  or checker control flow.
 
 ### Part A acceptance criteria (testable)
 
@@ -55,8 +66,9 @@ T1–T6 became, and the difficulty curve can keep growing (T13+). Workstream
 | --- | --- | --- |
 | A1 | Each new task has a `tasks/T*.md` + `rubrics/T*.md` in the existing format | files exist; rubric tables parse |
 | A2 | Each functional check is an automated HTTP probe with explicit pass criteria | runs via the existing `run_check`/`run_check_json` style; pass/fail from status + body |
-| A3 | Adding a task requires **no orchestrator code change** (data-registered) | add a dummy task fixture; it runs without touching `run.sh`/use cases |
+| A3 | Adding a task requires **no orchestrator code change** (data-registered) | add a dummy manifest entry + declarative checks; it runs without touching `run.sh`, use cases, or checker control flow |
 | A4 | The high-risk task (T10) drives the `high_risk` lane + a decision record | lane.json `expected == high_risk`; decision row present |
+| A5 | Task order and dependencies come from the manifest, not a hardcoded array | manifest loader test returns T1-T12 in dependency-valid order |
 
 ---
 
@@ -82,6 +94,14 @@ agent's output), e.g. `harness-cli score-context <trace-id>`, `harness-cli audit
 
 ### How each becomes testable
 
+- **Tool registry hygiene**: benchmark queries `query tools --json`; pass requires valid JSON and no
+  broken tool rows. If the task used external commands beyond the base toolset, the tool rows must name
+  responsibility and install/verify commands.
+- **Verification discipline**: benchmark runs `story verify-all`; pass requires exit code 0 or a JSON
+  result with zero unverified stories for stories touched during the task.
+- **Intervention capture**: benchmark compares log evidence of corrections/retries/errors with
+  `query interventions`; pass requires either no correction pattern in logs, or at least one
+  intervention row linked to the current trace/story and typed from the allowed taxonomy.
 - **Context compliance**: benchmark runs `score-context` on the trace the agent wrote for the task and
   asserts the returned compliance tier ≥ threshold for the task's lane.
 - **Drift / entropy outcome**: benchmark runs `audit` on the post-task repo; a good agent leaves **low**
@@ -94,6 +114,11 @@ agent's output), e.g. `harness-cli score-context <trace-id>`, `harness-cli audit
   change/confidence). This captures *"suggestion to evolve, propose after finishing"* **from evidence the
   agent left**, not from a scripted step. An agent that ignored the harness leaves nothing to propose →
   it scores zero here; an agent **without** the harness can't produce these logs at all.
+
+The first implementation should keep these checks deterministic. "Quality" means exact fields and
+thresholds, not human judgment. For example, a proposal is well-formed only if it has non-empty
+`problem`, `evidence`, `suggested_change`, and numeric `confidence`, and its `evidence` cites a trace,
+story, intervention, or friction row from the current run.
 
 ### New metric: harness-adherence score (log-derived)
 
@@ -113,12 +138,14 @@ agent's output), e.g. `harness-cli score-context <trace-id>`, `harness-cli audit
 | B5 | Evolution signal passes only with **well-formed** proposable friction; empty/ignored harness ⇒ fail | run review on a "harness-ignored" fixture ⇒ adherence fails; on a "harness-followed" fixture ⇒ passes |
 | B6 | Running the review series against a **pre-Phase-5** harness ref reduces adherence (commands/data absent) | run vs. older `--harness` ref ⇒ adherence_pass < total |
 | B7 | `scores.json` gains `adherence_*` (+ optional `evolution_score`); old keys unchanged | schema test |
+| B8 | Every adherence check has a pass fixture and fail fixture | fixture suite covers ignored harness, incomplete trace, broken tool, unverified story, high entropy, and well-formed proposal cases |
 
 ---
 
 ## Touch points
 
 - New challenge tasks: `benchmark/tasks/T7..T12-*.md`, `benchmark/rubrics/T7..T12-*.md` (Part A).
+- New task registry: `benchmark/tasks/manifest.json` plus declarative HTTP check files for T1-T12.
 - New review layer: `benchmark/lib/check-adherence.sh` (or the TS `HarnessGateway` review probes) that
   reads `harness.db` + `events.jsonl`/logs and shells `score-context`/`audit`/`propose` for measurement;
   optional seed fixtures under `benchmark/seeds/phase5/*`.
