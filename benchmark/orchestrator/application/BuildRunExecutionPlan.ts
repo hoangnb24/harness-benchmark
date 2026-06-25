@@ -9,13 +9,17 @@ export interface RunExecutionPlan {
 export class BuildRunExecutionPlan {
   fromResumePlan(fullPlan: RunPlan, resumePlan: ResumePlan): RunExecutionPlan {
     const tasksById = new Map(fullPlan.tasks.map((task) => [task.id, task]));
+    const selectedTaskIds = new Set(resumePlan.steps.map((step) => step.task));
     const tasks = resumePlan.steps.map((step) => {
       const task = tasksById.get(step.task);
       if (!task) {
         throw new Error(`resume plan references unknown task: ${step.task}`);
       }
 
-      return task;
+      return {
+        ...task,
+        dependencies: task.dependencies.filter((dependency) => selectedTaskIds.has(dependency)),
+      };
     });
 
     return {

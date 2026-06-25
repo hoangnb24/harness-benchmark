@@ -175,6 +175,149 @@ describe('CLI', () => {
       '# Benchmark Report: execute-fixture',
     );
   });
+
+  it('resumes an executed run from the first failed task with checkpoint restore', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'cli-resume-execute-'));
+    const workspaceDir = path.join(dir, 'workspace');
+    const runDir = path.join(dir, 'run');
+    const manifestPath = path.join(dir, 'manifest.json');
+    const pricingPath = path.join(dir, 'models.json');
+    const agentPath = path.join(dir, 'fake-agent.js');
+    const invocationLogPath = path.join(dir, 'invocations.log');
+    const allowT3Path = path.join(dir, 'allow-t3');
+
+    await mkdir(workspaceDir, { recursive: true });
+    await writeText(path.join(workspaceDir, 'src/index.ts'), 'initial source');
+    await writeText(path.join(dir, 'prompt-t1.md'), 'TASK T1');
+    await writeText(path.join(dir, 'prompt-t2.md'), 'TASK T2');
+    await writeText(path.join(dir, 'prompt-t3.md'), 'TASK T3');
+    await writeJson(manifestPath, {
+      version: 1,
+      tasks: [
+        {
+          id: 'T1-fixture',
+          title: 'Fixture 1',
+          promptPath: path.join(dir, 'prompt-t1.md'),
+          rubricPath: path.join(dir, 'rubric.md'),
+          expectedLane: 'normal',
+        },
+        {
+          id: 'T2-fixture',
+          title: 'Fixture 2',
+          promptPath: path.join(dir, 'prompt-t2.md'),
+          rubricPath: path.join(dir, 'rubric.md'),
+          expectedLane: 'normal',
+          dependencies: ['T1-fixture'],
+        },
+        {
+          id: 'T3-fixture',
+          title: 'Fixture 3',
+          promptPath: path.join(dir, 'prompt-t3.md'),
+          rubricPath: path.join(dir, 'rubric.md'),
+          expectedLane: 'normal',
+          dependencies: ['T2-fixture'],
+        },
+      ],
+    });
+    await writeJson(pricingPath, {
+      version: 'test',
+      models: {
+        'gpt-test': {
+          provider: 'custom',
+          input: 1,
+          cachedInput: 0.1,
+          output: 10,
+          source: 'fixture',
+          updatedAt: '2026-06-25',
+        },
+      },
+    });
+    await writeFakeResumeAgent(agentPath, invocationLogPath, allowT3Path);
+
+    const initialCode = await runCli(
+      [
+        'run',
+        '--execute',
+        '--run-id',
+        'resume-execute-fixture',
+        '--run-dir',
+        runDir,
+        '--workspace',
+        workspaceDir,
+        '--manifest',
+        manifestPath,
+        '--agent',
+        'custom',
+        '--agent-cmd',
+        agentPath,
+        '--model',
+        'gpt-test',
+        '--pricing',
+        pricingPath,
+      ],
+      {
+        stdout: () => {},
+        stderr: () => {},
+      },
+    );
+
+    expect(initialCode).toBe(0);
+    await expect(readFile(path.join(runDir, 'state.json'), 'utf8')).resolves.toContain(
+      '"status": "failed"',
+    );
+    await expect(readFile(path.join(runDir, 'state.json'), 'utf8')).resolves.toContain(
+      '"exitCode": 124',
+    );
+    await expect(
+      readFile(path.join(runDir, 'checkpoints/T2-fixture/src/index.ts'), 'utf8'),
+    ).resolves.toBe('two');
+
+    await writeText(path.join(workspaceDir, 'src/index.ts'), 'dirty after failed T3');
+    await writeText(allowT3Path, 'ok');
+
+    let stdout = '';
+    let stderr = '';
+    const resumeCode = await runCli(
+      [
+        'run',
+        '--execute',
+        '--resume',
+        'resume-execute-fixture',
+        '--run-dir',
+        runDir,
+        '--workspace',
+        workspaceDir,
+        '--manifest',
+        manifestPath,
+        '--agent',
+        'custom',
+        '--agent-cmd',
+        agentPath,
+        '--model',
+        'gpt-test',
+        '--pricing',
+        pricingPath,
+      ],
+      {
+        stdout: (message) => {
+          stdout += message;
+        },
+        stderr: (message) => {
+          stderr += message;
+        },
+      },
+    );
+
+    expect(resumeCode, stderr).toBe(0);
+    expect(stdout).toContain('Executed run resume-execute-fixture: 1 tasks');
+    await expect(readFile(path.join(workspaceDir, 'src/index.ts'), 'utf8')).resolves.toBe('three');
+    await expect(readFile(invocationLogPath, 'utf8')).resolves.toBe(
+      ['TASK T1', 'TASK T2', 'TASK T3', 'TASK T3', ''].join('\n'),
+    );
+    await expect(readFile(path.join(runDir, 'state.json'), 'utf8')).resolves.toContain(
+      '"checkpoint": "checkpoints/T3-fixture"',
+    );
+  });
 });
 
 async function writeMinimalTask(runDir: string, taskName: string) {
@@ -208,4 +351,41 @@ async function writeJson(filePath: string, value: unknown) {
 async function writeText(filePath: string, value: string) {
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, value);
+}
+
+async function writeFakeResumeAgent(
+  agentPath: string,
+  invocationLogPath: string,
+  allowT3Path: string,
+) {
+  await writeFile(
+    agentPath,
+    [
+      '#!/usr/bin/env node',
+      "const fs = require('node:fs');",
+      "const path = require('node:path');",
+      "const prompt = fs.readFileSync(0, 'utf8').trim();",
+      `fs.appendFileSync(${JSON.stringify(invocationLogPath)}, prompt + '\\n');`,
+      "fs.mkdirSync(path.join(process.cwd(), 'src'), { recursive: true });",
+      "if (prompt.includes('T1')) {",
+      "  fs.writeFileSync(path.join(process.cwd(), 'src/index.ts'), 'one');",
+      "} else if (prompt.includes('T2')) {",
+      "  fs.writeFileSync(path.join(process.cwd(), 'src/index.ts'), 'two');",
+      "} else if (prompt.includes('T3')) {",
+      `  if (!fs.existsSync(${JSON.stringify(allowT3Path)})) {`,
+      "    fs.writeFileSync(path.join(process.cwd(), 'src/index.ts'), 'failed-three');",
+      "    console.error('timeout');",
+      "    process.exit(124);",
+      '  }',
+      "  if (fs.readFileSync(path.join(process.cwd(), 'src/index.ts'), 'utf8') !== 'two') {",
+      "    console.error('workspace was not restored from T2 checkpoint');",
+      '    process.exit(1);',
+      '  }',
+      "  fs.writeFileSync(path.join(process.cwd(), 'src/index.ts'), 'three');",
+      '}',
+      "console.log('{\"provider\":\"custom\",\"interactions\":[{\"model\":\"gpt-test\",\"inputTokens\":100,\"cachedInputTokens\":0,\"outputTokens\":25}]}');",
+      '',
+    ].join('\n'),
+  );
+  await chmod(agentPath, 0o755);
 }

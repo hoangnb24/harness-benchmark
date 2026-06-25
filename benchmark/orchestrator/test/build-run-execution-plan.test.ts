@@ -58,6 +58,29 @@ describe('BuildRunExecutionPlan', () => {
     expect(execution.restoreCheckpoints).toEqual({});
   });
 
+  it('drops dependencies satisfied by restored checkpoints from resumed subsets', () => {
+    const t1 = task('T1-project-setup');
+    const t2 = { ...task('T2-crud-bookmarks'), dependencies: ['T1-project-setup'] };
+    const t3 = { ...task('T3-folder-support'), dependencies: ['T2-crud-bookmarks'] };
+
+    const execution = new BuildRunExecutionPlan().fromResumePlan(
+      { runId: 'resume-run', tasks: [t1, t2, t3] },
+      {
+        runId: 'resume-run',
+        steps: [
+          {
+            task: 'T3-folder-support',
+            status: 'failed',
+            failureClass: 'retriable',
+            restoreCheckpoint: 'checkpoints/T2-crud-bookmarks',
+          },
+        ],
+      },
+    );
+
+    expect(execution.plan.tasks).toEqual([{ ...t3, dependencies: [] }]);
+  });
+
   it('rejects resume plans that reference unknown tasks', () => {
     expect(() =>
       new BuildRunExecutionPlan().fromResumePlan(
