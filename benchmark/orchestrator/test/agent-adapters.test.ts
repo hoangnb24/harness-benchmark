@@ -1,3 +1,6 @@
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   ClaudeCodeAdapter,
@@ -85,6 +88,49 @@ describe('buildRunner', () => {
       }),
     ).toThrow(/customCommand is required/);
   });
+
+  it('can assemble usage recording for Codex runs', async () => {
+    const runDir = await mkdtemp(path.join(tmpdir(), 'composition-usage-'));
+    const pricingPath = path.join(runDir, 'models.json');
+    await writeFile(
+      pricingPath,
+      JSON.stringify({
+        version: 'test',
+        models: {
+          'gpt-test': {
+            provider: 'openai',
+            input: 1,
+            cachedInput: 0.1,
+            output: 10,
+            source: 'fixture',
+            updatedAt: '2026-06-25',
+          },
+        },
+      }),
+    );
+
+    const benchmark = buildRunner({
+      agent: 'codex',
+      commandRunner: new CodexUsageCommandRunner('gpt-test'),
+      functional: passingFunctional(),
+      model: 'gpt-test',
+      pricingPath,
+      pricingVersion: 'test',
+      recordUsage: true,
+    });
+
+    await benchmark.run({ runId: 'usage-root', tasks: [task] }, { ...context(), runDir });
+
+    await expect(readJson(path.join(runDir, task.id, 'usage.json'))).resolves.toMatchObject({
+      provider: 'openai',
+      pricingVersion: 'test',
+      totals: { totalTokens: 125, costUsd: 0.000323 },
+    });
+    await expect(readJson(path.join(runDir, task.id, 'tokens.json'))).resolves.toMatchObject({
+      total_tokens: 125,
+      estimated_cost_usd: 0.000323,
+    });
+  });
 });
 
 class RecordingCommandRunner implements CommandRunner {
@@ -107,6 +153,35 @@ class RecordingCommandRunner implements CommandRunner {
   }
 }
 
+class CodexUsageCommandRunner implements CommandRunner {
+  constructor(private readonly model: string) {}
+
+  async run(
+    _command: string,
+    _args: string[],
+    options: { cwd: string; stdinPath?: string; stdoutPath?: string; stderrPath?: string },
+  ): Promise<{ exitCode: number }> {
+    if (!options.stdoutPath) {
+      return { exitCode: 1 };
+    }
+
+    await mkdir(path.dirname(options.stdoutPath), { recursive: true });
+    await writeFile(
+      options.stdoutPath,
+      `${JSON.stringify({
+        type: 'turn.completed',
+        model: this.model,
+        usage: {
+          input_tokens: 100,
+          cached_input_tokens: 30,
+          output_tokens: 25,
+        },
+      })}\n`,
+    );
+    return { exitCode: 0 };
+  }
+}
+
 function context() {
   return {
     runId: 'multi-agent',
@@ -122,4 +197,8 @@ function passingFunctional(): FunctionalProbe {
       return [{ name: 'ok', pass: true }];
     },
   };
+}
+
+async function readJson(filePath: string): Promise<unknown> {
+  return JSON.parse(await readFile(filePath, 'utf8')) as unknown;
 }

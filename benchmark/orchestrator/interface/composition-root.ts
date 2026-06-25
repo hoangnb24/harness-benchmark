@@ -5,7 +5,14 @@ import {
   LegacyCodexAdapter,
   type CommandRunner,
 } from '../infrastructure/LegacyCodexAdapter';
+import { RecordUsage } from '../application/RecordUsage';
+import { AnthropicUsageParser } from '../infrastructure/AnthropicUsageParser';
+import { CustomUsageParser } from '../infrastructure/CustomUsageParser';
+import { FsUsageArtifactWriter } from '../infrastructure/FsUsageArtifactWriter';
+import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
+import { OpenAiUsageParser } from '../infrastructure/OpenAiUsageParser';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
+import type { UsageParser } from '../ports/UsageParser';
 
 export type RunnerAgent = 'codex' | 'claude' | 'custom';
 
@@ -15,6 +22,11 @@ export interface RunnerConfig {
   customCommand?: string;
   customArgs?: string[];
   functional: FunctionalProbe;
+  model?: string;
+  pricingPath?: string;
+  pricingVersion?: string;
+  recordUsage?: boolean;
+  allowMissingPricing?: boolean;
 }
 
 export function buildRunner(config: RunnerConfig): RunBenchmark {
@@ -32,9 +44,34 @@ export function buildRunner(config: RunnerConfig): RunBenchmark {
   return new RunBenchmark({
     agent: agents[config.agent](),
     functional: config.functional,
+    usage: config.recordUsage ? buildUsageRecorder(config) : undefined,
   });
 }
 
 function fail(message: string): never {
   throw new Error(message);
+}
+
+function buildUsageRecorder(config: RunnerConfig): RecordUsage {
+  return new RecordUsage(
+    usageParserFor(config.agent, config.model),
+    new JsonPricingProvider(config.pricingPath ?? 'benchmark/pricing/models.json'),
+    new FsUsageArtifactWriter(),
+    {
+      allowMissingPricing: config.allowMissingPricing,
+      pricingVersion: config.pricingVersion,
+    },
+  );
+}
+
+function usageParserFor(agent: RunnerAgent, model?: string): UsageParser {
+  if (agent === 'codex') {
+    return new OpenAiUsageParser(model);
+  }
+
+  if (agent === 'claude') {
+    return new AnthropicUsageParser(model);
+  }
+
+  return new CustomUsageParser();
 }
