@@ -72,6 +72,34 @@ describe('RunBenchmark', () => {
     });
   });
 
+  it('records usage artifacts from raw agent output for each task', async () => {
+    const usageCalls: Array<{ exitCode: number; taskDir: string }> = [];
+    const runner = new RunBenchmark({
+      agent: {
+        async invoke() {
+          return { exitCode: 0, stdoutPath: '/tmp/run/T1-project-setup/result.json' };
+        },
+      },
+      functional: {
+        async run() {
+          return [{ name: 'ok', pass: true }];
+        },
+      },
+      usage: {
+        async record(raw, taskDir) {
+          usageCalls.push({ exitCode: raw.exitCode, taskDir });
+        },
+      },
+    });
+
+    await runner.run(
+      { runId: 'usage-recording', tasks: [task('T1-project-setup')] },
+      { projectDir: '/tmp/project', runDir: '/tmp/run' },
+    );
+
+    expect(usageCalls).toEqual([{ exitCode: 0, taskDir: '/tmp/run/T1-project-setup' }]);
+  });
+
   it('classifies agent and functional failures in checkpoint state', async () => {
     const checkpoints = new RecordingCheckpointStore();
     const runner = new RunBenchmark({

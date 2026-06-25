@@ -6,7 +6,7 @@ import {
   markStepRunning,
   type CheckpointState,
 } from '../domain/checkpoint';
-import type { AgentAdapter, AgentInvocationContext } from '../ports/AgentAdapter';
+import type { AgentAdapter, AgentInvocationContext, RawAgentOutput } from '../ports/AgentAdapter';
 import type { CheckpointStore } from '../ports/CheckpointStore';
 import type { Clock } from '../ports/Clock';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
@@ -16,6 +16,11 @@ export interface RunBenchmarkDeps {
   functional: FunctionalProbe;
   checkpoints?: CheckpointStore;
   clock?: Clock;
+  usage?: UsageRecorder;
+}
+
+export interface UsageRecorder {
+  record(raw: RawAgentOutput, taskDir: string): Promise<unknown>;
 }
 
 export interface RunBenchmarkContext {
@@ -59,6 +64,7 @@ export class RunBenchmark {
       await this.deps.checkpoints?.save(checkpointState);
 
       const raw = await this.deps.agent.invoke(task, invocationContext);
+      await this.deps.usage?.record(raw, artifactsDir);
       const checks = await this.deps.functional.run(task, context.projectDir);
       const checksPassed = checks.every((check) => check.pass);
       const taskPassed = raw.exitCode === 0 && checksPassed;
