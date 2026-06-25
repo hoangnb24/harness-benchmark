@@ -148,7 +148,11 @@ function shouldSavePreRunSnapshot(
   restoreCheckpoints: Record<string, string> | undefined,
 ): boolean {
   return (
-    !restoreCheckpoints &&
+    !hasRestoreCheckpoints(restoreCheckpoints) &&
     (!state || state.steps.every((step) => step.status === 'pending'))
   );
+}
+
+function hasRestoreCheckpoints(restoreCheckpoints: Record<string, string> | undefined): boolean {
+  return restoreCheckpoints !== undefined && Object.keys(restoreCheckpoints).length > 0;
 }

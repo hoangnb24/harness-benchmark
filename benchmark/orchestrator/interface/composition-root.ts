@@ -13,6 +13,7 @@ import { FsWorkspaceSnapshotStore } from '../infrastructure/FsWorkspaceSnapshotS
 import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
 import { OpenAiUsageParser } from '../infrastructure/OpenAiUsageParser';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
+import type { CheckpointStore } from '../ports/CheckpointStore';
 import type { UsageParser } from '../ports/UsageParser';
 
 export type RunnerAgent = 'codex' | 'claude' | 'custom';
@@ -29,6 +30,7 @@ export interface RunnerConfig {
   recordUsage?: boolean;
   allowMissingPricing?: boolean;
   snapshotWorkspaces?: boolean;
+  checkpoints?: CheckpointStore;
 }
 
 export function buildRunner(config: RunnerConfig): RunBenchmark {
@@ -46,6 +48,7 @@ export function buildRunner(config: RunnerConfig): RunBenchmark {
   return new RunBenchmark({
     agent: agents[config.agent](),
     functional: config.functional,
+    checkpoints: config.checkpoints,
     usage: config.recordUsage ? buildUsageRecorder(config) : undefined,
     snapshots: config.snapshotWorkspaces ? new FsWorkspaceSnapshotStore() : undefined,
   });

@@ -1,10 +1,16 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
+import { BuildRunExecutionPlan } from '../application/BuildRunExecutionPlan';
 import { ScoreAdherence } from '../application/ScoreAdherence';
 import { GenerateReport } from '../application/GenerateReport';
 import { PrepareRun } from '../application/PrepareRun';
 import { ResumeRun, type ResumeMode } from '../application/ResumeRun';
+import { buildRunner, type RunnerAgent } from './composition-root';
+import { DeclarativeFunctionalProbe } from '../infrastructure/DeclarativeFunctionalProbe';
+import { FetchHttpClient } from '../infrastructure/FetchHttpClient';
+import type { CheckpointState } from '../domain/checkpoint';
+import type { RunPlan } from '../domain/task';
 import { FsAdherenceArtifactWriter } from '../infrastructure/FsAdherenceArtifactWriter';
 import { FsCheckpointStore } from '../infrastructure/FsCheckpointStore';
 import { CommandAdherenceEvidenceProvider } from '../infrastructure/CommandAdherenceEvidenceProvider';
@@ -45,6 +51,10 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
     return dryRunBenchmark(rest, io);
   }
 
+  if (area === 'run' && command === '--execute') {
+    return executeBenchmark(rest, io);
+  }
+
   io.stderr(
     [
       'Usage:',
@@ -53,11 +63,140 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
       '  harness-bench adherence collect --cwd DIR --trace-id TRACE --out adherence.json [--log events.jsonl]',
       '  harness-bench report generate --run-id RUN --run-dir DIR [--scores-out scores.json] [--report-out report.md]',
       '  harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json] [--pricing benchmark/pricing/models.json]',
+      '  harness-bench run --execute --run-id RUN --run-dir DIR --workspace DIR [--agent codex|claude|custom] [--agent-cmd CMD]',
       '  harness-bench run --dry-run --resume RUN --run-dir DIR [--only TASK|--from TASK|--steps T1,T2|--retry-failed] [--force]',
       '',
     ].join('\n'),
   );
   return 1;
+}
+
+async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
+  const resumeRunId = readFlag(args, '--resume');
+  const runId = resumeRunId ?? readFlag(args, '--run-id');
+  const runDir = readFlag(args, '--run-dir');
+  const workspaceDir = readFlag(args, '--workspace') ?? process.cwd();
+  const manifestPath = readFlag(args, '--manifest') ?? 'benchmark/tasks/manifest.json';
+  const agentValue = readFlag(args, '--agent') ?? 'codex';
+  const model = readFlag(args, '--model');
+  const pricingPath = readFlag(args, '--pricing') ?? 'benchmark/pricing/models.json';
+  const checkpointStore = runDir ? new FsCheckpointStore(runDir) : undefined;
+
+  if (!runId || !runDir || !checkpointStore) {
+    io.stderr(
+      'Usage: harness-bench run --execute (--run-id RUN|--resume RUN) --run-dir DIR --workspace DIR [--manifest benchmark/tasks/manifest.json]\n',
+    );
+    return 1;
+  }
+
+  try {
+    const agent = readAgent(agentValue);
+    const fullPlan = await new TaskManifestLoader(manifestPath).load(runId);
+    const selector = resumeModeFromArgs(args, Boolean(resumeRunId));
+    const { checkpointState, executionPlan } = await prepareExecutionPlan({
+      checkpointStore,
+      fullPlan,
+      resumeRunId,
+      selector,
+      agent,
+      model,
+      harnessRef: readFlag(args, '--harness') ?? 'main',
+      workspaceDir,
+    });
+    await validateRunPricing(checkpointState.model ?? model, args, io);
+
+    await writeText(
+      path.join(runDir, 'metadata.json'),
+      `${JSON.stringify({ harness_ref: readFlag(args, '--harness') ?? 'main', agent, model }, null, 2)}\n`,
+    );
+
+    if (executionPlan.plan.tasks.length === 0) {
+      io.stdout(`No tasks to run for ${runId}\n`);
+    } else {
+      const runner = buildRunner({
+        agent,
+        commandRunner: new NodeCommandRunner(),
+        customCommand: readFlag(args, '--agent-cmd'),
+        customArgs: readCsvFlag(args, '--agent-args'),
+        functional: new DeclarativeFunctionalProbe({
+          baseUrl: readFlag(args, '--base-url') ?? 'http://localhost:3000',
+          http: new FetchHttpClient(),
+        }),
+        model,
+        pricingPath,
+        recordUsage: true,
+        allowMissingPricing: hasFlag(args, '--allow-missing-pricing'),
+        snapshotWorkspaces: true,
+        checkpoints: checkpointStore,
+      });
+
+      const result = await runner.run(executionPlan.plan, {
+        projectDir: workspaceDir,
+        runDir,
+        model,
+        checkpointState,
+        restoreCheckpoints: executionPlan.restoreCheckpoints,
+      });
+      io.stdout(`Executed run ${result.runId}: ${result.tasks.length} tasks\n`);
+    }
+
+    const generator = new GenerateReport();
+    const report = await generator.generate(runId, runDir);
+    await writeText(path.join(runDir, 'scores.json'), generator.renderScoresJson(report.scores));
+    await writeText(path.join(runDir, 'report.md'), report.reportMarkdown);
+    io.stdout(`Report generated: ${path.join(runDir, 'report.md')}\n`);
+    return 0;
+  } catch (error) {
+    io.stderr(`Run failed: ${error instanceof Error ? error.message : String(error)}\n`);
+    return 1;
+  }
+}
+
+async function prepareExecutionPlan(options: {
+  checkpointStore: FsCheckpointStore;
+  fullPlan: RunPlan;
+  resumeRunId: string | undefined;
+  selector: ResumeMode | undefined;
+  agent: RunnerAgent;
+  model: string | undefined;
+  harnessRef: string;
+  workspaceDir: string;
+}): Promise<{
+  checkpointState: CheckpointState;
+  executionPlan: { plan: RunPlan; restoreCheckpoints: Record<string, string> };
+}> {
+  if (options.resumeRunId) {
+    const state = await options.checkpointStore.load(options.resumeRunId);
+    if (!state) {
+      throw new Error(`state.json not found for run: ${options.resumeRunId}`);
+    }
+
+    const resumePlan = new ResumeRun().plan(state, options.selector ?? { kind: 'resume' });
+    return {
+      checkpointState: state,
+      executionPlan: new BuildRunExecutionPlan().fromResumePlan(options.fullPlan, resumePlan),
+    };
+  }
+
+  const prepared = await new PrepareRun(options.checkpointStore).prepare(options.fullPlan, {
+    agent: options.agent,
+    model: options.model,
+    harnessRef: options.harnessRef,
+    workspaceDir: options.workspaceDir,
+  });
+
+  if (!options.selector) {
+    return {
+      checkpointState: prepared.state,
+      executionPlan: { plan: options.fullPlan, restoreCheckpoints: {} },
+    };
+  }
+
+  const resumePlan = new ResumeRun().plan(prepared.state, options.selector);
+  return {
+    checkpointState: prepared.state,
+    executionPlan: new BuildRunExecutionPlan().fromResumePlan(options.fullPlan, resumePlan),
+  };
 }
 
 async function collectAdherence(args: string[], io: CliIo): Promise<number> {
@@ -323,6 +462,26 @@ function readFlag(args: string[], flag: string): string | undefined {
   }
 
   return args[index + 1];
+}
+
+function readCsvFlag(args: string[], flag: string): string[] | undefined {
+  const value = readFlag(args, flag);
+  if (!value) {
+    return undefined;
+  }
+
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function readAgent(value: string): RunnerAgent {
+  if (value === 'codex' || value === 'claude' || value === 'custom') {
+    return value;
+  }
+
+  throw new Error(`unknown agent: ${value}`);
 }
 
 function hasFlag(args: string[], flag: string): boolean {
