@@ -25,6 +25,11 @@ interface LaneJson {
   actual?: string;
 }
 
+interface AdherenceJson {
+  adherence_pass?: number;
+  adherence_total?: number;
+}
+
 interface MetadataJson {
   harness_ref?: string;
   agent?: string;
@@ -47,6 +52,9 @@ export interface ScoresJson {
   harness_pct: number;
   avg_trace_quality: number;
   lane_accuracy: string;
+  adherence_pass?: number;
+  adherence_total?: number;
+  adherence_pct?: number;
 }
 
 interface TaskSummary {
@@ -62,6 +70,8 @@ interface TaskSummary {
   harnessTotal: number;
   qualityScore: number;
   laneCorrect: boolean;
+  adherencePass?: number;
+  adherenceTotal?: number;
 }
 
 export interface GeneratedReport {
@@ -103,7 +113,7 @@ export class GenerateReport {
   "harness_total": ${scores.harness_total},
   "harness_pct": ${scores.harness_pct.toFixed(1)},
   "avg_trace_quality": ${scores.avg_trace_quality.toFixed(1)},
-  "lane_accuracy": "${scores.lane_accuracy}"
+  "lane_accuracy": "${scores.lane_accuracy}"${renderOptionalAdherenceScores(scores)}
 }
 `;
   }
@@ -116,6 +126,7 @@ export class GenerateReport {
     const harness = await readJson<ChecksJson>(path.join(taskDir, 'harness.json'), {});
     const quality = await readJson<QualityJson>(path.join(taskDir, 'quality.json'), {});
     const lane = await readJson<LaneJson>(path.join(taskDir, 'lane.json'), {});
+    const adherence = await readOptionalJson<AdherenceJson>(path.join(taskDir, 'adherence.json'));
 
     const functionalCounts = countChecks(functional);
     const harnessCounts = countChecks(harness);
@@ -133,6 +144,8 @@ export class GenerateReport {
       harnessTotal: harnessCounts.total,
       qualityScore: quality.trace_quality_score ?? 0,
       laneCorrect: lane.expected === lane.actual,
+      adherencePass: adherence?.adherence_pass,
+      adherenceTotal: adherence?.adherence_total,
     };
   }
 
@@ -149,6 +162,11 @@ export class GenerateReport {
         acc.harnessTotal += task.harnessTotal;
         acc.qualityScore += task.qualityScore;
         acc.correctLanes += task.laneCorrect ? 1 : 0;
+        if (task.adherencePass !== undefined && task.adherenceTotal !== undefined) {
+          acc.adherencePass += task.adherencePass;
+          acc.adherenceTotal += task.adherenceTotal;
+          acc.hasAdherence = true;
+        }
         return acc;
       },
       {
@@ -162,10 +180,13 @@ export class GenerateReport {
         harnessTotal: 0,
         qualityScore: 0,
         correctLanes: 0,
+        adherencePass: 0,
+        adherenceTotal: 0,
+        hasAdherence: false,
       },
     );
 
-    return {
+    const scores: ScoresJson = {
       run_id: runId,
       task_count: tasks.length,
       total_wall_seconds: totals.wallSeconds,
@@ -182,6 +203,14 @@ export class GenerateReport {
       avg_trace_quality: tasks.length > 0 ? truncate1(totals.qualityScore / tasks.length) : 0,
       lane_accuracy: `${totals.correctLanes}/${tasks.length}`,
     };
+
+    if (totals.hasAdherence) {
+      scores.adherence_pass = totals.adherencePass;
+      scores.adherence_total = totals.adherenceTotal;
+      scores.adherence_pct = pct(totals.adherencePass, totals.adherenceTotal);
+    }
+
+    return scores;
   }
 
   private renderReport(
@@ -210,6 +239,7 @@ export class GenerateReport {
       `| Harness compliance | ${scores.harness_pass}/${scores.harness_total} (${scores.harness_pct.toFixed(1)}%) |`,
       `| Avg trace quality | ${scores.avg_trace_quality.toFixed(1)} / 3.0 |`,
       `| Lane accuracy | ${scores.lane_accuracy} |`,
+      ...renderOptionalAdherenceReportRows(scores),
       '',
       '## Per-Task Results',
       '',
@@ -234,6 +264,14 @@ async function readJson<T>(filePath: string, fallback: T): Promise<T> {
     return JSON.parse(await readFile(filePath, 'utf8')) as T;
   } catch {
     return fallback;
+  }
+}
+
+async function readOptionalJson<T>(filePath: string): Promise<T | undefined> {
+  try {
+    return JSON.parse(await readFile(filePath, 'utf8')) as T;
+  } catch {
+    return undefined;
   }
 }
 
@@ -263,4 +301,25 @@ function formatDate(date: Date): string {
 
 function truncate1(value: number): number {
   return Math.trunc(value * 10) / 10;
+}
+
+function renderOptionalAdherenceScores(scores: ScoresJson): string {
+  if (scores.adherence_pass === undefined || scores.adherence_total === undefined) {
+    return '';
+  }
+
+  return `,
+  "adherence_pass": ${scores.adherence_pass},
+  "adherence_total": ${scores.adherence_total},
+  "adherence_pct": ${(scores.adherence_pct ?? 0).toFixed(1)}`;
+}
+
+function renderOptionalAdherenceReportRows(scores: ScoresJson): string[] {
+  if (scores.adherence_pass === undefined || scores.adherence_total === undefined) {
+    return [];
+  }
+
+  return [
+    `| Harness adherence | ${scores.adherence_pass}/${scores.adherence_total} (${(scores.adherence_pct ?? 0).toFixed(1)}%) |`,
+  ];
 }
