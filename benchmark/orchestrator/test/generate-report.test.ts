@@ -73,8 +73,86 @@ describe('GenerateReport', () => {
     expect(new GenerateReport().renderScoresJson(generated.scores)).toContain('"adherence_pass": 4');
     expect(generated.reportMarkdown).toContain('| Harness adherence | 4/6 (66.6%) |');
   });
+
+  it('prefers usage.json totals over legacy tokens.json when both exist', async () => {
+    const runDir = path.join(tmpdir(), `usage-report-${Date.now()}`);
+    await writeMinimalTask(runDir, 'T1-example');
+    await writeJson(path.join(runDir, 'T1-example', 'tokens.json'), {
+      input_tokens: 1,
+      output_tokens: 1,
+      total_tokens: 2,
+      estimated_cost_usd: 1,
+    });
+    await writeJson(path.join(runDir, 'T1-example', 'usage.json'), {
+      totals: {
+        inputTokens: 100,
+        cachedInputTokens: 25,
+        outputTokens: 50,
+        totalTokens: 175,
+        costUsd: 0.25,
+      },
+    });
+
+    const generated = await new GenerateReport().generate(
+      'usage-run',
+      runDir,
+      new Date('2026-06-25T00:00:00Z'),
+    );
+
+    expect(generated.scores).toMatchObject({
+      total_input_tokens: 125,
+      total_output_tokens: 50,
+      total_tokens: 175,
+      estimated_total_cost_usd: 0.25,
+    });
+  });
+
+  it('preserves unknown usage cost as null in scores and markdown', async () => {
+    const runDir = path.join(tmpdir(), `usage-null-report-${Date.now()}`);
+    await writeMinimalTask(runDir, 'T1-example');
+    await writeJson(path.join(runDir, 'T1-example', 'usage.json'), {
+      totals: {
+        inputTokens: 100,
+        cachedInputTokens: 0,
+        outputTokens: 50,
+        totalTokens: 150,
+        costUsd: null,
+      },
+    });
+
+    const generator = new GenerateReport();
+    const generated = await generator.generate(
+      'usage-null-run',
+      runDir,
+      new Date('2026-06-25T00:00:00Z'),
+    );
+
+    expect(generated.scores.estimated_total_cost_usd).toBeNull();
+    expect(generator.renderScoresJson(generated.scores)).toContain(
+      '"estimated_total_cost_usd": null',
+    );
+    expect(generated.reportMarkdown).toContain('| Estimated cost | unknown |');
+  });
 });
 
 async function writeJson(filePath: string, value: unknown) {
+  await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, JSON.stringify(value));
+}
+
+async function writeMinimalTask(runDir: string, taskName: string) {
+  await mkdir(path.join(runDir, taskName), { recursive: true });
+  await writeJson(path.join(runDir, 'metadata.json'), {
+    harness_ref: 'main',
+    agent: 'codex',
+    model: 'gpt-test',
+  });
+  await writeJson(path.join(runDir, taskName, 'timing.json'), { wall_seconds: 1 });
+  await writeJson(path.join(runDir, taskName, 'functional.json'), { checks: [{ pass: true }] });
+  await writeJson(path.join(runDir, taskName, 'harness.json'), { checks: [{ pass: true }] });
+  await writeJson(path.join(runDir, taskName, 'quality.json'), { trace_quality_score: 1 });
+  await writeJson(path.join(runDir, taskName, 'lane.json'), {
+    expected: 'tiny',
+    actual: 'tiny',
+  });
 }

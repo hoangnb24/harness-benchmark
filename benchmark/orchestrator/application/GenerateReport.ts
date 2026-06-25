@@ -9,7 +9,17 @@ interface TokensJson {
   input_tokens?: number;
   output_tokens?: number;
   total_tokens?: number;
-  estimated_cost_usd?: number;
+  estimated_cost_usd?: number | null;
+}
+
+interface UsageJson {
+  totals?: {
+    inputTokens?: number;
+    cachedInputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+    costUsd?: number | null;
+  };
 }
 
 interface ChecksJson {
@@ -43,7 +53,7 @@ export interface ScoresJson {
   total_input_tokens: number;
   total_output_tokens: number;
   total_tokens: number;
-  estimated_total_cost_usd: number;
+  estimated_total_cost_usd: number | null;
   functional_pass: number;
   functional_total: number;
   functional_pct: number;
@@ -63,7 +73,7 @@ interface TaskSummary {
   inputTokens: number;
   outputTokens: number;
   tokens: number;
-  costUsd: number;
+  costUsd: number | null;
   functionalPass: number;
   functionalTotal: number;
   harnessPass: number;
@@ -105,7 +115,7 @@ export class GenerateReport {
   "total_input_tokens": ${scores.total_input_tokens},
   "total_output_tokens": ${scores.total_output_tokens},
   "total_tokens": ${scores.total_tokens},
-  "estimated_total_cost_usd": ${formatNumber(scores.estimated_total_cost_usd)},
+  "estimated_total_cost_usd": ${formatNullableNumber(scores.estimated_total_cost_usd)},
   "functional_pass": ${scores.functional_pass},
   "functional_total": ${scores.functional_total},
   "functional_pct": ${scores.functional_pct.toFixed(1)},
@@ -122,6 +132,7 @@ export class GenerateReport {
     const taskDir = path.join(runDir, taskName);
     const timing = await readJson<TimingJson>(path.join(taskDir, 'timing.json'), {});
     const tokens = await readJson<TokensJson>(path.join(taskDir, 'tokens.json'), {});
+    const usage = await readOptionalJson<UsageJson>(path.join(taskDir, 'usage.json'));
     const functional = await readJson<ChecksJson>(path.join(taskDir, 'functional.json'), {});
     const harness = await readJson<ChecksJson>(path.join(taskDir, 'harness.json'), {});
     const quality = await readJson<QualityJson>(path.join(taskDir, 'quality.json'), {});
@@ -134,10 +145,18 @@ export class GenerateReport {
     return {
       name: taskName,
       wallSeconds: timing.wall_seconds ?? 0,
-      inputTokens: tokens.input_tokens ?? 0,
-      outputTokens: tokens.output_tokens ?? 0,
-      tokens: tokens.total_tokens ?? 0,
-      costUsd: tokens.estimated_cost_usd ?? 0,
+      inputTokens:
+        usage?.totals !== undefined
+          ? (usage.totals.inputTokens ?? 0) + (usage.totals.cachedInputTokens ?? 0)
+          : tokens.input_tokens ?? 0,
+      outputTokens: usage?.totals?.outputTokens ?? tokens.output_tokens ?? 0,
+      tokens: usage?.totals?.totalTokens ?? tokens.total_tokens ?? 0,
+      costUsd:
+        usage?.totals !== undefined
+          ? usage.totals.costUsd ?? null
+          : tokens.estimated_cost_usd === undefined
+            ? 0
+            : tokens.estimated_cost_usd,
       functionalPass: functionalCounts.pass,
       functionalTotal: functionalCounts.total,
       harnessPass: harnessCounts.pass,
@@ -155,7 +174,11 @@ export class GenerateReport {
         acc.wallSeconds += task.wallSeconds;
         acc.inputTokens += task.inputTokens;
         acc.outputTokens += task.outputTokens;
-        acc.costUsd += task.costUsd;
+        if (task.costUsd === null) {
+          acc.hasUnknownCost = true;
+        } else {
+          acc.costUsd += task.costUsd;
+        }
         acc.functionalPass += task.functionalPass;
         acc.functionalTotal += task.functionalTotal;
         acc.harnessPass += task.harnessPass;
@@ -174,6 +197,7 @@ export class GenerateReport {
         inputTokens: 0,
         outputTokens: 0,
         costUsd: 0,
+        hasUnknownCost: false,
         functionalPass: 0,
         functionalTotal: 0,
         harnessPass: 0,
@@ -193,7 +217,7 @@ export class GenerateReport {
       total_input_tokens: totals.inputTokens,
       total_output_tokens: totals.outputTokens,
       total_tokens: totals.inputTokens + totals.outputTokens,
-      estimated_total_cost_usd: Number(totals.costUsd.toFixed(6)),
+      estimated_total_cost_usd: totals.hasUnknownCost ? null : Number(totals.costUsd.toFixed(6)),
       functional_pass: totals.functionalPass,
       functional_total: totals.functionalTotal,
       functional_pct: pct(totals.functionalPass, totals.functionalTotal),
@@ -234,7 +258,7 @@ export class GenerateReport {
       '|--------|-------|',
       `| Total wall time | ${scores.total_wall_seconds}s (${truncate1(scores.total_wall_seconds / 60).toFixed(1)}m) |`,
       `| Total tokens | ${scores.total_tokens} (in: ${scores.total_input_tokens}, out: ${scores.total_output_tokens}) |`,
-      `| Estimated cost | $${formatNumber(scores.estimated_total_cost_usd)} |`,
+      `| Estimated cost | ${formatCost(scores.estimated_total_cost_usd)} |`,
       `| Functional score | ${scores.functional_pass}/${scores.functional_total} (${scores.functional_pct.toFixed(1)}%) |`,
       `| Harness compliance | ${scores.harness_pass}/${scores.harness_total} (${scores.harness_pct.toFixed(1)}%) |`,
       `| Avg trace quality | ${scores.avg_trace_quality.toFixed(1)} / 3.0 |`,
@@ -293,6 +317,14 @@ function pct(pass: number, total: number): number {
 
 function formatNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : String(value);
+}
+
+function formatNullableNumber(value: number | null): string {
+  return value === null ? 'null' : formatNumber(value);
+}
+
+function formatCost(value: number | null): string {
+  return value === null ? 'unknown' : `$${formatNumber(value)}`;
 }
 
 function formatDate(date: Date): string {
