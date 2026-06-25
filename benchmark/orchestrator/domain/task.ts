@@ -7,6 +7,7 @@ export interface TaskDefinition {
   rubricPath: string;
   expectedLane: RiskLane;
   dependencies: string[];
+  functionalCheckPath?: string;
 }
 
 export interface RunPlan {

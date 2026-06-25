@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "T1-project-setup",
+      "title": "Project Setup",
+      "promptPath": "benchmark/tasks/T1-project-setup.md",
+      "rubricPath": "benchmark/rubrics/T1-project-setup.md",
+      "expectedLane": "tiny",
+      "dependencies": [],
+      "functionalCheckPath": "benchmark/tasks/checks/T1-project-setup.json"
+    },
+    {
+      "id": "T2-crud-bookmarks",
+      "title": "CRUD Bookmarks",
+      "promptPath": "benchmark/tasks/T2-crud-bookmarks.md",
+      "rubricPath": "benchmark/rubrics/T2-crud-bookmarks.md",
+      "expectedLane": "normal",
+      "dependencies": ["T1-project-setup"],
+      "functionalCheckPath": "benchmark/tasks/checks/T2-crud-bookmarks.json"
+    },
+    {
+      "id": "T3-folder-support",
+      "title": "Folder Support",
+      "promptPath": "benchmark/tasks/T3-folder-support.md",
+      "rubricPath": "benchmark/rubrics/T3-folder-support.md",
+      "expectedLane": "normal",
+      "dependencies": ["T2-crud-bookmarks"],
+      "functionalCheckPath": "benchmark/tasks/checks/T3-folder-support.json"
+    },
+    {
+      "id": "T4-authentication",
+      "title": "Authentication",
+      "promptPath": "benchmark/tasks/T4-authentication.md",
+      "rubricPath": "benchmark/rubrics/T4-authentication.md",
+      "expectedLane": "high_risk",
+      "dependencies": ["T3-folder-support"],
+      "functionalCheckPath": "benchmark/tasks/checks/T4-authentication.json"
+    },
+    {
+      "id": "T5-bug-fix",
+      "title": "Bug Fix",
+      "promptPath": "benchmark/tasks/T5-bug-fix.md",
+      "rubricPath": "benchmark/rubrics/T5-bug-fix.md",
+      "expectedLane": "normal",
+      "dependencies": ["T4-authentication"],
+      "functionalCheckPath": "benchmark/tasks/checks/T5-bug-fix.json"
+    },
+    {
+      "id": "T6-pagination",
+      "title": "Pagination",
+      "promptPath": "benchmark/tasks/T6-pagination.md",
+      "rubricPath": "benchmark/rubrics/T6-pagination.md",
+      "expectedLane": "normal",
+      "dependencies": ["T5-bug-fix"],
+      "functionalCheckPath": "benchmark/tasks/checks/T6-pagination.json"
+    }
+  ]
+}
