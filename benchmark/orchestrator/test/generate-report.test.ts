@@ -107,6 +107,86 @@ describe('GenerateReport', () => {
     });
   });
 
+  it('rolls up pricing version and per-model usage from usage interactions', async () => {
+    const runDir = path.join(tmpdir(), `model-usage-report-${Date.now()}`);
+    await writeMinimalTask(runDir, 'T1-example');
+    await writeJson(path.join(runDir, 'T1-example', 'usage.json'), {
+      pricingVersion: 'test-pricing',
+      interactions: [
+        {
+          model: 'gpt-test',
+          inputTokens: 100,
+          cachedInputTokens: 25,
+          outputTokens: 50,
+          costUsd: 0.25,
+        },
+        {
+          model: 'gpt-other',
+          inputTokens: 10,
+          cachedInputTokens: 0,
+          outputTokens: 5,
+          costUsd: 0.05,
+        },
+      ],
+      totals: {
+        inputTokens: 110,
+        cachedInputTokens: 25,
+        outputTokens: 55,
+        totalTokens: 190,
+        costUsd: 0.3,
+      },
+    });
+
+    const generator = new GenerateReport();
+    const generated = await generator.generate(
+      'model-usage-run',
+      runDir,
+      new Date('2026-06-25T00:00:00Z'),
+    );
+
+    expect(generated.scores).toMatchObject({
+      pricing_version: 'test-pricing',
+      model_usage: {
+        'gpt-test': {
+          input_tokens: 100,
+          cached_input_tokens: 25,
+          output_tokens: 50,
+          total_tokens: 175,
+          estimated_cost_usd: 0.25,
+        },
+        'gpt-other': {
+          input_tokens: 10,
+          cached_input_tokens: 0,
+          output_tokens: 5,
+          total_tokens: 15,
+          estimated_cost_usd: 0.05,
+        },
+      },
+    });
+    expect(generator.renderScoresJson(generated.scores)).toContain('"pricing_version": "test-pricing"');
+    expect(generated.reportMarkdown).toContain('| Pricing version | test-pricing |');
+    expect(generated.reportMarkdown).toContain('| gpt-test | 175 (in: 125, out: 50) | $0.25 |');
+  });
+
+  it('rejects usage artifacts whose interaction costs do not sum to the task total', async () => {
+    const runDir = path.join(tmpdir(), `usage-sum-report-${Date.now()}`);
+    await writeMinimalTask(runDir, 'T1-example');
+    await writeJson(path.join(runDir, 'T1-example', 'usage.json'), {
+      interactions: [{ model: 'gpt-test', inputTokens: 1, cachedInputTokens: 0, outputTokens: 1, costUsd: 0.1 }],
+      totals: {
+        inputTokens: 1,
+        cachedInputTokens: 0,
+        outputTokens: 1,
+        totalTokens: 2,
+        costUsd: 0.2,
+      },
+    });
+
+    await expect(new GenerateReport().generate('usage-sum-run', runDir)).rejects.toThrow(
+      /usage interaction costs do not sum to total for T1-example/,
+    );
+  });
+
   it('preserves unknown usage cost as null in scores and markdown', async () => {
     const runDir = path.join(tmpdir(), `usage-null-report-${Date.now()}`);
     await writeMinimalTask(runDir, 'T1-example');

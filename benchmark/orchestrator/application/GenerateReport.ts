@@ -14,6 +14,13 @@ interface TokensJson {
 }
 
 interface UsageJson {
+  interactions?: Array<{
+    model?: string;
+    inputTokens?: number;
+    cachedInputTokens?: number;
+    outputTokens?: number;
+    costUsd?: number | null;
+  }>;
   totals?: {
     inputTokens?: number;
     cachedInputTokens?: number;
@@ -21,6 +28,7 @@ interface UsageJson {
     totalTokens?: number;
     costUsd?: number | null;
   };
+  pricingVersion?: string;
 }
 
 interface ChecksJson {
@@ -66,6 +74,16 @@ export interface ScoresJson {
   adherence_pass?: number;
   adherence_total?: number;
   adherence_pct?: number;
+  pricing_version?: string;
+  model_usage?: Record<string, ModelUsageScore>;
+}
+
+export interface ModelUsageScore {
+  input_tokens: number;
+  cached_input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  estimated_cost_usd: number | null;
 }
 
 interface TaskSummary {
@@ -83,6 +101,16 @@ interface TaskSummary {
   laneCorrect: boolean;
   adherencePass?: number;
   adherenceTotal?: number;
+  pricingVersion?: string;
+  modelUsage: Map<string, ModelUsageRollup>;
+}
+
+interface ModelUsageRollup {
+  inputTokens: number;
+  cachedInputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  hasUnknownCost: boolean;
 }
 
 export interface GeneratedReport {
@@ -121,7 +149,7 @@ export class GenerateReport {
   "harness_total": ${scores.harness_total},
   "harness_pct": ${scores.harness_pct.toFixed(1)},
   "avg_trace_quality": ${scores.avg_trace_quality.toFixed(1)},
-  "lane_accuracy": "${scores.lane_accuracy}"${renderOptionalAdherenceScores(scores)}
+  "lane_accuracy": "${scores.lane_accuracy}"${renderOptionalScores(scores)}
 }
 `;
   }
@@ -136,6 +164,7 @@ export class GenerateReport {
     const quality = await readJson<QualityJson>(path.join(taskDir, 'quality.json'), {});
     const lane = await readJson<LaneJson>(path.join(taskDir, 'lane.json'), {});
     const adherence = await readOptionalJson<AdherenceJson>(path.join(taskDir, 'adherence.json'));
+    assertInteractionCostSum(usage, taskName);
 
     const functionalCounts = countChecks(functional);
     const harnessCounts = countChecks(harness);
@@ -163,6 +192,8 @@ export class GenerateReport {
       laneCorrect: lane.expected !== undefined && lane.actual !== undefined && lane.expected === lane.actual,
       adherencePass: adherence?.adherence_pass,
       adherenceTotal: adherence?.adherence_total,
+      pricingVersion: usage?.pricingVersion,
+      modelUsage: rollUpModelUsage(usage),
     };
   }
 
@@ -204,6 +235,18 @@ export class GenerateReport {
           acc.adherenceTotal += task.adherenceTotal;
           acc.hasAdherence = true;
         }
+        if (task.pricingVersion) {
+          acc.pricingVersions.add(task.pricingVersion);
+        }
+        for (const [model, usage] of task.modelUsage) {
+          const current = acc.modelUsage.get(model) ?? emptyModelUsageRollup();
+          current.inputTokens += usage.inputTokens;
+          current.cachedInputTokens += usage.cachedInputTokens;
+          current.outputTokens += usage.outputTokens;
+          current.costUsd += usage.costUsd;
+          current.hasUnknownCost ||= usage.hasUnknownCost;
+          acc.modelUsage.set(model, current);
+        }
         return acc;
       },
       {
@@ -221,6 +264,8 @@ export class GenerateReport {
         adherencePass: 0,
         adherenceTotal: 0,
         hasAdherence: false,
+        pricingVersions: new Set<string>(),
+        modelUsage: new Map<string, ModelUsageRollup>(),
       },
     );
 
@@ -248,6 +293,16 @@ export class GenerateReport {
       scores.adherence_pct = pct(totals.adherencePass, totals.adherenceTotal);
     }
 
+    if (totals.pricingVersions.size === 1) {
+      scores.pricing_version = [...totals.pricingVersions][0];
+    } else if (totals.pricingVersions.size > 1) {
+      scores.pricing_version = 'mixed';
+    }
+
+    if (totals.modelUsage.size > 0) {
+      scores.model_usage = renderModelUsageScores(totals.modelUsage);
+    }
+
     return scores;
   }
 
@@ -273,6 +328,7 @@ export class GenerateReport {
       `| Total wall time | ${scores.total_wall_seconds}s (${truncate1(scores.total_wall_seconds / 60).toFixed(1)}m) |`,
       `| Total tokens | ${scores.total_tokens} (in: ${scores.total_input_tokens}, out: ${scores.total_output_tokens}) |`,
       `| Estimated cost | ${formatCost(scores.estimated_total_cost_usd)} |`,
+      ...renderOptionalPricingReportRows(scores),
       `| Functional score | ${scores.functional_pass}/${scores.functional_total} (${scores.functional_pct.toFixed(1)}%) |`,
       `| Harness compliance | ${scores.harness_pass}/${scores.harness_total} (${scores.harness_pct.toFixed(1)}%) |`,
       `| Avg trace quality | ${scores.avg_trace_quality.toFixed(1)} / 3.0 |`,
@@ -287,6 +343,7 @@ export class GenerateReport {
         (task) =>
           `| ${task.name} | ${task.wallSeconds}s | ${task.tokens} | ${task.functionalPass}/${task.functionalTotal} | ${task.harnessPass}/${task.harnessTotal} | ${task.qualityScore}/3 |`,
       ),
+      ...renderOptionalModelUsageReport(scores),
       '',
       '---',
       '*Generated by harness-benchmark runner*',
@@ -329,6 +386,77 @@ function pct(pass: number, total: number): number {
   return truncate1((pass * 100) / total);
 }
 
+function rollUpModelUsage(usage: UsageJson | undefined): Map<string, ModelUsageRollup> {
+  const rollup = new Map<string, ModelUsageRollup>();
+  for (const interaction of usage?.interactions ?? []) {
+    if (!interaction.model) {
+      continue;
+    }
+
+    const current = rollup.get(interaction.model) ?? emptyModelUsageRollup();
+    current.inputTokens += interaction.inputTokens ?? 0;
+    current.cachedInputTokens += interaction.cachedInputTokens ?? 0;
+    current.outputTokens += interaction.outputTokens ?? 0;
+    if (interaction.costUsd === null || interaction.costUsd === undefined) {
+      current.hasUnknownCost = true;
+    } else {
+      current.costUsd += interaction.costUsd;
+    }
+    rollup.set(interaction.model, current);
+  }
+
+  return rollup;
+}
+
+function emptyModelUsageRollup(): ModelUsageRollup {
+  return {
+    inputTokens: 0,
+    cachedInputTokens: 0,
+    outputTokens: 0,
+    costUsd: 0,
+    hasUnknownCost: false,
+  };
+}
+
+function renderModelUsageScores(
+  modelUsage: Map<string, ModelUsageRollup>,
+): Record<string, ModelUsageScore> {
+  return Object.fromEntries(
+    [...modelUsage.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([model, usage]) => [
+        model,
+        {
+          input_tokens: usage.inputTokens,
+          cached_input_tokens: usage.cachedInputTokens,
+          output_tokens: usage.outputTokens,
+          total_tokens: usage.inputTokens + usage.cachedInputTokens + usage.outputTokens,
+          estimated_cost_usd: usage.hasUnknownCost ? null : Number(usage.costUsd.toFixed(8)),
+        },
+      ]),
+  );
+}
+
+function assertInteractionCostSum(usage: UsageJson | undefined, taskName: string): void {
+  const interactions = usage?.interactions ?? [];
+  const totalCost = usage?.totals?.costUsd;
+  if (totalCost === undefined || totalCost === null || interactions.length === 0) {
+    return;
+  }
+
+  let sum = 0;
+  for (const interaction of interactions) {
+    if (interaction.costUsd === undefined || interaction.costUsd === null) {
+      return;
+    }
+    sum += interaction.costUsd;
+  }
+
+  if (Number(sum.toFixed(8)) !== Number(totalCost.toFixed(8))) {
+    throw new Error(`usage interaction costs do not sum to total for ${taskName}`);
+  }
+}
+
 function formatNumber(value: number): string {
   return Number.isInteger(value) ? String(value) : String(value);
 }
@@ -349,6 +477,14 @@ function truncate1(value: number): number {
   return Math.trunc(value * 10) / 10;
 }
 
+function renderOptionalScores(scores: ScoresJson): string {
+  return [
+    renderOptionalAdherenceScores(scores),
+    renderOptionalPricingScores(scores),
+    renderOptionalModelUsageScores(scores),
+  ].join('');
+}
+
 function renderOptionalAdherenceScores(scores: ScoresJson): string {
   if (scores.adherence_pass === undefined || scores.adherence_total === undefined) {
     return '';
@@ -360,6 +496,24 @@ function renderOptionalAdherenceScores(scores: ScoresJson): string {
   "adherence_pct": ${(scores.adherence_pct ?? 0).toFixed(1)}`;
 }
 
+function renderOptionalPricingScores(scores: ScoresJson): string {
+  if (!scores.pricing_version) {
+    return '';
+  }
+
+  return `,
+  "pricing_version": "${scores.pricing_version}"`;
+}
+
+function renderOptionalModelUsageScores(scores: ScoresJson): string {
+  if (!scores.model_usage) {
+    return '';
+  }
+
+  return `,
+  "model_usage": ${JSON.stringify(scores.model_usage, null, 2).replace(/\n/g, '\n  ')}`;
+}
+
 function renderOptionalAdherenceReportRows(scores: ScoresJson): string[] {
   if (scores.adherence_pass === undefined || scores.adherence_total === undefined) {
     return [];
@@ -367,5 +521,31 @@ function renderOptionalAdherenceReportRows(scores: ScoresJson): string[] {
 
   return [
     `| Harness adherence | ${scores.adherence_pass}/${scores.adherence_total} (${(scores.adherence_pct ?? 0).toFixed(1)}%) |`,
+  ];
+}
+
+function renderOptionalPricingReportRows(scores: ScoresJson): string[] {
+  if (!scores.pricing_version) {
+    return [];
+  }
+
+  return [`| Pricing version | ${scores.pricing_version} |`];
+}
+
+function renderOptionalModelUsageReport(scores: ScoresJson): string[] {
+  if (!scores.model_usage) {
+    return [];
+  }
+
+  return [
+    '',
+    '## Per-Model Usage',
+    '',
+    '| Model | Tokens | Estimated cost |',
+    '|-------|--------|----------------|',
+    ...Object.entries(scores.model_usage).map(
+      ([model, usage]) =>
+        `| ${model} | ${usage.total_tokens} (in: ${usage.input_tokens + usage.cached_input_tokens}, out: ${usage.output_tokens}) | ${formatCost(usage.estimated_cost_usd)} |`,
+    ),
   ];
 }
