@@ -1,8 +1,12 @@
 import { chmod, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import { runCli } from '../interface/cli';
+
+const execFileAsync = promisify(execFile);
 
 describe('CLI', () => {
   it('validates a pricing table and prints effective rates', async () => {
@@ -65,17 +69,20 @@ describe('CLI', () => {
     await writeMinimalTask(runDir, 'T1-example');
 
     let stdout = '';
+    let stderr = '';
     const code = await runCli(
       ['report', 'generate', '--run-id', 'cli-report', '--run-dir', runDir],
       {
         stdout: (message) => {
           stdout += message;
         },
-        stderr: () => {},
+        stderr: (message) => {
+          stderr += message;
+        },
       },
     );
 
-    expect(code).toBe(0);
+    expect(code, stderr).toBe(0);
     expect(stdout).toContain('Report generated:');
     await expect(readFile(path.join(runDir, 'scores.json'), 'utf8')).resolves.toContain(
       '"run_id": "cli-report"',
@@ -129,6 +136,7 @@ describe('CLI', () => {
     await chmod(agentPath, 0o755);
 
     let stdout = '';
+    let stderr = '';
     const code = await runCli(
       [
         'run',
@@ -155,11 +163,13 @@ describe('CLI', () => {
         stdout: (message) => {
           stdout += message;
         },
-        stderr: () => {},
+        stderr: (message) => {
+          stderr += message;
+        },
       },
     );
 
-    expect(code).toBe(0);
+    expect(code, stderr).toBe(0);
     expect(stdout).toContain('Executed run execute-fixture: 1 tasks');
     await expect(readFile(path.join(runDir, 'state.json'), 'utf8')).resolves.toContain(
       '"status": "passed"',
@@ -444,6 +454,110 @@ describe('CLI', () => {
     await expect(
       readFile(path.join(runDir, 'checkpoints/pre-run/scripts/bin/harness-cli'), 'utf8'),
     ).resolves.toContain('fake harness cli');
+  });
+
+  it('isolates fresh git workspace executions and copies back run artifacts', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'cli-isolated-run-'));
+    const workspaceDir = path.join(dir, 'workspace');
+    const runDir = path.join(workspaceDir, 'benchmark/runs/isolated-fixture');
+    const manifestPath = path.join(workspaceDir, 'benchmark/tasks/manifest.json');
+    const pricingPath = path.join(workspaceDir, 'benchmark/pricing/models.json');
+    const agentPath = path.join(dir, 'fake-agent.js');
+
+    await mkdir(path.join(workspaceDir, 'src'), { recursive: true });
+    await mkdir(path.dirname(manifestPath), { recursive: true });
+    await mkdir(path.dirname(pricingPath), { recursive: true });
+    await writeText(path.join(workspaceDir, 'src/index.ts'), 'original source');
+    await writeText(path.join(workspaceDir, 'benchmark/tasks/prompt.md'), 'TASK T1');
+    await writeJson(manifestPath, {
+      version: 1,
+      tasks: [
+        {
+          id: 'T1-fixture',
+          title: 'Fixture',
+          promptPath: path.join(workspaceDir, 'benchmark/tasks/prompt.md'),
+          rubricPath: path.join(workspaceDir, 'benchmark/rubrics/T1.md'),
+          expectedLane: 'normal',
+        },
+      ],
+    });
+    await writeJson(pricingPath, {
+      version: 'test',
+      models: {
+        'gpt-test': {
+          provider: 'custom',
+          input: 1,
+          cachedInput: 0.1,
+          output: 10,
+          source: 'fixture',
+          updatedAt: '2026-06-25',
+        },
+      },
+    });
+    await writeFile(
+      agentPath,
+      [
+        '#!/usr/bin/env node',
+        "const fs = require('node:fs');",
+        "const path = require('node:path');",
+        "fs.writeFileSync(path.join(process.cwd(), 'src/index.ts'), 'changed in isolation');",
+        "console.log('{\"provider\":\"custom\",\"interactions\":[{\"model\":\"gpt-test\",\"inputTokens\":100,\"cachedInputTokens\":0,\"outputTokens\":25}]}');",
+        '',
+      ].join('\n'),
+    );
+    await chmod(agentPath, 0o755);
+    await execFileAsync('git', ['init'], { cwd: workspaceDir });
+    await execFileAsync('git', ['add', '.'], { cwd: workspaceDir });
+    await execFileAsync(
+      'git',
+      ['-c', 'user.email=test@example.com', '-c', 'user.name=Test User', 'commit', '-m', 'seed'],
+      { cwd: workspaceDir },
+    );
+
+    let stdout = '';
+    let stderr = '';
+    const code = await runCli(
+      [
+        'run',
+        '--execute',
+        '--run-id',
+        'isolated-fixture',
+        '--run-dir',
+        runDir,
+        '--workspace',
+        workspaceDir,
+        '--manifest',
+        manifestPath,
+        '--agent',
+        'custom',
+        '--agent-cmd',
+        agentPath,
+        '--model',
+        'gpt-test',
+        '--pricing',
+        pricingPath,
+        '--skip-harness-install',
+        '--skip-scoring-artifacts',
+      ],
+      {
+        stdout: (message) => {
+          stdout += message;
+        },
+        stderr: (message) => {
+          stderr += message;
+        },
+      },
+    );
+
+    expect(code, stderr).toBe(0);
+    expect(stdout).toContain('Preparing isolated benchmark workspace:');
+    expect(stdout).toContain(`Isolated run copied back: ${runDir}`);
+    await expect(readFile(path.join(workspaceDir, 'src/index.ts'), 'utf8')).resolves.toBe(
+      'original source',
+    );
+    await expect(readFile(path.join(runDir, 'state.json'), 'utf8')).resolves.toContain(
+      '"status": "passed"',
+    );
   });
 });
 

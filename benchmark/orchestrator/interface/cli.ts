@@ -1,4 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { access, cp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
 import { BuildRunExecutionPlan } from '../application/BuildRunExecutionPlan';
@@ -101,6 +102,23 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
 
   try {
     const agent = readAgent(agentValue);
+    if (shouldIsolateFreshRun(args, resumeRunId)) {
+      const isolatedCode = await runIsolatedBenchmark({
+        args,
+        io,
+        runId,
+        runDir,
+        workspaceDir,
+        agent,
+        harnessRef,
+        model,
+        commandRunner,
+      });
+      if (isolatedCode !== undefined) {
+        return isolatedCode;
+      }
+    }
+
     const fullPlan = await new TaskManifestLoader(manifestPath).load(runId);
     const selector = resumeModeFromArgs(args, Boolean(resumeRunId));
     const { checkpointState, executionPlan } = await prepareExecutionPlan({
@@ -505,6 +523,168 @@ function readCsvFlag(args: string[], flag: string): string[] | undefined {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function shouldIsolateFreshRun(args: string[], resumeRunId: string | undefined): boolean {
+  return (
+    resumeRunId === undefined &&
+    !hasFlag(args, '--no-isolate') &&
+    process.env.HARNESS_BENCHMARK_ISOLATED !== '1'
+  );
+}
+
+async function runIsolatedBenchmark(options: {
+  args: string[];
+  io: CliIo;
+  runId: string;
+  runDir: string;
+  workspaceDir: string;
+  agent: RunnerAgent;
+  harnessRef: string;
+  model: string | undefined;
+  commandRunner: NodeCommandRunner;
+}): Promise<number | undefined> {
+  const workspaceDir = path.resolve(options.workspaceDir);
+  if (!(await isGitWorkspace(workspaceDir, options.commandRunner))) {
+    return undefined;
+  }
+
+  const safeRunId = safePathSegment(options.runId);
+  const safeAgent = safePathSegment(options.agent);
+  const safeHarness = safePathSegment(options.harnessRef);
+  const safeModel = safePathSegment(options.model ?? 'default');
+  const isolatedProjectDir = path.join(
+    tmpdir(),
+    `harness-benchmark-${safeRunId}-${safeAgent}-${safeHarness}-${safeModel}`,
+  );
+  const originalRunDir = path.resolve(options.runDir);
+  const isolatedRunDir = isolatedRunDirFor(workspaceDir, isolatedProjectDir, originalRunDir, options.runId);
+
+  options.io.stdout(`Preparing isolated benchmark workspace: ${isolatedProjectDir}\n`);
+  await rm(isolatedProjectDir, { recursive: true, force: true });
+  const clone = await options.commandRunner.run('git', ['clone', '--quiet', workspaceDir, isolatedProjectDir], {
+    cwd: workspaceDir,
+  });
+  if (clone.exitCode !== 0) {
+    throw new Error(`failed to clone isolated benchmark workspace from ${workspaceDir}`);
+  }
+
+  const childArgs = rewriteIsolatedArgs(options.args, {
+    workspaceDir,
+    isolatedProjectDir,
+    originalRunDir,
+    isolatedRunDir,
+  });
+  const previousIsolated = process.env.HARNESS_BENCHMARK_ISOLATED;
+  const previousOriginalProjectDir = process.env.HARNESS_BENCHMARK_ORIGINAL_PROJECT_DIR;
+  process.env.HARNESS_BENCHMARK_ISOLATED = '1';
+  process.env.HARNESS_BENCHMARK_ORIGINAL_PROJECT_DIR = workspaceDir;
+  let childCode = 1;
+  try {
+    childCode = await runCli(['run', '--execute', ...childArgs], options.io);
+  } finally {
+    restoreEnv('HARNESS_BENCHMARK_ISOLATED', previousIsolated);
+    restoreEnv('HARNESS_BENCHMARK_ORIGINAL_PROJECT_DIR', previousOriginalProjectDir);
+  }
+
+  if (await exists(isolatedRunDir)) {
+    await rm(originalRunDir, { recursive: true, force: true });
+    await mkdir(path.dirname(originalRunDir), { recursive: true });
+    await cp(isolatedRunDir, originalRunDir, { recursive: true });
+    options.io.stdout(`Isolated run copied back: ${originalRunDir}\n`);
+  } else {
+    options.io.stdout(`Isolated run had no result directory: ${isolatedRunDir}\n`);
+  }
+  return childCode;
+}
+
+async function isGitWorkspace(workspaceDir: string, commandRunner: NodeCommandRunner): Promise<boolean> {
+  const result = await commandRunner.run('git', ['-C', workspaceDir, 'rev-parse', '--is-inside-work-tree'], {
+    cwd: workspaceDir,
+  });
+  return result.exitCode === 0;
+}
+
+function isolatedRunDirFor(
+  workspaceDir: string,
+  isolatedProjectDir: string,
+  originalRunDir: string,
+  runId: string,
+): string {
+  const relative = path.relative(workspaceDir, originalRunDir);
+  if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+    return path.join(isolatedProjectDir, relative);
+  }
+
+  return path.join(isolatedProjectDir, 'benchmark', 'runs', runId);
+}
+
+function rewriteIsolatedArgs(
+  args: string[],
+  paths: {
+    workspaceDir: string;
+    isolatedProjectDir: string;
+    originalRunDir: string;
+    isolatedRunDir: string;
+  },
+): string[] {
+  let next = replaceFlag(args, '--workspace', paths.isolatedProjectDir);
+  next = replaceFlag(next, '--run-dir', paths.isolatedRunDir);
+  next = rewriteWorkspacePathFlag(next, '--manifest', paths.workspaceDir, paths.isolatedProjectDir);
+  next = rewriteWorkspacePathFlag(next, '--pricing', paths.workspaceDir, paths.isolatedProjectDir);
+  next = rewriteWorkspacePathFlag(next, '--harness-prepare-script', paths.workspaceDir, paths.isolatedProjectDir);
+  return next;
+}
+
+function replaceFlag(args: string[], flag: string, value: string): string[] {
+  const next = [...args];
+  const index = next.indexOf(flag);
+  if (index === -1) {
+    next.push(flag, value);
+  } else {
+    next[index + 1] = value;
+  }
+  return next;
+}
+
+function rewriteWorkspacePathFlag(
+  args: string[],
+  flag: string,
+  workspaceDir: string,
+  isolatedProjectDir: string,
+): string[] {
+  const value = readFlag(args, flag);
+  if (!value) {
+    return args;
+  }
+  const absolute = path.resolve(value);
+  const relative = path.relative(workspaceDir, absolute);
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
+    return args;
+  }
+
+  return replaceFlag(args, flag, path.join(isolatedProjectDir, relative));
+}
+
+function safePathSegment(value: string): string {
+  return value.replace(/[^A-Za-z0-9._-]/g, '-');
+}
+
+function restoreEnv(name: string, value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}
+
+async function exists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function readAgent(value: string): RunnerAgent {
