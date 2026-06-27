@@ -51,12 +51,23 @@ Legacy Bash runs still use:
 The TypeScript orchestrator uses:
 
 ```bash
-npm run harness-bench -- run --dry-run --run-id RUN --run-dir benchmark/runs/RUN --model gpt-5.4
-npm run harness-bench -- run --execute --run-id RUN --run-dir benchmark/runs/RUN --workspace "$PWD" --agent codex --model gpt-5.4
+npm run harness-bench -- run --dry-run --run-id RUN --run-dir benchmark/runs/RUN --harness main --model gpt-5.4
+npm run harness-bench -- run --execute --run-id RUN --run-dir benchmark/runs/RUN --workspace "$PWD" --harness main --agent codex --model gpt-5.4
 npm run harness-bench -- report generate --run-id RUN --run-dir benchmark/runs/RUN
 ```
 
-During execution it writes `state.json`, per-task `usage.json`, compatibility `tokens.json`, workspace checkpoints under `checkpoints/`, and regenerated `scores.json` / `report.md`.
+For a fresh execution run from a git workspace, it mirrors the legacy Bash isolation model:
+clone the workspace to `/tmp`, execute there, and copy only `benchmark/runs/RUN` back to the
+requested run directory. Use `--no-isolate` to intentionally run in the provided workspace.
+
+Inside the execution workspace, it first invokes `benchmark/lib/prepare.sh` to install Harness
+from the requested `--harness` ref. That legacy prepare path clones or fetches
+`repository-harness`, checks out the target ref, builds `crates/harness-cli` with Cargo, installs
+that locally built `scripts/bin/harness-cli`, and runs the checked-out installer in merge mode.
+It then runs the manifest tasks and writes `state.json`, per-task `timing.json`,
+`functional.json`, `harness.json`, `quality.json`, `lane.json`, `usage.json`, compatibility
+`tokens.json`, workspace checkpoints under `checkpoints/`, and regenerated `scores.json` /
+`report.md`.
 
 ## Resumable Runs
 

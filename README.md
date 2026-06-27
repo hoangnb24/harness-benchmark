@@ -28,10 +28,10 @@ sqlite3 --version  # for harness compliance checks
 npm run harness-bench -- pricing validate --pricing benchmark/pricing/models.json
 
 # TypeScript orchestrator dry-run planning
-npm run harness-bench -- run --dry-run --run-id baseline --run-dir benchmark/runs/baseline --model gpt-5.4
+npm run harness-bench -- run --dry-run --run-id baseline --run-dir benchmark/runs/baseline --harness main --model gpt-5.4
 
 # TypeScript orchestrator execution
-npm run harness-bench -- run --execute --run-id baseline --run-dir benchmark/runs/baseline --workspace "$PWD" --agent codex --model gpt-5.4
+npm run harness-bench -- run --execute --run-id baseline --run-dir benchmark/runs/baseline --workspace "$PWD" --harness main --agent codex --model gpt-5.4
 
 # Compare results
 ./benchmark/compare.sh baseline phase-2
@@ -112,7 +112,7 @@ harness-benchmark/
 ## The Benchmark Cycle
 
 1. **Tag** benchmark repo → `benchmark-v1`
-2. **Install harness** from target ref (main, feature branch)
+2. **Install harness** from target ref (`main`, feature branch) and build the Rust CLI from that ref
 3. **Run T1–T12** sequentially from `benchmark/tasks/manifest.json`
 4. **Score** against objective rubrics
 5. **Compare** to previous runs
@@ -140,12 +140,12 @@ Each phase must **earn its merge** by moving the numbers.
 
 | Metric | What It Measures | Source |
 |--------|-----------------|--------|
-| Wall time | Speed of completion | `timing.json` |
-| Token cost | API cost efficiency | `usage.json` and compatibility `tokens.json` |
-| Functional score | Does the code work? | Declarative HTTP checks |
-| Harness compliance | Did the agent use the harness? | `check-harness.sh` (sqlite3 queries) |
-| Trace quality | How detailed are the traces? | `check-quality.sh` |
-| Lane accuracy | Correct risk classification? | `lane.json` |
+| Wall time | Speed of completion | per-task `timing.json` |
+| Token cost | API cost efficiency | per-task `usage.json` and compatibility `tokens.json` |
+| Functional score | Does the code work? | per-task `functional.json` |
+| Harness compliance | Did the agent use the harness? | per-task `harness.json` from legacy scorer |
+| Trace quality | How detailed are the traces? | per-task `quality.json` from legacy scorer |
+| Lane accuracy | Correct risk classification? | per-task `lane.json` |
 | Harness adherence | Phase 5 evidence quality | `adherence.json` from review commands |
 
 ## License
