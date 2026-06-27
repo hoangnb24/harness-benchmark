@@ -8,6 +8,7 @@ import {
   LegacyCodexAdapter,
   type CommandRunner,
 } from '../infrastructure/LegacyCodexAdapter';
+import { ShellHarnessInstaller } from '../infrastructure/ShellHarnessInstaller';
 import { buildRunner } from '../interface/composition-root';
 import type { TaskDefinition } from '../domain/task';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
@@ -62,6 +63,41 @@ describe('agent adapters', () => {
       stdoutPath: '/tmp/run/T1-project-setup/usage.json',
     });
     expect(result.stdoutPath).toBe('/tmp/run/T1-project-setup/usage.json');
+  });
+});
+
+describe('ShellHarnessInstaller', () => {
+  it('delegates to the legacy prepare script with the requested harness ref', async () => {
+    const runner = new RecordingCommandRunner();
+
+    await new ShellHarnessInstaller(runner, '/repo/benchmark/lib/prepare.sh').install({
+      harnessRef: 'feature/harness-cli',
+      projectDir: '/tmp/project',
+    });
+
+    expect(runner.calls[0]).toMatchObject({
+      command: 'bash',
+      args: [
+        '-c',
+        'source "$1"; install_harness "$2" "$3"',
+        'harness-install',
+        '/repo/benchmark/lib/prepare.sh',
+        'feature/harness-cli',
+        '/tmp/project',
+      ],
+      cwd: '/tmp/project',
+    });
+  });
+
+  it('fails when the prepare script command fails', async () => {
+    const runner = new RecordingCommandRunner(1);
+
+    await expect(
+      new ShellHarnessInstaller(runner, '/repo/benchmark/lib/prepare.sh').install({
+        harnessRef: 'bad-ref',
+        projectDir: '/tmp/project',
+      }),
+    ).rejects.toThrow(/harness install failed for ref bad-ref/);
   });
 });
 
@@ -168,13 +204,15 @@ class RecordingCommandRunner implements CommandRunner {
     stderrPath?: string;
   }> = [];
 
+  constructor(private readonly exitCode = 0) {}
+
   async run(
     command: string,
     args: string[],
     options: { cwd: string; stdinPath?: string; stdoutPath?: string; stderrPath?: string },
   ): Promise<{ exitCode: number }> {
     this.calls.push({ command, args, ...options });
-    return { exitCode: 0 };
+    return { exitCode: this.exitCode };
   }
 }
 

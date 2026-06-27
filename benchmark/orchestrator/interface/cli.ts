@@ -17,6 +17,7 @@ import { FsCheckpointStore } from '../infrastructure/FsCheckpointStore';
 import { CommandAdherenceEvidenceProvider } from '../infrastructure/CommandAdherenceEvidenceProvider';
 import { JsonAdherenceEvidenceProvider } from '../infrastructure/JsonAdherenceEvidenceProvider';
 import { NodeCommandRunner } from '../infrastructure/NodeCommandRunner';
+import { ShellHarnessInstaller } from '../infrastructure/ShellHarnessInstaller';
 import { TaskManifestLoader } from '../infrastructure/TaskManifestLoader';
 
 interface CliIo {
@@ -63,8 +64,8 @@ export async function runCli(args: string[], io: CliIo = defaultIo): Promise<num
       '  harness-bench adherence score --evidence evidence.json --out adherence.json',
       '  harness-bench adherence collect --cwd DIR --trace-id TRACE --out adherence.json [--log events.jsonl] [--allow-missing-commands]',
       '  harness-bench report generate --run-id RUN --run-dir DIR [--scores-out scores.json] [--report-out report.md]',
-      '  harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json] [--pricing benchmark/pricing/models.json]',
-      '  harness-bench run --execute --run-id RUN --run-dir DIR --workspace DIR [--agent codex|claude|custom] [--agent-cmd CMD]',
+      '  harness-bench run --dry-run --run-id RUN --run-dir DIR [--manifest benchmark/tasks/manifest.json] [--pricing benchmark/pricing/models.json] [--harness REF]',
+      '  harness-bench run --execute --run-id RUN --run-dir DIR --workspace DIR [--agent codex|claude|custom] [--agent-cmd CMD] [--harness REF]',
       '  harness-bench run --dry-run --resume RUN --run-dir DIR [--only TASK|--from TASK|--steps T1,T2|--retry-failed] [--force]',
       '',
     ].join('\n'),
@@ -82,6 +83,8 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
   const model = readFlag(args, '--model');
   const pricingPath = readFlag(args, '--pricing') ?? 'benchmark/pricing/models.json';
   const checkpointStore = runDir ? new FsCheckpointStore(runDir) : undefined;
+  const harnessRef = readFlag(args, '--harness') ?? 'main';
+  const commandRunner = new NodeCommandRunner();
 
   if (!runId || !runDir || !checkpointStore) {
     io.stderr(
@@ -101,7 +104,7 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
       selector,
       agent,
       model,
-      harnessRef: readFlag(args, '--harness') ?? 'main',
+      harnessRef,
       workspaceDir,
     });
     await validateRunPricing(checkpointState.model ?? model, args, io);
@@ -115,6 +118,17 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
       io.stdout(`No tasks to run for ${runId}\n`);
     } else {
       const baseUrl = readFlag(args, '--base-url') ?? 'http://localhost:3000';
+      if (!resumeRunId && !hasFlag(args, '--skip-harness-install')) {
+        io.stdout(`Installing harness from ${harnessRef}\n`);
+        await new ShellHarnessInstaller(
+          commandRunner,
+          readFlag(args, '--harness-prepare-script'),
+        ).install({
+          harnessRef,
+          projectDir: workspaceDir,
+        });
+      }
+
       const functional = new ServerManagedFunctionalProbe(
         new DeclarativeFunctionalProbe({
           baseUrl,
@@ -124,13 +138,14 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
       );
       const runner = buildRunner({
         agent,
-        commandRunner: new NodeCommandRunner(),
+        commandRunner,
         customCommand: readFlag(args, '--agent-cmd'),
         customArgs: readCsvFlag(args, '--agent-args'),
         functional,
         model,
         pricingPath,
         recordUsage: true,
+        recordScoringArtifacts: !hasFlag(args, '--skip-scoring-artifacts'),
         allowMissingPricing: hasFlag(args, '--allow-missing-pricing'),
         snapshotWorkspaces: true,
         checkpoints: checkpointStore,

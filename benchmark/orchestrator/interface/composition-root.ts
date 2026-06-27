@@ -11,6 +11,7 @@ import { CustomUsageParser } from '../infrastructure/CustomUsageParser';
 import { FsUsageArtifactWriter } from '../infrastructure/FsUsageArtifactWriter';
 import { FsWorkspaceSnapshotStore } from '../infrastructure/FsWorkspaceSnapshotStore';
 import { JsonPricingProvider } from '../infrastructure/JsonPricingProvider';
+import { LegacyTaskArtifactRecorder } from '../infrastructure/LegacyTaskArtifactRecorder';
 import { OpenAiUsageParser } from '../infrastructure/OpenAiUsageParser';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
 import type { CheckpointStore } from '../ports/CheckpointStore';
@@ -28,6 +29,7 @@ export interface RunnerConfig {
   pricingPath?: string;
   pricingVersion?: string;
   recordUsage?: boolean;
+  recordScoringArtifacts?: boolean;
   allowMissingPricing?: boolean;
   snapshotWorkspaces?: boolean;
   checkpoints?: CheckpointStore;
@@ -51,6 +53,9 @@ export function buildRunner(config: RunnerConfig): RunBenchmark {
     checkpoints: config.checkpoints,
     usage: config.recordUsage ? buildUsageRecorder(config) : undefined,
     snapshots: config.snapshotWorkspaces ? new FsWorkspaceSnapshotStore() : undefined,
+    artifacts: config.recordScoringArtifacts
+      ? new LegacyTaskArtifactRecorder(config.commandRunner)
+      : undefined,
   });
 }
 

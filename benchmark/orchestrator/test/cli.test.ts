@@ -149,6 +149,7 @@ describe('CLI', () => {
         'gpt-test',
         '--pricing',
         pricingPath,
+        '--skip-harness-install',
       ],
       {
         stdout: (message) => {
@@ -174,6 +175,12 @@ describe('CLI', () => {
     );
     await expect(readFile(path.join(runDir, 'report.md'), 'utf8')).resolves.toContain(
       '# Benchmark Report: execute-fixture',
+    );
+    await expect(readFile(path.join(runDir, 'T1-fixture', 'timing.json'), 'utf8')).resolves.toContain(
+      '"exit_code": 0',
+    );
+    await expect(readFile(path.join(runDir, 'T1-fixture', 'functional.json'), 'utf8')).resolves.toContain(
+      '"checks": []',
     );
   });
 
@@ -255,6 +262,8 @@ describe('CLI', () => {
         'gpt-test',
         '--pricing',
         pricingPath,
+        '--skip-harness-install',
+        '--skip-scoring-artifacts',
       ],
       {
         stdout: () => {},
@@ -298,6 +307,8 @@ describe('CLI', () => {
         'gpt-test',
         '--pricing',
         pricingPath,
+        '--skip-harness-install',
+        '--skip-scoring-artifacts',
       ],
       {
         stdout: (message) => {
@@ -318,6 +329,121 @@ describe('CLI', () => {
     await expect(readFile(path.join(runDir, 'state.json'), 'utf8')).resolves.toContain(
       '"checkpoint": "checkpoints/T3-fixture"',
     );
+  });
+
+  it('installs the requested harness ref before executing a fresh run', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'cli-harness-install-'));
+    const workspaceDir = path.join(dir, 'workspace');
+    const runDir = path.join(dir, 'run');
+    const manifestPath = path.join(dir, 'manifest.json');
+    const pricingPath = path.join(dir, 'models.json');
+    const agentPath = path.join(dir, 'fake-agent.js');
+    const preparePath = path.join(dir, 'prepare.sh');
+    const orderPath = path.join(dir, 'order.log');
+
+    await mkdir(workspaceDir, { recursive: true });
+    await writeText(path.join(workspaceDir, 'src/index.ts'), 'initial source');
+    await writeText(path.join(dir, 'prompt.md'), 'TASK T1');
+    await writeJson(manifestPath, {
+      version: 1,
+      tasks: [
+        {
+          id: 'T1-fixture',
+          title: 'Fixture',
+          promptPath: path.join(dir, 'prompt.md'),
+          rubricPath: path.join(dir, 'rubric.md'),
+          expectedLane: 'normal',
+        },
+      ],
+    });
+    await writeJson(pricingPath, {
+      version: 'test',
+      models: {
+        'gpt-test': {
+          provider: 'custom',
+          input: 1,
+          cachedInput: 0.1,
+          output: 10,
+          source: 'fixture',
+          updatedAt: '2026-06-25',
+        },
+      },
+    });
+    await writeFile(
+      preparePath,
+      [
+        'install_harness() {',
+        `  printf 'install:%s:%s\\n' "$1" "$2" >> ${JSON.stringify(orderPath)}`,
+        '  mkdir -p "$2/scripts/bin"',
+        '  printf "#!/bin/sh\\necho fake harness cli\\n" > "$2/scripts/bin/harness-cli"',
+        '  chmod 755 "$2/scripts/bin/harness-cli"',
+        '}',
+        '',
+      ].join('\n'),
+    );
+    await writeFile(
+      agentPath,
+      [
+        '#!/usr/bin/env node',
+        "const fs = require('node:fs');",
+        "const path = require('node:path');",
+        `fs.appendFileSync(${JSON.stringify(orderPath)}, 'agent\\n');`,
+        "fs.writeFileSync(path.join(process.cwd(), 'src/index.ts'), 'after agent');",
+        "console.log('{\"provider\":\"custom\",\"interactions\":[{\"model\":\"gpt-test\",\"inputTokens\":100,\"cachedInputTokens\":0,\"outputTokens\":25}]}');",
+        '',
+      ].join('\n'),
+    );
+    await chmod(agentPath, 0o755);
+
+    let stdout = '';
+    let stderr = '';
+    const code = await runCli(
+      [
+        'run',
+        '--execute',
+        '--run-id',
+        'install-fixture',
+        '--run-dir',
+        runDir,
+        '--workspace',
+        workspaceDir,
+        '--manifest',
+        manifestPath,
+        '--agent',
+        'custom',
+        '--agent-cmd',
+        agentPath,
+        '--model',
+        'gpt-test',
+        '--pricing',
+        pricingPath,
+        '--harness',
+        'feature/harness-cli',
+        '--harness-prepare-script',
+        preparePath,
+        '--skip-scoring-artifacts',
+      ],
+      {
+        stdout: (message) => {
+          stdout += message;
+        },
+        stderr: (message) => {
+          stderr += message;
+        },
+      },
+    );
+
+    expect(code, stderr).toBe(0);
+    expect(stdout).toContain('Installing harness from feature/harness-cli');
+    await expect(readFile(orderPath, 'utf8')).resolves.toBe(
+      `install:feature/harness-cli:${workspaceDir}\nagent\n`,
+    );
+    await expect(readFile(path.join(runDir, 'metadata.json'), 'utf8')).resolves.toContain(
+      '"harness_ref": "feature/harness-cli"',
+    );
+    await expect(
+      readFile(path.join(runDir, 'checkpoints/pre-run/scripts/bin/harness-cli'), 'utf8'),
+    ).resolves.toContain('fake harness cli');
   });
 });
 

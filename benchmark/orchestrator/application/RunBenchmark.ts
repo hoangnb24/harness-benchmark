@@ -10,7 +10,8 @@ import {
 import type { AgentAdapter, AgentInvocationContext, RawAgentOutput } from '../ports/AgentAdapter';
 import type { CheckpointStore } from '../ports/CheckpointStore';
 import type { Clock } from '../ports/Clock';
-import type { FunctionalProbe } from '../ports/FunctionalProbe';
+import type { CheckResult, FunctionalProbe } from '../ports/FunctionalProbe';
+import type { TaskArtifactRecorder } from '../ports/TaskArtifactRecorder';
 import type { WorkspaceSnapshotStore } from '../ports/WorkspaceSnapshotStore';
 
 export interface RunBenchmarkDeps {
@@ -20,6 +21,7 @@ export interface RunBenchmarkDeps {
   clock?: Clock;
   usage?: UsageRecorder;
   snapshots?: WorkspaceSnapshotStore;
+  artifacts?: TaskArtifactRecorder;
 }
 
 export interface UsageRecorder {
@@ -81,12 +83,25 @@ export class RunBenchmark {
         model: context.model,
       };
 
-      checkpointState = markStepRunning(checkpointState, task.id, this.timestamp());
+      await this.deps.artifacts?.beforeTask({ task, artifactsDir, projectDir: context.projectDir });
+
+      const startedAt = this.now();
+      checkpointState = markStepRunning(checkpointState, task.id, startedAt.toISOString());
       await this.deps.checkpoints?.save(checkpointState);
 
       const raw = await this.deps.agent.invoke(task, invocationContext);
+      const endedAt = this.now();
       await this.deps.usage?.record(raw, artifactsDir);
-      const checks = await this.deps.functional.run(task, context.projectDir);
+      const checks = await this.runFunctionalProbe(task, context.projectDir);
+      await this.deps.artifacts?.afterTask({
+        task,
+        artifactsDir,
+        projectDir: context.projectDir,
+        startedAt,
+        endedAt,
+        exitCode: raw.exitCode,
+        functionalChecks: checks,
+      });
       const checksPassed = checks.every((check) => check.pass);
       const taskPassed = raw.exitCode === 0 && checksPassed;
 
@@ -100,7 +115,7 @@ export class RunBenchmark {
           checkpointState,
           task.id,
           `checkpoints/${task.id}`,
-          this.timestamp(),
+          this.now().toISOString(),
         );
       } else if (raw.exitCode !== 0) {
         checkpointState = markStepFailed(
@@ -109,7 +124,7 @@ export class RunBenchmark {
           classifyFailure(raw.exitCode, raw.stderr ?? ''),
           raw.exitCode,
           `agent exited with code ${raw.exitCode}`,
-          this.timestamp(),
+          this.now().toISOString(),
         );
       } else {
         const failedChecks = checks.filter((check) => !check.pass).map((check) => check.name);
@@ -119,7 +134,7 @@ export class RunBenchmark {
           'fatal',
           0,
           `functional checks failed: ${failedChecks.join(', ')}`,
-          this.timestamp(),
+          this.now().toISOString(),
         );
       }
       await this.deps.checkpoints?.save(checkpointState);
@@ -134,8 +149,25 @@ export class RunBenchmark {
     return { runId: plan.runId, tasks };
   }
 
-  private timestamp(): string {
-    return (this.deps.clock?.now() ?? new Date()).toISOString();
+  private now(): Date {
+    return this.deps.clock?.now() ?? new Date();
+  }
+
+  private async runFunctionalProbe(
+    task: RunPlan['tasks'][number],
+    projectDir: string,
+  ): Promise<CheckResult[]> {
+    try {
+      return await this.deps.functional.run(task, projectDir);
+    } catch (error) {
+      return [
+        {
+          name: 'functional_probe',
+          pass: false,
+          actual: error instanceof Error ? error.message : String(error),
+        },
+      ];
+    }
   }
 }
 
