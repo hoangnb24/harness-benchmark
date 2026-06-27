@@ -32,6 +32,7 @@ export interface RunBenchmarkContext {
   projectDir: string;
   runDir: string;
   model?: string;
+  timeoutSeconds?: number;
   checkpointState?: CheckpointState;
   restoreCheckpoints?: Record<string, string>;
 }
@@ -81,6 +82,7 @@ export class RunBenchmark {
         projectDir: context.projectDir,
         artifactsDir,
         model: context.model,
+        timeoutSeconds: context.timeoutSeconds,
       };
 
       await this.deps.artifacts?.beforeTask({ task, artifactsDir, projectDir: context.projectDir });

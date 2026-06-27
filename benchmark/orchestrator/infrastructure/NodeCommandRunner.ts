@@ -7,7 +7,13 @@ export class NodeCommandRunner implements CommandRunner {
   async run(
     command: string,
     args: string[],
-    options: { cwd: string; stdinPath?: string; stdoutPath?: string; stderrPath?: string },
+    options: {
+      cwd: string;
+      stdinPath?: string;
+      stdoutPath?: string;
+      stderrPath?: string;
+      timeoutSeconds?: number;
+    },
   ): Promise<{ exitCode: number }> {
     const input = options.stdinPath ? await readFile(options.stdinPath) : undefined;
 
@@ -15,14 +21,30 @@ export class NodeCommandRunner implements CommandRunner {
       const child = spawn(command, args, { cwd: options.cwd, stdio: ['pipe', 'pipe', 'pipe'] });
       const stdout: Buffer[] = [];
       const stderr: Buffer[] = [];
+      let timedOut = false;
+      const timer =
+        options.timeoutSeconds === undefined
+          ? undefined
+          : setTimeout(() => {
+              timedOut = true;
+              child.kill('SIGTERM');
+            }, options.timeoutSeconds * 1000);
 
       child.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
       child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
-      child.on('error', reject);
+      child.on('error', (error) => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+        reject(error);
+      });
       child.on('close', async (code) => {
+        if (timer) {
+          clearTimeout(timer);
+        }
         try {
           await writeOutputs(options, Buffer.concat(stdout), Buffer.concat(stderr));
-          resolve({ exitCode: code ?? 1 });
+          resolve({ exitCode: timedOut ? 124 : code ?? 1 });
         } catch (error) {
           reject(error);
         }

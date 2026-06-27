@@ -26,6 +26,7 @@ export interface RunnerConfig {
   customArgs?: string[];
   functional: FunctionalProbe;
   model?: string;
+  timeoutSeconds?: number;
   pricingPath?: string;
   pricingVersion?: string;
   recordUsage?: boolean;

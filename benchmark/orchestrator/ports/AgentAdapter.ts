@@ -5,6 +5,7 @@ export interface AgentInvocationContext {
   projectDir: string;
   artifactsDir: string;
   model?: string;
+  timeoutSeconds?: number;
 }
 
 export interface RawAgentOutput {

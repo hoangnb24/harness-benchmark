@@ -8,6 +8,7 @@ import {
   LegacyCodexAdapter,
   type CommandRunner,
 } from '../infrastructure/LegacyCodexAdapter';
+import { NodeCommandRunner } from '../infrastructure/NodeCommandRunner';
 import { ShellHarnessInstaller } from '../infrastructure/ShellHarnessInstaller';
 import { buildRunner } from '../interface/composition-root';
 import type { TaskDefinition } from '../domain/task';
@@ -25,13 +26,17 @@ const task: TaskDefinition = {
 describe('agent adapters', () => {
   it('invokes Codex through JSON event output', async () => {
     const runner = new RecordingCommandRunner();
-    const result = await new LegacyCodexAdapter(runner).invoke(task, context());
+    const result = await new LegacyCodexAdapter(runner).invoke(
+      task,
+      context({ model: 'gpt-test', timeoutSeconds: 600 }),
+    );
 
     expect(runner.calls[0]).toMatchObject({
       command: 'codex',
-      args: ['exec', '--json', '--color', 'never', '-C', '/tmp/project'],
+      args: ['exec', '--json', '--color', 'never', '--model', 'gpt-test', '-C', '/tmp/project'],
       stdinPath: task.promptPath,
       stdoutPath: '/tmp/run/T1-project-setup/events.jsonl',
+      timeoutSeconds: 600,
     });
     expect(result.eventsPath).toBe('/tmp/run/T1-project-setup/events.jsonl');
   });
@@ -98,6 +103,18 @@ describe('ShellHarnessInstaller', () => {
         projectDir: '/tmp/project',
       }),
     ).rejects.toThrow(/harness install failed for ref bad-ref/);
+  });
+});
+
+describe('NodeCommandRunner', () => {
+  it('returns 124 when a command exceeds its timeout', async () => {
+    const result = await new NodeCommandRunner().run(
+      process.execPath,
+      ['-e', 'setTimeout(() => {}, 1000)'],
+      { cwd: process.cwd(), timeoutSeconds: 0.01 },
+    );
+
+    expect(result.exitCode).toBe(124);
   });
 });
 
@@ -202,6 +219,7 @@ class RecordingCommandRunner implements CommandRunner {
     stdinPath?: string;
     stdoutPath?: string;
     stderrPath?: string;
+    timeoutSeconds?: number;
   }> = [];
 
   constructor(private readonly exitCode = 0) {}
@@ -209,7 +227,13 @@ class RecordingCommandRunner implements CommandRunner {
   async run(
     command: string,
     args: string[],
-    options: { cwd: string; stdinPath?: string; stdoutPath?: string; stderrPath?: string },
+    options: {
+      cwd: string;
+      stdinPath?: string;
+      stdoutPath?: string;
+      stderrPath?: string;
+      timeoutSeconds?: number;
+    },
   ): Promise<{ exitCode: number }> {
     this.calls.push({ command, args, ...options });
     return { exitCode: this.exitCode };
@@ -222,7 +246,13 @@ class CodexUsageCommandRunner implements CommandRunner {
   async run(
     _command: string,
     _args: string[],
-    options: { cwd: string; stdinPath?: string; stdoutPath?: string; stderrPath?: string },
+    options: {
+      cwd: string;
+      stdinPath?: string;
+      stdoutPath?: string;
+      stderrPath?: string;
+      timeoutSeconds?: number;
+    },
   ): Promise<{ exitCode: number }> {
     if (!options.stdoutPath) {
       return { exitCode: 1 };
@@ -245,7 +275,13 @@ class CodexUsageCommandRunner implements CommandRunner {
   }
 }
 
-function context() {
+function context(
+  overrides: Partial<ReturnType<typeof contextShape> & { model?: string; timeoutSeconds?: number }> = {},
+) {
+  return { ...contextShape(), ...overrides };
+}
+
+function contextShape() {
   return {
     runId: 'multi-agent',
     projectDir: '/tmp/project',

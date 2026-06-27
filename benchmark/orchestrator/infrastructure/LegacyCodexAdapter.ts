@@ -9,7 +9,13 @@ export interface CommandRunner {
   run(
     command: string,
     args: string[],
-    options: { cwd: string; stdinPath?: string; stdoutPath?: string; stderrPath?: string },
+    options: {
+      cwd: string;
+      stdinPath?: string;
+      stdoutPath?: string;
+      stderrPath?: string;
+      timeoutSeconds?: number;
+    },
   ): Promise<{ exitCode: number }>;
 }
 
@@ -17,14 +23,21 @@ export class LegacyCodexAdapter implements AgentAdapter {
   constructor(private readonly runner: CommandRunner) {}
 
   async invoke(task: TaskDefinition, context: AgentInvocationContext): Promise<RawAgentOutput> {
+    const args = ['exec', '--json', '--color', 'never'];
+    if (context.model) {
+      args.push('--model', context.model);
+    }
+    args.push('-C', context.projectDir);
+
     const result = await this.runner.run(
       'codex',
-      ['exec', '--json', '--color', 'never', '-C', context.projectDir],
+      args,
       {
         cwd: context.projectDir,
         stdinPath: task.promptPath,
         stdoutPath: `${context.artifactsDir}/events.jsonl`,
         stderrPath: `${context.artifactsDir}/stderr.log`,
+        timeoutSeconds: context.timeoutSeconds,
       },
     );
 
@@ -47,6 +60,7 @@ export class ClaudeCodeAdapter implements AgentAdapter {
       stdinPath: task.promptPath,
       stdoutPath,
       stderrPath,
+      timeoutSeconds: context.timeoutSeconds,
     });
 
     return {
@@ -72,6 +86,7 @@ export class CustomAgentAdapter implements AgentAdapter {
       stdinPath: task.promptPath,
       stdoutPath,
       stderrPath,
+      timeoutSeconds: context.timeoutSeconds,
     });
 
     return {

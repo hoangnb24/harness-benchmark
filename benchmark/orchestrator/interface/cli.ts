@@ -81,6 +81,7 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
   const manifestPath = readFlag(args, '--manifest') ?? 'benchmark/tasks/manifest.json';
   const agentValue = readFlag(args, '--agent') ?? 'codex';
   const model = readFlag(args, '--model');
+  const timeoutSeconds = Number(readFlag(args, '--timeout') ?? '600');
   const pricingPath = readFlag(args, '--pricing') ?? 'benchmark/pricing/models.json';
   const checkpointStore = runDir ? new FsCheckpointStore(runDir) : undefined;
   const harnessRef = readFlag(args, '--harness') ?? 'main';
@@ -90,6 +91,10 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
     io.stderr(
       'Usage: harness-bench run --execute (--run-id RUN|--resume RUN) --run-dir DIR --workspace DIR [--manifest benchmark/tasks/manifest.json]\n',
     );
+    return 1;
+  }
+  if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0) {
+    io.stderr('--timeout must be a positive number of seconds\n');
     return 1;
   }
 
@@ -111,7 +116,7 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
 
     await writeText(
       path.join(runDir, 'metadata.json'),
-      `${JSON.stringify({ harness_ref: readFlag(args, '--harness') ?? 'main', agent, model }, null, 2)}\n`,
+      `${JSON.stringify({ harness_ref: readFlag(args, '--harness') ?? 'main', agent, model, task_timeout_seconds: timeoutSeconds }, null, 2)}\n`,
     );
 
     if (executionPlan.plan.tasks.length === 0) {
@@ -143,6 +148,7 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
         customArgs: readCsvFlag(args, '--agent-args'),
         functional,
         model,
+        timeoutSeconds,
         pricingPath,
         recordUsage: true,
         recordScoringArtifacts: !hasFlag(args, '--skip-scoring-artifacts'),
@@ -155,6 +161,7 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
         projectDir: workspaceDir,
         runDir,
         model,
+        timeoutSeconds,
         checkpointState,
         restoreCheckpoints: executionPlan.restoreCheckpoints,
       });
