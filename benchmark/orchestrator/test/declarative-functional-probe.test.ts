@@ -1,7 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DeclarativeFunctionalProbe, type HttpClient } from '../infrastructure/DeclarativeFunctionalProbe';
+import { defaultScriptedFunctionalRunners } from '../infrastructure/ScriptedFunctionalRunners';
 
 describe('DeclarativeFunctionalProbe', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('runs HTTP checks, captures variables, and renders headers', async () => {
     const requests: Array<{ method: string; url: string; headers: Record<string, string>; body?: unknown }> = [];
     const http: HttpClient = {
@@ -123,5 +128,45 @@ describe('DeclarativeFunctionalProbe', () => {
       pass: false,
       actual: 'missing_script_runner',
     });
+  });
+
+  it('runs configured scripted checks', async () => {
+    const responses = [
+      { status: 201, body: { id: 1, email: 'a@example.com' } },
+      { status: 200, body: { token: 'token-a' } },
+      { status: 201, body: { id: 2, email: 'b@example.com' } },
+      { status: 200, body: { token: 'token-b' } },
+      { status: 201, body: { id: 10 } },
+      { status: 200, body: { data: [] } },
+    ];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        const response = responses.shift();
+        if (!response) {
+          throw new Error('unexpected request');
+        }
+        return {
+          status: response.status,
+          text: async () => JSON.stringify(response.body),
+        };
+      }),
+    );
+
+    const probe = new DeclarativeFunctionalProbe({
+      baseUrl: 'http://localhost:3000',
+      http: {
+        async request() {
+          throw new Error('not used');
+        },
+      },
+      scripted: defaultScriptedFunctionalRunners(),
+    });
+
+    const [result] = await probe.runDefinitions([
+      { name: 'user_isolation', kind: 'scripted', script: 'auth_user_isolation' },
+    ]);
+
+    expect(result).toMatchObject({ name: 'user_isolation', pass: true });
   });
 });

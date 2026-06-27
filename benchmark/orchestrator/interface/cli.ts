@@ -10,6 +10,7 @@ import { buildRunner, type RunnerAgent } from './composition-root';
 import { DeclarativeFunctionalProbe } from '../infrastructure/DeclarativeFunctionalProbe';
 import { FetchHttpClient } from '../infrastructure/FetchHttpClient';
 import { ServerManagedFunctionalProbe } from '../infrastructure/ServerManagedFunctionalProbe';
+import { defaultScriptedFunctionalRunners } from '../infrastructure/ScriptedFunctionalRunners';
 import type { CheckpointState } from '../domain/checkpoint';
 import type { RunPlan } from '../domain/task';
 import { FsAdherenceArtifactWriter } from '../infrastructure/FsAdherenceArtifactWriter';
@@ -138,6 +139,7 @@ async function executeBenchmark(args: string[], io: CliIo): Promise<number> {
         new DeclarativeFunctionalProbe({
           baseUrl,
           http: new FetchHttpClient(),
+          scripted: defaultScriptedFunctionalRunners(),
         }),
         { baseUrl },
       );
