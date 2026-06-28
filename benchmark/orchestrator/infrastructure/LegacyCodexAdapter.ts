@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import type {
   AgentAdapter,
   AgentInvocationContext,
@@ -23,7 +26,10 @@ export class LegacyCodexAdapter implements AgentAdapter {
   constructor(private readonly runner: CommandRunner) {}
 
   async invoke(task: TaskDefinition, context: AgentInvocationContext): Promise<RawAgentOutput> {
-    const args = ['exec', '--json', '--color', 'never'];
+    const args = ['exec', '--sandbox', 'danger-full-access', '--json', '--color', 'never'];
+    if (await this.supportsAskForApproval(context.projectDir)) {
+      args.push('--ask-for-approval', 'never');
+    }
     if (context.model) {
       args.push('--model', context.model);
     }
@@ -46,6 +52,27 @@ export class LegacyCodexAdapter implements AgentAdapter {
       eventsPath: `${context.artifactsDir}/events.jsonl`,
       stderrPath: `${context.artifactsDir}/stderr.log`,
     };
+  }
+
+  private async supportsAskForApproval(cwd: string): Promise<boolean> {
+    const tempDir = await mkdtemp(path.join(tmpdir(), 'codex-help-'));
+    const stdoutPath = path.join(tempDir, 'stdout.txt');
+    try {
+      const result = await this.runner.run('codex', ['exec', '--help'], {
+        cwd,
+        stdoutPath,
+        timeoutSeconds: 10,
+      });
+      if (result.exitCode !== 0) {
+        return false;
+      }
+
+      return (await readFile(stdoutPath, 'utf8')).includes('--ask-for-approval');
+    } catch {
+      return false;
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
   }
 }
 

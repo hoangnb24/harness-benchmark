@@ -10,6 +10,7 @@ import {
 } from '../infrastructure/LegacyCodexAdapter';
 import { NodeCommandRunner } from '../infrastructure/NodeCommandRunner';
 import { ShellHarnessInstaller } from '../infrastructure/ShellHarnessInstaller';
+import { LegacyTaskArtifactRecorder } from '../infrastructure/LegacyTaskArtifactRecorder';
 import { buildRunner } from '../interface/composition-root';
 import type { TaskDefinition } from '../domain/task';
 import type { FunctionalProbe } from '../ports/FunctionalProbe';
@@ -33,12 +34,36 @@ describe('agent adapters', () => {
 
     expect(runner.calls[0]).toMatchObject({
       command: 'codex',
-      args: ['exec', '--json', '--color', 'never', '--model', 'gpt-test', '-C', '/tmp/project'],
+      args: ['exec', '--help'],
+    });
+    expect(runner.calls[1]).toMatchObject({
+      command: 'codex',
+      args: [
+        'exec',
+        '--sandbox',
+        'danger-full-access',
+        '--json',
+        '--color',
+        'never',
+        '--model',
+        'gpt-test',
+        '-C',
+        '/tmp/project',
+      ],
       stdinPath: task.promptPath,
       stdoutPath: '/tmp/run/T1-project-setup/events.jsonl',
       timeoutSeconds: 600,
     });
     expect(result.eventsPath).toBe('/tmp/run/T1-project-setup/events.jsonl');
+  });
+
+  it('passes legacy Codex approval flag only when the CLI supports it', async () => {
+    const runner = new RecordingCommandRunner(0, 'Usage: codex exec --ask-for-approval never');
+
+    await new LegacyCodexAdapter(runner).invoke(task, context());
+
+    expect(runner.calls[1].args).toContain('--ask-for-approval');
+    expect(runner.calls[1].args).toContain('never');
   });
 
   it('invokes Claude through JSON stdout for Anthropic usage parsing', async () => {
@@ -103,6 +128,43 @@ describe('ShellHarnessInstaller', () => {
         projectDir: '/tmp/project',
       }),
     ).rejects.toThrow(/harness install failed for ref bad-ref/);
+  });
+});
+
+describe('LegacyTaskArtifactRecorder', () => {
+  it('marks functional artifacts as server startup failures when the probe reports startup diagnostics', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'legacy-artifacts-'));
+    const scriptsDir = path.join(dir, 'scripts');
+    const artifactsDir = path.join(dir, 'artifacts');
+    await mkdir(scriptsDir, { recursive: true });
+    await writeFile(
+      path.join(scriptsDir, 'check-harness.sh'),
+      'record_harness_baseline() { :; }\ncheck_harness() { :; }\n',
+    );
+    await writeFile(path.join(scriptsDir, 'check-quality.sh'), 'check_quality() { :; }\n');
+
+    await new LegacyTaskArtifactRecorder(new NodeCommandRunner(), scriptsDir).afterTask({
+      task,
+      artifactsDir,
+      projectDir: dir,
+      startedAt: new Date('2026-06-25T00:00:00Z'),
+      endedAt: new Date('2026-06-25T00:00:01Z'),
+      exitCode: 0,
+      functionalChecks: [
+        {
+          name: 'server_startup',
+          pass: false,
+          expected: 'server reachable',
+          actual: 'server did not become reachable',
+          diagnostic: 'server_startup',
+        },
+      ],
+    });
+
+    await expect(readJson(path.join(artifactsDir, 'functional.json'))).resolves.toMatchObject({
+      server_started: false,
+      error: 'server did not become reachable',
+    });
   });
 });
 
@@ -222,7 +284,10 @@ class RecordingCommandRunner implements CommandRunner {
     timeoutSeconds?: number;
   }> = [];
 
-  constructor(private readonly exitCode = 0) {}
+  constructor(
+    private readonly exitCode = 0,
+    private readonly stdout = '',
+  ) {}
 
   async run(
     command: string,
@@ -236,6 +301,10 @@ class RecordingCommandRunner implements CommandRunner {
     },
   ): Promise<{ exitCode: number }> {
     this.calls.push({ command, args, ...options });
+    if (options.stdoutPath) {
+      await mkdir(path.dirname(options.stdoutPath), { recursive: true });
+      await writeFile(options.stdoutPath, this.stdout);
+    }
     return { exitCode: this.exitCode };
   }
 }

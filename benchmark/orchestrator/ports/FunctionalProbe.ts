@@ -5,6 +5,7 @@ export interface CheckResult {
   pass: boolean;
   expected?: string | number;
   actual?: string | number;
+  diagnostic?: 'server_startup';
 }
 
 export interface FunctionalProbe {

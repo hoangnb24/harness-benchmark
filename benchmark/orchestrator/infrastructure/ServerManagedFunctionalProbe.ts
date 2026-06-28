@@ -10,6 +10,7 @@ export class ServerManagedFunctionalProbe implements FunctionalProbe {
       startCommand?: string;
       startArgs?: string[];
       startupTimeoutMs?: number;
+      reuseExistingServer?: boolean;
     },
   ) {}
 
@@ -18,14 +19,26 @@ export class ServerManagedFunctionalProbe implements FunctionalProbe {
       return this.inner.run(task, projectDir);
     }
 
-    if (await isReachable(this.options.baseUrl)) {
+    if (await isReachable(this.options.baseUrl) && this.options.reuseExistingServer === true) {
       return this.inner.run(task, projectDir);
     }
 
-    const server = this.start(projectDir);
+    if (await isReachable(this.options.baseUrl)) {
+      await stopExistingServer(this.options.baseUrl);
+    }
+
+    let server: ChildProcess;
+    try {
+      server = this.start(projectDir);
+    } catch (error) {
+      return [startupFailure(error)];
+    }
+
     try {
       await waitForServer(this.options.baseUrl, this.options.startupTimeoutMs ?? 15_000);
       return await this.inner.run(task, projectDir);
+    } catch (error) {
+      return [startupFailure(error)];
     } finally {
       stop(server);
     }
@@ -40,6 +53,77 @@ export class ServerManagedFunctionalProbe implements FunctionalProbe {
       stdio: 'ignore',
     });
   }
+}
+
+async function stopExistingServer(baseUrl: string): Promise<void> {
+  const port = portFromBaseUrl(baseUrl);
+  if (!port) {
+    throw new Error(`cannot determine server port from ${baseUrl}`);
+  }
+
+  const pids = await pidsForPort(port);
+  for (const pid of pids) {
+    try {
+      process.kill(pid, 'SIGTERM');
+    } catch {
+      // The process may already have exited between lsof and kill.
+    }
+  }
+
+  const stoppedAt = Date.now() + 5_000;
+  while (Date.now() < stoppedAt) {
+    if (!(await isReachable(baseUrl))) {
+      return;
+    }
+    await sleep(100);
+  }
+
+  throw new Error(`existing server still reachable at ${baseUrl}`);
+}
+
+async function pidsForPort(port: string): Promise<number[]> {
+  return new Promise((resolve) => {
+    const child = spawn('lsof', ['-tiTCP:' + port, '-sTCP:LISTEN'], {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    const stdout: Buffer[] = [];
+
+    child.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
+    child.on('error', () => resolve([]));
+    child.on('close', () => {
+      resolve(
+        Buffer.concat(stdout)
+          .toString('utf8')
+          .split(/\r?\n/)
+          .map((line) => Number(line.trim()))
+          .filter((pid) => Number.isInteger(pid) && pid > 0),
+      );
+    });
+  });
+}
+
+function portFromBaseUrl(baseUrl: string): string | undefined {
+  const url = new URL(baseUrl);
+  if (url.port) {
+    return url.port;
+  }
+  if (url.protocol === 'http:') {
+    return '80';
+  }
+  if (url.protocol === 'https:') {
+    return '443';
+  }
+  return undefined;
+}
+
+function startupFailure(error: unknown): CheckResult {
+  return {
+    name: 'server_startup',
+    pass: false,
+    expected: 'server reachable',
+    actual: error instanceof Error ? error.message : String(error),
+    diagnostic: 'server_startup',
+  };
 }
 
 async function waitForServer(baseUrl: string, timeoutMs: number): Promise<void> {

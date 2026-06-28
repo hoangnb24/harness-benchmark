@@ -35,7 +35,8 @@ export class LegacyTaskArtifactRecorder implements TaskArtifactRecorder {
         timed_out: input.exitCode === 124,
       }),
       writeJson(path.join(input.artifactsDir, 'functional.json'), {
-        server_started: true,
+        server_started: serverStarted(input.functionalChecks),
+        ...functionalError(input.functionalChecks),
         checks: input.functionalChecks,
       }),
     ]);
@@ -72,4 +73,15 @@ async function writeJson(filePath: string, value: unknown): Promise<void> {
 
 function formatDate(date: Date): string {
   return date.toISOString();
+}
+
+function serverStarted(checks: AfterTaskArtifactsInput['functionalChecks']): boolean {
+  return !checks.some((check) => check.diagnostic === 'server_startup');
+}
+
+function functionalError(
+  checks: AfterTaskArtifactsInput['functionalChecks'],
+): { error?: string | number } {
+  const startupFailure = checks.find((check) => check.diagnostic === 'server_startup');
+  return startupFailure?.actual === undefined ? {} : { error: startupFailure.actual };
 }
