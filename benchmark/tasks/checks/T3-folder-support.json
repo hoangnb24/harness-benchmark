@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "create_folder",
+      "request": {
+        "method": "POST",
+        "path": "/folders",
+        "body": { "name": "Reading List" }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "list_folders",
+      "request": { "method": "GET", "path": "/folders" },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "get_folder",
+      "request": { "method": "GET", "path": "/folders/1" },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "bookmark_with_folder",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "body": { "url": "https://example.com", "title": "Foldered", "folder_id": 1 }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "bookmark_regression",
+      "request": { "method": "GET", "path": "/bookmarks" },
+      "expect": { "status": 200 }
+    }
+  ]
+}

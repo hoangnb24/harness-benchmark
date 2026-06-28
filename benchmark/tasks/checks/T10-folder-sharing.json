@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "checks": [
+    { "name": "folder_sharing_permissions_flow", "kind": "scripted", "script": "folder_sharing_permissions_flow" }
+  ]
+}

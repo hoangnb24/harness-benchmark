@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "statusOneOf": [201, 409] }
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "benchmark123" },
+        "capture": { "token": ".token" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "seed_search_bookmark",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": {
+          "url": "https://search.example.com/docs",
+          "title": "Docs Search Result",
+          "description": "Findable benchmark document"
+        }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "search_title",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?q=docs",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".data", "type": "array" }] }
+    },
+    {
+      "name": "search_no_match",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?q=no-such-token-424242",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".data", "type": "array" }] }
+    },
+    {
+      "name": "search_with_tag",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?q=docs&tag=work-renamed",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "long_query_rejected",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?q=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "search_auth_required",
+      "request": { "method": "GET", "path": "/bookmarks?q=docs" },
+      "expect": { "status": 401 }
+    }
+  ]
+}

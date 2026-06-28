@@ -1,0 +1,45 @@
+{
+  "version": "2026-06-25",
+  "models": {
+    "gpt-5.3-codex": {
+      "provider": "openai",
+      "input": 1.75,
+      "cachedInput": 0.175,
+      "output": 14.0,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "updatedAt": "2026-06-25"
+    },
+    "gpt-5.4": {
+      "provider": "openai",
+      "input": 1.25,
+      "cachedInput": 0.13,
+      "output": 7.5,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "updatedAt": "2026-06-25"
+    },
+    "gpt-5.4-mini": {
+      "provider": "openai",
+      "input": 0.375,
+      "cachedInput": 0.0375,
+      "output": 2.25,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "updatedAt": "2026-06-25"
+    },
+    "gpt-5.5": {
+      "provider": "openai",
+      "input": 5,
+      "cachedInput": 0.5,
+      "output": 30,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "updatedAt": "2026-06-25"
+    },
+    "claude-sonnet-4-6": {
+      "provider": "anthropic",
+      "input": 3.0,
+      "cachedInput": 0.3,
+      "output": 15.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "updatedAt": "2026-06-25"
+    }
+  }
+}

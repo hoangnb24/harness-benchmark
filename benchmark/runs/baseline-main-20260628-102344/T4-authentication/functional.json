@@ -1,0 +1,59 @@
+{
+  "server_started": true,
+  "checks": [
+    {
+      "name": "register",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "duplicate_email",
+      "pass": true,
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "name": "login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "wrong_password",
+      "pass": true,
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "name": "short_password",
+      "pass": true,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "name": "protected_no_auth",
+      "pass": true,
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "name": "protected_with_auth",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "create_with_auth",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "user_isolation",
+      "pass": true,
+      "expected": "second user cannot see first user bookmark",
+      "actual": "isolated"
+    }
+  ]
+}

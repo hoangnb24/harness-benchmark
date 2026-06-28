@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "register",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "duplicate_email",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "status": 409 }
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "benchmark123" },
+        "capture": { "token": ".token" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "wrong_password",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "wrongpass" }
+      },
+      "expect": { "status": 401 }
+    },
+    {
+      "name": "short_password",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "short@test.com", "password": "short" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "protected_no_auth",
+      "request": { "method": "GET", "path": "/bookmarks" },
+      "expect": { "status": 401 }
+    },
+    {
+      "name": "protected_with_auth",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "create_with_auth",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "url": "https://example.com", "title": "Authed Bookmark" }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "user_isolation",
+      "kind": "scripted",
+      "script": "auth_user_isolation"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "statusOneOf": [201, 409] }
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "benchmark123" },
+        "capture": { "token": ".token" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "has_data_field",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".data", "exists": true }] }
+    },
+    {
+      "name": "has_page_field",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".page", "exists": true }] }
+    },
+    {
+      "name": "has_limit_field",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".limit", "exists": true }] }
+    },
+    {
+      "name": "has_total_field",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".total", "exists": true }] }
+    },
+    {
+      "name": "data_is_array",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".data", "type": "array" }] }
+    },
+    {
+      "name": "custom_limit",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?page=1&limit=5",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "invalid_page",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?page=0",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "invalid_limit",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?limit=200",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "still_protected",
+      "request": { "method": "GET", "path": "/bookmarks" },
+      "expect": { "status": 401 }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "statusOneOf": [201, 409] }
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "benchmark123" },
+        "capture": { "token": ".token" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "empty_title_400",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "url": "https://example.com", "title": "" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "empty_url_400",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "url": "", "title": "Test" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "valid_still_works",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "url": "https://example.com", "title": "Valid" }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "empty_folder_name",
+      "request": {
+        "method": "POST",
+        "path": "/folders",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "name": "" }
+      },
+      "expect": { "status": 400 }
+    }
+  ]
+}

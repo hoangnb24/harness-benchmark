@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "statusOneOf": [201, 409] }
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "benchmark123" },
+        "capture": { "token": ".token" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "export_data",
+      "request": {
+        "method": "GET",
+        "path": "/export",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": {
+        "status": 200,
+        "json": [
+          { "path": ".bookmarks", "type": "array" },
+          { "path": ".folders", "type": "array" },
+          { "path": ".tags", "type": "array" }
+        ]
+      }
+    },
+    {
+      "name": "import_valid_payload",
+      "request": {
+        "method": "POST",
+        "path": "/import",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": {
+          "bookmarks": [{ "url": "https://import.example.com", "title": "Imported" }],
+          "folders": [],
+          "tags": [{ "name": "imported" }]
+        }
+      },
+      "expect": {
+        "status": 200,
+        "json": [
+          { "path": ".imported", "exists": true },
+          { "path": ".skipped", "exists": true },
+          { "path": ".updated", "exists": true }
+        ]
+      }
+    },
+    {
+      "name": "import_same_payload_again",
+      "request": {
+        "method": "POST",
+        "path": "/import",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": {
+          "bookmarks": [{ "url": "https://import.example.com", "title": "Imported" }],
+          "folders": [],
+          "tags": [{ "name": "imported" }]
+        }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".skipped", "exists": true }] }
+    },
+    {
+      "name": "invalid_payload",
+      "request": {
+        "method": "POST",
+        "path": "/import",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "bookmarks": "not-an-array" }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "export_auth_required",
+      "request": { "method": "GET", "path": "/export" },
+      "expect": { "status": 401 }
+    },
+    {
+      "name": "import_auth_required",
+      "request": { "method": "POST", "path": "/import", "body": { "bookmarks": [] } },
+      "expect": { "status": 401 }
+    }
+  ]
+}

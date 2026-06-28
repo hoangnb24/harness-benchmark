@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "harness-bench": "tsx benchmark/orchestrator/interface/cli.ts",
     "start": "node dist/index.js",
     "test": "vitest run",
+    "typecheck:orchestrator": "tsc -p tsconfig.orchestrator.json",
+    "lint:orchestrator": "vitest run benchmark/orchestrator/test/architecture-boundaries.test.ts",
     "test:watch": "vitest"
   },
   "dependencies": {

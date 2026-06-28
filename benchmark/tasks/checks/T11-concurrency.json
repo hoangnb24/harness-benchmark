@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "statusOneOf": [201, 409] }
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "benchmark123" },
+        "capture": { "token": ".token" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "create_versioned_bookmark",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "url": "https://version.example.com", "title": "Versioned" },
+        "capture": { "bookmarkId": ".id" }
+      },
+      "expect": { "status": 201, "json": [{ "path": ".version", "equals": 1 }] }
+    },
+    {
+      "name": "current_version_update",
+      "request": {
+        "method": "PUT",
+        "path": "/bookmarks/{{bookmarkId}}",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "title": "Updated Versioned", "version": 1 }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".version", "equals": 2 }] }
+    },
+    {
+      "name": "stale_version_conflict",
+      "request": {
+        "method": "PUT",
+        "path": "/bookmarks/{{bookmarkId}}",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "title": "Stale Update", "version": 1 }
+      },
+      "expect": { "status": 409, "json": [{ "path": ".current", "exists": true }] }
+    },
+    {
+      "name": "missing_version",
+      "request": {
+        "method": "PUT",
+        "path": "/bookmarks/{{bookmarkId}}",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "title": "Missing Version" }
+      },
+      "expect": { "status": 400 }
+    }
+  ]
+}

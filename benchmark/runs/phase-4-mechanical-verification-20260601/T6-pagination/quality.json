@@ -1,0 +1,18 @@
+{
+  "trace_quality": "standard",
+  "trace_quality_score": 2,
+  "fields": {
+    "task_summary": true,
+    "outcome": true,
+    "agent": true,
+    "actions_taken": true,
+    "files_read": true,
+    "files_changed": true,
+    "errors_or_friction": true,
+    "decisions_made": false,
+    "errors_explicit": false,
+    "friction_explicit": true,
+    "duration_or_note": false,
+    "token_estimate_or_note": false
+  }
+}

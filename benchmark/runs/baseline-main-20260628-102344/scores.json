@@ -1,0 +1,26 @@
+{
+  "run_id": "baseline-main-20260628-102344",
+  "task_count": 12,
+  "total_wall_seconds": 4388,
+  "total_input_tokens": 18218997,
+  "total_output_tokens": 148890,
+  "total_tokens": 18367887,
+  "estimated_total_cost_usd": null,
+  "functional_pass": 77,
+  "functional_total": 78,
+  "functional_pct": 98.7,
+  "harness_pass": 58,
+  "harness_total": 61,
+  "harness_pct": 95.0,
+  "avg_trace_quality": 2.0,
+  "lane_accuracy": "11/12",
+  "model_usage": {
+    "gpt-5.5": {
+      "input_tokens": 1258357,
+      "cached_input_tokens": 16960640,
+      "output_tokens": 148890,
+      "total_tokens": 18367887,
+      "estimated_cost_usd": 19.238805
+    }
+  }
+}

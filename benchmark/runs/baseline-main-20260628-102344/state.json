@@ -1,0 +1,107 @@
+{
+  "runId": "baseline-main-20260628-102344",
+  "agent": "codex",
+  "model": "gpt-5.5",
+  "harnessRef": "main",
+  "workspaceDir": "/var/folders/07/p5pz8vnd0cx_1hll7nsmrm9c0000gn/T/harness-benchmark-baseline-main-20260628-102344-codex-main-gpt-5.5",
+  "steps": [
+    {
+      "task": "T1-project-setup",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T03:24:28.962Z",
+      "endedAt": "2026-06-28T03:26:14.639Z",
+      "checkpoint": "checkpoints/T1-project-setup"
+    },
+    {
+      "task": "T2-crud-bookmarks",
+      "status": "failed",
+      "failureClass": "fatal",
+      "startedAt": "2026-06-28T03:26:14.725Z",
+      "endedAt": "2026-06-28T03:33:11.619Z",
+      "exitCode": 0,
+      "detail": "functional checks failed: server_startup"
+    },
+    {
+      "task": "T3-folder-support",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T03:33:11.679Z",
+      "endedAt": "2026-06-28T03:38:42.671Z",
+      "checkpoint": "checkpoints/T3-folder-support"
+    },
+    {
+      "task": "T4-authentication",
+      "status": "failed",
+      "failureClass": "retriable",
+      "startedAt": "2026-06-28T03:38:42.756Z",
+      "endedAt": "2026-06-28T03:48:44.253Z",
+      "exitCode": 124,
+      "detail": "agent exited with code 124"
+    },
+    {
+      "task": "T5-bug-fix",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T03:48:44.309Z",
+      "endedAt": "2026-06-28T03:52:18.266Z",
+      "checkpoint": "checkpoints/T5-bug-fix"
+    },
+    {
+      "task": "T6-pagination",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T03:52:18.350Z",
+      "endedAt": "2026-06-28T03:56:47.055Z",
+      "checkpoint": "checkpoints/T6-pagination"
+    },
+    {
+      "task": "T7-tags",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T03:56:47.129Z",
+      "endedAt": "2026-06-28T04:05:43.862Z",
+      "checkpoint": "checkpoints/T7-tags"
+    },
+    {
+      "task": "T8-search",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T04:05:43.945Z",
+      "endedAt": "2026-06-28T04:10:33.197Z",
+      "checkpoint": "checkpoints/T8-search"
+    },
+    {
+      "task": "T9-import-export",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T04:10:33.282Z",
+      "endedAt": "2026-06-28T04:18:07.232Z",
+      "checkpoint": "checkpoints/T9-import-export"
+    },
+    {
+      "task": "T10-folder-sharing",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T04:18:07.313Z",
+      "endedAt": "2026-06-28T04:24:59.773Z",
+      "checkpoint": "checkpoints/T10-folder-sharing"
+    },
+    {
+      "task": "T11-concurrency",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T04:24:59.857Z",
+      "endedAt": "2026-06-28T04:31:03.814Z",
+      "checkpoint": "checkpoints/T11-concurrency"
+    },
+    {
+      "task": "T12-cursor-pagination",
+      "status": "passed",
+      "failureClass": null,
+      "startedAt": "2026-06-28T04:31:03.898Z",
+      "endedAt": "2026-06-28T04:38:14.448Z",
+      "checkpoint": "checkpoints/T12-cursor-pagination"
+    }
+  ]
+}

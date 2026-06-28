@@ -1,0 +1,13 @@
+{
+  "server_started": false,
+  "error": "server did not become reachable at http://localhost:3000 within 15000ms",
+  "checks": [
+    {
+      "name": "server_startup",
+      "pass": false,
+      "expected": "server reachable",
+      "actual": "server did not become reachable at http://localhost:3000 within 15000ms",
+      "diagnostic": "server_startup"
+    }
+  ]
+}

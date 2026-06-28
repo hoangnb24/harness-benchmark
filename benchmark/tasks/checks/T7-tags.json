@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": { "email": "bench@test.com", "password": "benchmark123" }
+      },
+      "expect": { "statusOneOf": [201, 409] }
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "path": "/auth/login",
+        "body": { "email": "bench@test.com", "password": "benchmark123" },
+        "capture": { "token": ".token" }
+      },
+      "expect": { "status": 200 }
+    },
+    {
+      "name": "create_tag_work",
+      "request": {
+        "method": "POST",
+        "path": "/tags",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "name": "work" },
+        "capture": { "workTagId": ".id" }
+      },
+      "expect": { "status": 201, "json": [{ "path": ".name", "equals": "work" }] }
+    },
+    {
+      "name": "create_tag_docs",
+      "request": {
+        "method": "POST",
+        "path": "/tags",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "name": "docs" },
+        "capture": { "docsTagId": ".id" }
+      },
+      "expect": { "status": 201 }
+    },
+    {
+      "name": "duplicate_tag",
+      "request": {
+        "method": "POST",
+        "path": "/tags",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "name": "work" }
+      },
+      "expect": { "status": 409 }
+    },
+    {
+      "name": "list_tags",
+      "request": {
+        "method": "GET",
+        "path": "/tags",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".", "type": "array" }] }
+    },
+    {
+      "name": "bookmark_with_tags",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": {
+          "url": "https://tags.example.com",
+          "title": "Tagged Bookmark",
+          "tag_ids": ["{{workTagId}}", "{{docsTagId}}"]
+        },
+        "capture": { "bookmarkId": ".id" }
+      },
+      "expect": { "status": 201, "json": [{ "path": ".tags", "type": "array" }] }
+    },
+    {
+      "name": "filter_single_tag",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?tag=work",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".data", "type": "array" }] }
+    },
+    {
+      "name": "filter_multiple_tags",
+      "request": {
+        "method": "GET",
+        "path": "/bookmarks?tags=work,docs",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".data", "type": "array" }] }
+    },
+    {
+      "name": "rename_tag",
+      "request": {
+        "method": "PUT",
+        "path": "/tags/{{workTagId}}",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "name": "work-renamed" }
+      },
+      "expect": { "status": 200, "json": [{ "path": ".name", "equals": "work-renamed" }] }
+    },
+    {
+      "name": "invalid_tag_id",
+      "request": {
+        "method": "POST",
+        "path": "/bookmarks",
+        "headers": { "Authorization": "Bearer {{token}}" },
+        "body": { "url": "https://bad-tag.example.com", "title": "Bad Tag", "tag_ids": [999999] }
+      },
+      "expect": { "status": 400 }
+    },
+    {
+      "name": "delete_tag",
+      "request": {
+        "method": "DELETE",
+        "path": "/tags/{{docsTagId}}",
+        "headers": { "Authorization": "Bearer {{token}}" }
+      },
+      "expect": { "status": 204 }
+    }
+  ]
+}

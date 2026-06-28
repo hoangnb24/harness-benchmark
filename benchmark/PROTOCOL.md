@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This benchmark measures whether harness-experimental improves AI agent productivity on real development tasks. The same 6 tasks are executed against different harness versions, and results are compared objectively.
+This benchmark measures whether harness-experimental improves AI agent productivity on real development tasks. The same manifest-driven task suite is executed against different harness versions, agents, and models, and results are compared objectively.
 
 ## Rules
 
@@ -10,17 +10,19 @@ This benchmark measures whether harness-experimental improves AI agent productiv
 2. **Same prompts every time**. Task files in `benchmark/tasks/` are the exact input.
 3. **Fresh project state** per run. Reset to `benchmark-v1` tag before each run.
 4. **Same model** across comparison runs. Pin with `--model` flag.
-5. **Sequential execution**. Tasks run T1→T6 in order. Filesystem changes persist between tasks.
-6. **No conversation context**. Each task is a fresh Codex `exec` session.
+5. **Sequential execution by manifest**. Tasks run in `benchmark/tasks/manifest.json` order. Filesystem changes persist between tasks.
+6. **No conversation context**. Each task is a fresh agent invocation.
+7. **Pricing must be explicit**. A requested model must exist in `benchmark/pricing/models.json` unless the run is explicitly allowed to record null cost.
 
 ## What Gets Measured
 
 ### Per Task
 - **Wall time** (seconds): How long the agent took
-- **Token usage**: Input/output/cached tokens from Codex JSONL
+- **Token usage**: Per-interaction usage from provider-specific JSON output
 - **Exit code**: Success (0) or failure type (1-4, 124=timeout)
 - **Functional score**: Automated API endpoint tests (pass/fail)
 - **Harness compliance**: Did the agent use the harness durable layer?
+- **Harness adherence**: Did Phase 5 review evidence show good tool, verification, intervention, context, entropy, and proposal behavior?
 - **Quality score**: Depth of trace entries and documentation
 
 ### Aggregated
@@ -29,19 +31,88 @@ This benchmark measures whether harness-experimental improves AI agent productiv
 - **Functional pass rate**: Total functional checks passed / total checks
 - **Harness compliance rate**: Harness checks passed / total harness checks
 - **Average trace quality**: 1 (minimal) to 3 (detailed)
-- **Lane accuracy**: Correct risk classifications / 6
+- **Lane accuracy**: Correct risk classifications / task count
+- **Harness adherence score**: Adherence checks passed / total checks
 
 ## Run Lifecycle
 
+Legacy Bash runs still use:
+
 ```
 1. prepare.sh   → Install harness from specified git ref
-2. For each T1-T6:
-   a. invoke.sh  → Run Codex exec, capture JSONL + timing
+2. For each task:
+   a. invoke.sh  → Run agent, capture output + timing
    b. check-functional.sh → Test API endpoints
    c. check-harness.sh → Query harness.db
    d. check-quality.sh → Assess trace depth
 3. report.sh    → Aggregate into scores.json + report.md
 ```
+
+The TypeScript orchestrator uses:
+
+```bash
+npm run harness-bench -- run --dry-run --run-id RUN --run-dir benchmark/runs/RUN --harness main --model gpt-5.4
+npm run harness-bench -- run --execute --run-id RUN --run-dir benchmark/runs/RUN --workspace "$PWD" --harness main --agent codex --model gpt-5.4
+npm run harness-bench -- report generate --run-id RUN --run-dir benchmark/runs/RUN
+```
+
+For a fresh execution run from a git workspace, it mirrors the legacy Bash isolation model:
+clone the workspace to `/tmp`, execute there, and copy only `benchmark/runs/RUN` back to the
+requested run directory. Use `--no-isolate` to intentionally run in the provided workspace.
+
+Inside the execution workspace, it first invokes `benchmark/lib/prepare.sh` to install Harness
+from the requested `--harness` ref. That legacy prepare path clones or fetches
+`repository-harness`, checks out the target ref, builds `crates/harness-cli` with Cargo, installs
+that locally built `scripts/bin/harness-cli`, and runs the checked-out installer in merge mode.
+It then runs the manifest tasks and writes `state.json`, per-task `timing.json`,
+`functional.json`, `harness.json`, `quality.json`, `lane.json`, `usage.json`, compatibility
+`tokens.json`, workspace checkpoints under `checkpoints/`, and regenerated `scores.json` /
+`report.md`.
+
+## Resumable Runs
+
+The TypeScript orchestrator supports resumable planning and execution:
+
+```bash
+npm run harness-bench -- run --dry-run --resume RUN --run-dir benchmark/runs/RUN
+npm run harness-bench -- run --execute --resume RUN --run-dir benchmark/runs/RUN --workspace "$PWD"
+npm run harness-bench -- run --execute --resume RUN --run-dir benchmark/runs/RUN --workspace "$PWD" --only T5-bug-fix --force
+```
+
+| Flag | Behavior |
+| --- | --- |
+| `--resume RUN` | Continue from the first non-passed/non-skipped step |
+| `--only TASK` | Run one task from its prior checkpoint; passed tasks require `--force` |
+| `--from TASK` | Run from a selected task through the end |
+| `--steps T3,T5` | Run an explicit subset |
+| `--retry-failed` | Run failed retriable steps |
+
+Checkpoints are copied with an explicit exclusion policy for dependencies, run artifacts, nested checkpoints, and transient SQLite/cache files.
+
+## Usage and Cost
+
+`benchmark/pricing/models.json` is the committed manual pricing table. For private experiments,
+`benchmark/pricing/models.local.json` can override or add models locally; it is ignored by git and
+is merged over the committed table by `harness-bench pricing validate` and run startup. Run startup
+fails when `--model` is missing from the effective table unless `--allow-missing-pricing` is
+supplied. Provider parsers normalize OpenAI/Codex, Anthropic/Claude, and custom `usage.json` outputs
+into per-interaction records.
+
+## Harness-Adherence Review
+
+Phase 5 review evidence can be scored from a JSON fixture:
+
+```bash
+npm run harness-bench -- adherence score --evidence evidence.json --out adherence.json
+```
+
+Or collected from read-only harness review commands:
+
+```bash
+npm run harness-bench -- adherence collect --cwd "$PWD" --trace-id TRACE --out benchmark/runs/RUN/T1/adherence.json --log benchmark/runs/RUN/T1/events.jsonl
+```
+
+The collection command runs `query tools --json`, `story verify-all --json`, `query interventions --json`, `score-context`, `audit --json`, and `propose --json`, then feeds the normalized evidence into the deterministic adherence scorer.
 
 ## Comparing Runs
 
@@ -105,7 +176,7 @@ Phase 2 should NOT improve functional score (the code quality comes from agent c
 
 | Situation | Handling |
 |-----------|----------|
-| Agent times out (10 min) | Record timeout, score functional=0, continue |
+| Agent times out | Record timeout as retriable, score functional=0, continue/resume |
 | Agent produces broken code | Functional checks fail, harness checks may partially pass |
 | Server won't start | All functional checks fail with "server_start_failed" |
 | Auth not working (T5/T6) | Those checks fail; still a valid measurement |
@@ -117,5 +188,6 @@ To reproduce a run:
 1. Checkout `benchmark-v1` tag
 2. Use same `--model` flag
 3. Use same harness ref
-4. Token costs may vary slightly due to caching and model behavior
-5. Functional results should be deterministic (same code → same API behavior)
+4. Use the same `benchmark/pricing/models.json` version
+5. Token costs should be reproducible for the same captured provider usage and pricing table
+6. Functional results should be deterministic (same code → same API behavior)

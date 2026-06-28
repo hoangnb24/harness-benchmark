@@ -1,0 +1,17 @@
+{
+  "run_id": "phase-4-mechanical-verification",
+  "task_count": 6,
+  "total_wall_seconds": 2759,
+  "total_input_tokens": 9805244,
+  "total_output_tokens": 68442,
+  "total_tokens": 9873686,
+  "estimated_total_cost_usd": 30.237036,
+  "functional_pass": 37,
+  "functional_total": 37,
+  "functional_pct": 100.0,
+  "harness_pass": 30,
+  "harness_total": 31,
+  "harness_pct": 96.7,
+  "avg_trace_quality": 2.1,
+  "lane_accuracy": "6/6"
+}
