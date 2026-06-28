@@ -8,8 +8,9 @@ A REST API for managing bookmarks with folder organization, user authentication,
 
 ### Core Entities
 
-- **Bookmark**: A saved URL with title, optional description, timestamps
+- **Bookmark**: A saved URL with title, optional description, tags, timestamps
 - **Folder**: A named collection of bookmarks
+- **Tag**: A user-owned label that can be attached to many bookmarks
 - **User**: An authenticated account that owns bookmarks and folders
 
 ### API Endpoints
@@ -19,10 +20,16 @@ A REST API for managing bookmarks with folder organization, user authentication,
 
 #### Bookmarks (after auth: scoped to authenticated user)
 - `POST /bookmarks` — Create a bookmark (requires: url, title)
-- `GET /bookmarks` — List all bookmarks (paginated after T6)
+- `GET /bookmarks` — List all bookmarks (paginated after T6; filterable by tag after T7)
 - `GET /bookmarks/:id` — Get single bookmark
 - `PUT /bookmarks/:id` — Update a bookmark
 - `DELETE /bookmarks/:id` — Delete a bookmark
+
+#### Tags
+- `POST /tags` — Create a tag (requires: name)
+- `GET /tags` — List all tags
+- `PUT /tags/:id` — Rename a tag
+- `DELETE /tags/:id` — Delete a tag and unlink it from bookmarks
 
 #### Folders
 - `POST /folders` — Create a folder (requires: name)
@@ -41,12 +48,16 @@ A REST API for managing bookmarks with folder organization, user authentication,
 - Bookmark `url` must be a valid URL
 - Bookmark `title` must be non-empty string
 - Folder `name` must be non-empty string
+- Tag `name` must be non-empty string and unique per authenticated user
+- Bookmark `tag_ids` must reference existing tags owned by the authenticated user
 - Email must be valid format
 - Password must be >= 8 characters
 
 ### Pagination (after T6)
 
 - `GET /bookmarks?page=1&limit=20`
+- `GET /bookmarks?tag=work`
+- `GET /bookmarks?tags=work,docs`
 - Response shape: `{ data: [...], page: 1, limit: 20, total: 45 }`
 - Default: page=1, limit=20
 - Max limit: 100
