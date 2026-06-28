@@ -1,0 +1,11 @@
+{
+  "server_started": true,
+  "checks": [
+    {
+      "name": "folder_sharing_permissions_flow",
+      "pass": true,
+      "expected": "folder sharing flow",
+      "actual": "passed"
+    }
+  ]
+}

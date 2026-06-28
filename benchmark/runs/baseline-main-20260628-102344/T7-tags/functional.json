@@ -1,0 +1,77 @@
+{
+  "server_started": true,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "pass": true,
+      "expected": "201|409",
+      "actual": 409
+    },
+    {
+      "name": "login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "create_tag_work",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "create_tag_docs",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "duplicate_tag",
+      "pass": true,
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "name": "list_tags",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "bookmark_with_tags",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "filter_single_tag",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "filter_multiple_tags",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "rename_tag",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "invalid_tag_id",
+      "pass": true,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "name": "delete_tag",
+      "pass": true,
+      "expected": 204,
+      "actual": 204
+    }
+  ]
+}

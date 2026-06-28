@@ -1,0 +1,71 @@
+{
+  "server_started": true,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "pass": true,
+      "expected": "201|409",
+      "actual": 409
+    },
+    {
+      "name": "login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "has_data_field",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "has_page_field",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "has_limit_field",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "has_total_field",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "data_is_array",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "custom_limit",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "invalid_page",
+      "pass": true,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "name": "invalid_limit",
+      "pass": true,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "name": "still_protected",
+      "pass": true,
+      "expected": 401,
+      "actual": 401
+    }
+  ]
+}

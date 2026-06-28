@@ -1,0 +1,13 @@
+{
+  "provider": "openai",
+  "usageKnown": false,
+  "interactions": [],
+  "totals": {
+    "inputTokens": 0,
+    "cachedInputTokens": 0,
+    "outputTokens": 0,
+    "reasoningTokens": 0,
+    "totalTokens": 0,
+    "costUsd": null
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "server_started": true,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "pass": true,
+      "expected": "201|409",
+      "actual": 409
+    },
+    {
+      "name": "login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "seed_cursor_bookmark_a",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "seed_cursor_bookmark_b",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "cursor_first_page",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "cursor_second_page",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "invalid_cursor",
+      "pass": true,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "name": "offset_compatibility",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "cursor_auth_required",
+      "pass": true,
+      "expected": 401,
+      "actual": 401
+    }
+  ]
+}

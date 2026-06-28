@@ -1,0 +1,6 @@
+{
+  "harness_ref": "main",
+  "agent": "codex",
+  "model": "gpt-5.5",
+  "task_timeout_seconds": 600
+}

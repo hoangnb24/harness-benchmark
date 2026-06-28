@@ -1,0 +1,22 @@
+{
+  "provider": "openai",
+  "usageKnown": true,
+  "interactions": [
+    {
+      "model": "gpt-5.5",
+      "inputTokens": 110813,
+      "cachedInputTokens": 2147456,
+      "outputTokens": 15871,
+      "reasoningTokens": 3219,
+      "costUsd": 2.103923
+    }
+  ],
+  "totals": {
+    "inputTokens": 110813,
+    "cachedInputTokens": 2147456,
+    "outputTokens": 15871,
+    "reasoningTokens": 3219,
+    "totalTokens": 2274140,
+    "costUsd": 2.103923
+  }
+}

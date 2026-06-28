@@ -1,0 +1,53 @@
+{
+  "server_started": true,
+  "checks": [
+    {
+      "name": "ensure_user",
+      "pass": true,
+      "expected": "201|409",
+      "actual": 409
+    },
+    {
+      "name": "login",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "export_data",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "import_valid_payload",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "import_same_payload_again",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "invalid_payload",
+      "pass": true,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "name": "export_auth_required",
+      "pass": true,
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "name": "import_auth_required",
+      "pass": true,
+      "expected": 401,
+      "actual": 401
+    }
+  ]
+}

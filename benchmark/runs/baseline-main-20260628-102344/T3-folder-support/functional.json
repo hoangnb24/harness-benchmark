@@ -1,0 +1,35 @@
+{
+  "server_started": true,
+  "checks": [
+    {
+      "name": "create_folder",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "list_folders",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "get_folder",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "name": "bookmark_with_folder",
+      "pass": true,
+      "expected": 201,
+      "actual": 201
+    },
+    {
+      "name": "bookmark_regression",
+      "pass": true,
+      "expected": 200,
+      "actual": 200
+    }
+  ]
+}
