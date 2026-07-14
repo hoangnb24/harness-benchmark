@@ -6,8 +6,8 @@
       "identities": {
         "runner": {
           "repository": "/Users/themrb/Documents/personal/harness-benchmark",
-          "commit": "d9e05e395c5c9db8ca5a646e602947156f426b85",
-          "entrypointSha256": "f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f"
+          "commit": "b2b98392ea2f132c8a27d2f65c1629e01fc3ed49",
+          "entrypointSha256": "ae599d2b92ab52e1d9f523ba30ad7feaf350463db32e2e049ee239f068167a90"
         },
         "fixture": {
           "repository": "benchmark/phase0",
@@ -95,8 +95,8 @@
       "identities": {
         "runner": {
           "repository": "/Users/themrb/Documents/personal/harness-benchmark",
-          "commit": "d9e05e395c5c9db8ca5a646e602947156f426b85",
-          "entrypointSha256": "f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f"
+          "commit": "b2b98392ea2f132c8a27d2f65c1629e01fc3ed49",
+          "entrypointSha256": "ae599d2b92ab52e1d9f523ba30ad7feaf350463db32e2e049ee239f068167a90"
         },
         "fixture": {
           "repository": "benchmark/phase0",
@@ -184,8 +184,8 @@
       "identities": {
         "runner": {
           "repository": "/Users/themrb/Documents/personal/harness-benchmark",
-          "commit": "d9e05e395c5c9db8ca5a646e602947156f426b85",
-          "entrypointSha256": "f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f"
+          "commit": "b2b98392ea2f132c8a27d2f65c1629e01fc3ed49",
+          "entrypointSha256": "ae599d2b92ab52e1d9f523ba30ad7feaf350463db32e2e049ee239f068167a90"
         },
         "fixture": {
           "repository": "benchmark/phase0",

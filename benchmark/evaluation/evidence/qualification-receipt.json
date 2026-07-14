@@ -9,16 +9,20 @@
   "decisionRun": false,
   "runner": {
     "repository": "/Users/themrb/Documents/personal/harness-benchmark",
-    "commit": "d9e05e395c5c9db8ca5a646e602947156f426b85",
-    "entrypointSha256": "f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f"
+    "commit": "b2b98392ea2f132c8a27d2f65c1629e01fc3ed49",
+    "entrypointSha256": "ae599d2b92ab52e1d9f523ba30ad7feaf350463db32e2e049ee239f068167a90"
+  },
+  "qualificationInputLock": {
+    "path": "qualification-input-lock.json",
+    "sha256": "7370c1d45b86686a0d167764186fdf8aa3904ce780a697e2ce50bcebe4c20089"
   },
   "rawCellManifest": {
     "path": "raw-cells.json",
-    "sha256": "d0236faa96cb9d79855fd80d2ab16931fae97af19a51734d4aaf1c94293210d8"
+    "sha256": "eb6eb5e76313950353ddf6ef227bef4fb700c79eb0a3abdbfd6fa7134ab1c520"
   },
   "aggregate": {
     "path": "qualification-aggregate.json",
-    "sha256": "c1764e6fea52b6082f5c6dd9cd60301d4d935500ce143036d484a73fb7e26bc0"
+    "sha256": "6226adf155d1bafae437a013a925ad1f419dbd4c1b1b74c6ae11b971896035aa"
   },
   "dependencyAudit": {
     "path": "dependency-audit.json",
@@ -144,10 +148,23 @@
     "runnerUnchanged": true,
     "reportUnchanged": true,
     "baselineCommit": "3729da1293545d70a96ac1c8555e68018e388252",
-    "qualificationCommit": "d9e05e395c5c9db8ca5a646e602947156f426b85"
+    "qualificationCommit": "b2b98392ea2f132c8a27d2f65c1629e01fc3ed49"
   },
   "cleanup": {
     "cellsRemoved": true,
-    "decisionResultPathsAbsent": true
+    "decisionResultPathProof": {
+      "path": "benchmark/evaluation/decision-runs",
+      "pinnedRunnerCommit": "b2b98392ea2f132c8a27d2f65c1629e01fc3ed49",
+      "pinnedRunnerTree": {
+        "algorithm": "sha1",
+        "value": "4aa4a4ebf7c5b453658bde45a5c25586c6baf8e3"
+      },
+      "stateInPinnedCommitTree": "absent",
+      "proofSha256": "baa4ae370109ebf0005f9e3d59fa84bbbbf950607fe4ef03969de37eff53d813",
+      "currentGenerationObservation": {
+        "state": "absent",
+        "scope": "informational pre-Gate-D observation; historical proof is commit-tree pinned"
+      }
+    }
   }
 }

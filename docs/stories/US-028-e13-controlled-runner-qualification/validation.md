@@ -90,6 +90,9 @@ After implementation:
 ```bash
 node benchmark/evaluation/verify-qualification.mjs --offline \
   --repository-harness-root /Users/themrb/Documents/personal/repository-harness
+node benchmark/evaluation/verify-qualification.mjs --offline \
+  --repository-harness-root /Users/themrb/Documents/personal/repository-harness \
+  --output-root "$(mktemp -d)"
 npm run build
 npm run typecheck:orchestrator
 npm run lint:orchestrator
@@ -112,14 +115,21 @@ HARNESS_BENCHMARK_ROOT=/Users/themrb/Documents/personal/harness-benchmark \
 
 ## Immutable Evidence
 
+The canonical and alternate-output qualifier runs must produce identical bytes
+for all five JSON artifacts. `qualification-receipt.json` references the input
+lock SHA, and its cleanup proof is pinned to the committed runner tree rather
+than the mutable current `decision-runs` directory.
+
 | Field | Final value |
 | --- | --- |
-| Qualified runner commit | `d9e05e395c5c9db8ca5a646e602947156f426b85` |
-| Qualification entrypoint SHA-256 | `f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f` |
-| Raw-cell manifest SHA-256 | `d0236faa96cb9d79855fd80d2ab16931fae97af19a51734d4aaf1c94293210d8` |
-| Qualification aggregate SHA-256 | `c1764e6fea52b6082f5c6dd9cd60301d4d935500ce143036d484a73fb7e26bc0` |
+| Qualified runner commit | `b2b98392ea2f132c8a27d2f65c1629e01fc3ed49` |
+| Qualification entrypoint SHA-256 | `ae599d2b92ab52e1d9f523ba30ad7feaf350463db32e2e049ee239f068167a90` |
+| Qualification input-lock SHA-256 | `7370c1d45b86686a0d167764186fdf8aa3904ce780a697e2ce50bcebe4c20089` |
+| Raw-cell manifest SHA-256 | `eb6eb5e76313950353ddf6ef227bef4fb700c79eb0a3abdbfd6fa7134ab1c520` |
+| Qualification aggregate SHA-256 | `6226adf155d1bafae437a013a925ad1f419dbd4c1b1b74c6ae11b971896035aa` |
 | Dependency audit SHA-256/disposition | `ce9c454f556f1dee7f7548ff775cbf64726e263762888751e2f0be8a77cd1ca2`; `mitigated-and-rebaselined` |
-| Qualification receipt SHA-256 | `73099b735b09faee966a9d20e5b813da55df13cd01c394f87ce56340031c546b` |
+| Decision-run path proof SHA-256 | `baa4ae370109ebf0005f9e3d59fa84bbbbf950607fe4ef03969de37eff53d813` |
+| Qualification receipt SHA-256 | `d65a40f1103ee54ef727e76d8f846554cc9938a358e494bb7ec9649b2ecc281b` |
 | Positive/negative canary counts | `7` passed / `15` injected faults rejected |
 
 ## Acceptance Evidence

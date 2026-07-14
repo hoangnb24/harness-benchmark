@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "qualificationMode": "offline-qualification",
+  "runner": {
+    "repository": "harness-benchmark",
+    "commit": "b2b98392ea2f132c8a27d2f65c1629e01fc3ed49",
+    "gitTree": {
+      "algorithm": "sha1",
+      "value": "4aa4a4ebf7c5b453658bde45a5c25586c6baf8e3"
+    },
+    "entrypoint": "benchmark/evaluation/verify-qualification.mjs",
+    "entrypointSha256": "ae599d2b92ab52e1d9f523ba30ad7feaf350463db32e2e049ee239f068167a90"
+  },
+  "corpus": {
+    "id": "US-105-phase0-frozen-corpus",
+    "lockPath": "benchmark/phase0/corpus-lock.json",
+    "lockSha256": "cc72d8618a86dd1f561692f6fac6d677d1f1150287ba4416d06a34208b7c55e0",
+    "atomicCatalogPath": "benchmark/phase0/atomic-catalog.json",
+    "atomicCatalogSemanticSha256": "82202e8b15124d49a779e7e888460873bdb38c6e72a5d0ed1474023c3cfbb409",
+    "rubricRunnerPath": "benchmark/phase0/rubric-runner.mjs",
+    "rubricRunnerSha256": "547ae4bd8038238e1a2f53382f0c807f6886076f975480ee781d94b677349962"
+  },
+  "candidates": [
+    {
+      "id": "FULL_V0",
+      "manifestPath": "docs/stories/epics/E13-phase-0-product-shape-evaluation/evidence/candidates/full-v0.json",
+      "manifestSha256": "58b475c19fb38790ff8b673759ed7964293d06b677cb04734688b472eef738dd",
+      "materializerPath": "benchmark/candidates/e13/materialize-candidate.mjs",
+      "materializerSha256": "0bb99ae578c66cf2faaab52f8635824111585927f89cafc02bf45cc9f4e47bd0",
+      "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+      "activationProfile": "tiny-documentation"
+    },
+    {
+      "id": "COPY_ONCE",
+      "manifestPath": "docs/stories/epics/E13-phase-0-product-shape-evaluation/evidence/candidates/copy-once.json",
+      "manifestSha256": "5b77e5b48dc4b9df3712e9f0239a5a219a3615644c8de317deaadc3eafcbc8dd",
+      "materializerPath": "benchmark/candidates/e13/materialize-candidate.mjs",
+      "materializerSha256": "0bb99ae578c66cf2faaab52f8635824111585927f89cafc02bf45cc9f4e47bd0",
+      "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+      "activationProfile": "tiny-documentation"
+    },
+    {
+      "id": "MODULAR_CORE",
+      "manifestPath": "docs/stories/epics/E13-phase-0-product-shape-evaluation/evidence/candidates/modular-core.json",
+      "manifestSha256": "43b042b5e34a25050caf66b6fd2e87e87192b94f2360b48d9e3042e7b8d27023",
+      "materializerPath": "benchmark/candidates/e13/materialize-candidate.mjs",
+      "materializerSha256": "0bb99ae578c66cf2faaab52f8635824111585927f89cafc02bf45cc9f4e47bd0",
+      "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+      "activationProfile": "tiny-documentation"
+    }
+  ],
+  "execution": {
+    "model": {
+      "declared": "deterministic-fake",
+      "resolved": {
+        "status": "known",
+        "value": "deterministic-fake-v1"
+      },
+      "provider": "local-offline"
+    },
+    "runtime": "v25.8.1",
+    "agent": {
+      "kind": "fake",
+      "identity": "deterministic-fake-node-script",
+      "sourceSha256": "37e15f6e84bf55ba8abd0d7b0360bae4b1d7f61a5b491f83d52c45bb8f98a0a7"
+    },
+    "sandbox": {
+      "identity": "disposable-cell-process-group",
+      "sha256": "7ee73379ed75cc36c889b882d2de9df6637fb768cbc708d9e031e825a585a626"
+    },
+    "nonHarnessToolsSha256": "fa42508fd0d6c7fbd521f5caa482aad7b92f8529c27f875a87caf47c7f83054a",
+    "platform": "macos-arm64",
+    "liveAgentInvocations": 0,
+    "paidAgentInvocations": 0
+  }
+}

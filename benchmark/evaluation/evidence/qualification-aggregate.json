@@ -9,15 +9,15 @@
   "sourceCellChecksums": [
     {
       "cellId": "qualification-full-v0",
-      "sha256": "6b246a3aa7b75bbac3840256095af1b568902895a42a3fde5d64c3a229882945"
+      "sha256": "0871ea69146e16efb2fb65176afb72afce2df1c8e089f29034d4f2b7535733b3"
     },
     {
       "cellId": "qualification-copy-once",
-      "sha256": "0b4af54449f02679ae0b106c00e3a793bb244462d9f1ac53c43c34fb2137c948"
+      "sha256": "0b201b9bf46ab53c0e54b8e6cb31873fddd7e53165ced11bdf0902eb12a437d3"
     },
     {
       "cellId": "qualification-modular-core",
-      "sha256": "c86a0faf8e1bca7aa28921c21deecb4a14947006f42b6e5f8bf42c24d2a5765c"
+      "sha256": "00b869b0c27b720af0d3cc744b05ac23a153f4f81dc47f4a80248d6de5a47b97"
     }
   ]
 }
