@@ -150,6 +150,7 @@ try {
   const rawCells = {
     schemaVersion: 1,
     cells: rawRecords.map(({ raw }) => ({
+      cellId: raw.cellId,
       identities: {
         runner: { repository: benchmarkRoot, commit, entrypointSha256 },
         fixture: {
@@ -217,10 +218,10 @@ try {
     decisionRun: false,
     primaryPass: recordedAggregate.primaryPass,
     primaryTotal: recordedAggregate.primaryTotal,
-    sourceCellChecksums: await Promise.all(rawRecords.map(async ({ raw, rawPath }) => ({
-      cellId: raw.cellId,
-      sha256: await fileSha(rawPath),
-    }))),
+    sourceCellChecksums: rawCells.cells.map((cell) => ({
+      cellId: cell.cellId,
+      sha256: sha256(compactCanonical(cell)),
+    })),
   };
   const aggregatePath = path.join(evidenceRoot, 'qualification-aggregate.json');
   await writeJson(aggregatePath, qualificationAggregate);
@@ -318,9 +319,18 @@ async function gitBlobSha(commit, relative) {
 
 function measurements(metrics) {
   const units = { wallMilliseconds: 'milliseconds', inputTokens: 'tokens', outputTokens: 'tokens', costUsd: 'USD' };
-  return Object.entries(metrics).map(([id, metric]) => metric.status === 'known'
-    ? { id, state: 'known', value: metric.value, unit: units[id] }
-    : { id, state: 'unknown', reason: metric.reason });
+  return Object.entries(metrics).map(([id, metric]) => {
+    if (id === 'wallMilliseconds') {
+      return {
+        id,
+        state: 'unknown',
+        reason: 'offline qualification timing is diagnostic and is not a decision measurement',
+      };
+    }
+    return metric.status === 'known'
+      ? { id, state: 'known', value: metric.value, unit: units[id] }
+      : { id, state: 'unknown', reason: metric.reason };
+  });
 }
 
 async function writeJson(file, value) {
