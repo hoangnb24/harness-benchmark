@@ -7,7 +7,7 @@ import type {
   TreatmentApplicationReceipt,
 } from '../domain/evaluation';
 import type { EvaluationTreatmentMaterializer } from '../ports/EvaluationTreatmentMaterializer';
-import { assertSha256, sha256File } from './EvaluationFiles';
+import { assertSha256, sha256File, treeSha256 } from './EvaluationFiles';
 
 const execFileAsync = promisify(execFile);
 
@@ -24,19 +24,14 @@ export class CommandEvaluationTreatmentMaterializer
     cell: EvaluationCellSpec,
     workspaceDir: string,
     scratchDir: string,
-  ): Promise<{ receipt: TreatmentApplicationReceipt; receiptBytes: Buffer }> {
-    if ((await sha256File(cell.treatment.path)) !== cell.treatment.sha256) {
-      throw new Error(`treatment manifest checksum mismatch for ${cell.id}`);
-    }
-    const manifest = JSON.parse(await readFile(cell.treatment.path, 'utf8')) as {
-      candidateId?: string;
-      materializer?: { sha256?: string };
-    };
+  ): Promise<{
+    receipt: TreatmentApplicationReceipt;
+    receiptBytes: Buffer;
+    appliedWorkspaceSha256: string;
+  }> {
+    const manifest = await this.preflight(cell);
     if (!manifest.candidateId) throw new Error(`treatment manifest has no candidate id for ${cell.id}`);
-    assertSha256(manifest.materializer?.sha256, 'treatment materializer sha256');
-    if ((await sha256File(this.materializerPath)) !== manifest.materializer.sha256) {
-      throw new Error(`treatment materializer checksum mismatch for ${cell.id}`);
-    }
+    const candidateId = manifest.candidateId;
 
     const stagedDir = path.join(scratchDir, 'treatment-staged');
     const receiptsDir = path.join(scratchDir, 'treatment-receipts');
@@ -89,8 +84,28 @@ export class CommandEvaluationTreatmentMaterializer
     );
     const receiptBytes = await readFile(applicationReceipt);
     const receipt = JSON.parse(receiptBytes.toString('utf8')) as TreatmentApplicationReceipt;
-    assertApplicationReceipt(receipt, cell, manifest.candidateId);
-    return { receipt, receiptBytes };
+    assertApplicationReceipt(receipt, cell, candidateId);
+    return {
+      receipt,
+      receiptBytes,
+      appliedWorkspaceSha256: await treeSha256(workspaceDir, true),
+    };
+  }
+
+  async preflight(cell: EvaluationCellSpec): Promise<{ candidateId?: string }> {
+    if ((await sha256File(cell.treatment.path)) !== cell.treatment.sha256) {
+      throw new Error(`treatment manifest checksum mismatch for ${cell.id}`);
+    }
+    const manifest = JSON.parse(await readFile(cell.treatment.path, 'utf8')) as {
+      candidateId?: string;
+      materializer?: { sha256?: string };
+    };
+    if (!manifest.candidateId) throw new Error(`treatment manifest has no candidate id for ${cell.id}`);
+    assertSha256(manifest.materializer?.sha256, 'treatment materializer sha256');
+    if ((await sha256File(this.materializerPath)) !== manifest.materializer.sha256) {
+      throw new Error(`treatment materializer checksum mismatch for ${cell.id}`);
+    }
+    return manifest;
   }
 }
 

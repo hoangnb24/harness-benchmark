@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import {
   validateEvaluationPlan,
+  type CumulativeJourneySpec,
   type EvaluationCellSpec,
   type EvaluationPlan,
   type KnownOrUnknown,
@@ -21,47 +23,97 @@ export class JsonEvaluationPlanLoader {
     const runner = object(root.runner, 'runner');
     assertNonEmpty(runner.repository, 'runner.repository');
     assertNonEmpty(runner.commit, 'runner.commit');
-    const agent = object(root.agent, 'agent');
-    if (agent.kind !== 'fake') throw new Error('Phase 0 qualification accepts fake agents only');
-    assertNonEmpty(agent.command, 'agent.command');
+    const agent = parseAgent(root.agent);
     const model = object(root.model, 'model');
     assertNonEmpty(model.declared, 'model.declared');
     assertNonEmpty(model.provider, 'model.provider');
     assertNonEmpty(model.runtime, 'model.runtime');
+    const reasoningEffort = root.reasoningEffort === undefined && agent.kind === 'fake'
+      ? 'not-applicable'
+      : requiredString(root.reasoningEffort, 'reasoningEffort');
     assertNonEmpty(root.sandbox, 'sandbox');
     assertSha256(root.toolCatalogSha256, 'toolCatalogSha256');
     const corpus = object(root.corpus, 'corpus');
     assertNonEmpty(corpus.root, 'corpus.root');
     assertSha256(corpus.lockSha256, 'corpus.lockSha256');
     assertSha256(corpus.atomicCatalogSha256, 'corpus.atomicCatalogSha256');
-    if (!Array.isArray(root.cells)) throw new Error('cells must be an array');
+    const cells = root.cells === undefined ? [] : root.cells;
+    const cumulativeJourneys = root.cumulativeJourneys === undefined ? [] : root.cumulativeJourneys;
+    if (!Array.isArray(cells)) throw new Error('cells must be an array');
+    if (!Array.isArray(cumulativeJourneys)) throw new Error('cumulativeJourneys must be an array');
+    if (cumulativeJourneys.length > 0) {
+      assertSha256(corpus.cumulativeCatalogSha256, 'corpus.cumulativeCatalogSha256');
+    }
     const plan: EvaluationPlan = {
       version: 1,
       runId: root.runId,
       runner: { repository: runner.repository, commit: runner.commit },
-      agent: {
-        kind: 'fake',
-        command: agent.command,
-        args: stringArray(agent.args, 'agent.args'),
-      },
+      agent,
       model: {
         declared: model.declared,
         provider: model.provider,
         runtime: model.runtime,
         resolved: knownOrUnknown(model.resolved, 'model.resolved'),
       },
+      reasoningEffort,
       sandbox: root.sandbox,
       toolCatalogSha256: root.toolCatalogSha256,
       corpus: {
         root: corpus.root,
         lockSha256: corpus.lockSha256,
         atomicCatalogSha256: corpus.atomicCatalogSha256,
+        cumulativeCatalogSha256:
+          corpus.cumulativeCatalogSha256 === undefined
+            ? undefined
+            : requiredString(corpus.cumulativeCatalogSha256, 'corpus.cumulativeCatalogSha256'),
       },
-      cells: root.cells.map((cell, index) => parseCell(cell, index)),
+      cells: cells.map((cell, index) => parseCell(cell, index)),
+      cumulativeJourneys: cumulativeJourneys.map((journey, index) => parseJourney(journey, index)),
     };
     validateEvaluationPlan(plan);
     return plan;
   }
+}
+
+function parseAgent(value: unknown): EvaluationPlan['agent'] {
+  const agent = object(value, 'agent');
+  if (agent.kind === 'fake') {
+    assertNonEmpty(agent.command, 'agent.command');
+    return { kind: 'fake', command: agent.command, args: stringArray(agent.args, 'agent.args') };
+  }
+  if (agent.kind === 'codex') {
+    const executable = content(agent.executable, 'agent.executable');
+    const identity = object(agent.executable, 'agent.executable');
+    if (!path.isAbsolute(executable.path)) throw new Error('agent.executable.path must be absolute');
+    if (agent.scope !== 'calibration' && agent.scope !== 'decision') {
+      throw new Error('agent.scope must be calibration or decision');
+    }
+    const authorization = content(agent.authorization, 'agent.authorization');
+    const protocol = content(agent.protocol, 'agent.protocol');
+    const pricingPolicy = content(agent.pricingPolicy, 'agent.pricingPolicy');
+    const toolPolicy = content(agent.toolPolicy, 'agent.toolPolicy');
+    for (const [label, identity] of [
+      ['agent.authorization', authorization],
+      ['agent.protocol', protocol],
+      ['agent.pricingPolicy', pricingPolicy],
+      ['agent.toolPolicy', toolPolicy],
+    ] as const) {
+      if (!path.isAbsolute(identity.path)) throw new Error(`${label}.path must be absolute`);
+    }
+    return {
+      kind: 'codex',
+      executable: {
+        ...executable,
+        version: requiredString(identity.version, 'agent.executable.version'),
+      },
+      scope: agent.scope,
+      authorization,
+      protocol,
+      pricingPolicy,
+      toolPolicy,
+    };
+  }
+  throw new Error('agent.kind must be fake or codex');
 }
 
 function parseCell(value: unknown, index: number): EvaluationCellSpec {
@@ -98,6 +150,38 @@ function parseCell(value: unknown, index: number): EvaluationCellSpec {
     order: {
       repetition: integer(order.repetition, `cells[${index}].order.repetition`),
       position: integer(order.position, `cells[${index}].order.position`),
+    },
+  };
+}
+
+function parseJourney(value: unknown, index: number): CumulativeJourneySpec {
+  const journey = object(value, `cumulativeJourneys[${index}]`);
+  assertNonEmpty(journey.id, `cumulativeJourneys[${index}].id`);
+  assertNonEmpty(journey.journeyId, `cumulativeJourneys[${index}].journeyId`);
+  const treatmentValue = object(journey.treatment, `cumulativeJourneys[${index}].treatment`);
+  const treatmentContent = content(treatmentValue, `cumulativeJourneys[${index}].treatment`);
+  assertNonEmpty(treatmentValue.sourceRoot, `cumulativeJourneys[${index}].treatment.sourceRoot`);
+  assertNonEmpty(treatmentValue.profile, `cumulativeJourneys[${index}].treatment.profile`);
+  assertNonEmpty(treatmentValue.platform, `cumulativeJourneys[${index}].treatment.platform`);
+  const timeoutSeconds = number(journey.timeoutSeconds, `cumulativeJourneys[${index}].timeoutSeconds`);
+  if (timeoutSeconds <= 0) throw new Error(`cumulativeJourneys[${index}].timeoutSeconds must be positive`);
+  const order = object(journey.order, `cumulativeJourneys[${index}].order`);
+  return {
+    id: journey.id,
+    journeyId: journey.journeyId,
+    treatment: {
+      ...treatmentContent,
+      sourceRoot: treatmentValue.sourceRoot,
+      profile: treatmentValue.profile,
+      platform: treatmentValue.platform,
+      artifactCache: treatmentValue.artifactCache === undefined
+        ? undefined
+        : requiredString(treatmentValue.artifactCache, `cumulativeJourneys[${index}].treatment.artifactCache`),
+    },
+    timeoutSeconds,
+    order: {
+      repetition: integer(order.repetition, `cumulativeJourneys[${index}].order.repetition`),
+      position: integer(order.position, `cumulativeJourneys[${index}].order.position`),
     },
   };
 }

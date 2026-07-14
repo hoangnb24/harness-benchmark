@@ -50,7 +50,7 @@ export class GenerateEvaluationAggregate {
       ) {
         throw new Error(`dependency outcome mismatch: ${cell.id}`);
       }
-      await validateEvidence(record, runDir, cell);
+      await validateEvidence(record, runDir, cell, plan);
       const pass = record.rubric.effective.filter((result) => result.effectivePass).length;
       const total = loaded.checkIds.length;
       primaryPass += pass;
@@ -153,7 +153,7 @@ function validateRecord(
     ) {
       throw new Error(`invalid dependency block record: ${cell.id}`);
     }
-    if (record.process.exitCode !== null || record.rubric.observed.length !== 0) {
+    if (record.process.exitCode !== null || record.process.signal !== null || record.rubric.observed.length !== 0) {
       throw new Error(`blocked cell was invoked or scored: ${cell.id}`);
     }
     if (
@@ -170,6 +170,10 @@ function validateRecord(
     throw new Error(`unsupported raw cell status: ${cell.id}`);
   }
   if (!Number.isInteger(record.process.exitCode)) throw new Error(`missing process exit code: ${cell.id}`);
+  if (record.process.signal !== null &&
+      (typeof record.process.signal !== 'string' || !/^SIG[A-Z0-9]+$/.test(record.process.signal))) {
+    throw new Error(`invalid process signal: ${cell.id}`);
+  }
   if (record.process.timedOut && record.process.exitCode !== 124) {
     throw new Error(`timeout exit code is not authoritative: ${cell.id}`);
   }
@@ -214,6 +218,7 @@ async function validateEvidence(
   record: RawCellRecord,
   runDir: string,
   cell: EvaluationCellSpec,
+  plan: EvaluationPlan,
 ): Promise<void> {
   if (record.status === 'blocked_dependency') {
     if (record.evidence !== undefined) throw new Error(`blocked cell has execution evidence: ${cell.id}`);
@@ -311,20 +316,100 @@ async function validateEvidence(
   }
   const metricsReceipt = JSON.parse(
     await readFile(path.join(runDir, evidence.metricsReceipt.path), 'utf8'),
-  ) as { schemaVersion?: number; emitted?: boolean; values?: Record<string, unknown> | null };
+  ) as {
+    schemaVersion?: number;
+    source?: string;
+    pricingPolicySha256?: string;
+    toolPolicySha256?: string;
+    preflight?: Record<string, unknown>;
+    policyViolation?: unknown;
+    emitted?: boolean;
+    values?: Record<string, unknown> | null;
+    measurements?: Record<string, unknown>;
+  };
   if (metricsReceipt.schemaVersion !== 1 || typeof metricsReceipt.emitted !== 'boolean') {
     throw new Error(`metrics receipt is malformed: ${cell.id}`);
   }
-  for (const name of ['inputTokens', 'outputTokens', 'costUsd'] as const) {
+  const expectedMetricsSource = plan.agent.kind === 'codex' ? 'codex-jsonl' : 'fake-metrics-file';
+  if (metricsReceipt.source !== expectedMetricsSource) {
+    throw new Error(`metrics receipt source mismatch: ${cell.id}`);
+  }
+  for (const name of [
+    'inputTokens',
+    'cachedInputTokens',
+    'outputTokens',
+    'toolLoops',
+    'consumedPlanCredits',
+    'costUsd',
+  ] as const) {
     const metric = record.metrics[name];
     const emitted = metricsReceipt.values?.[name];
-    if (metricsReceipt.emitted && typeof emitted === 'number' && Number.isFinite(emitted)) {
+    same(metricsReceipt.measurements?.[name], metric, `retained typed metric ${name} ${cell.id}`);
+    if (typeof emitted === 'number' && Number.isFinite(emitted)) {
       if (metric.status !== 'known' || metric.value !== emitted) {
         throw new Error(`known metric differs from retained receipt: ${name} ${cell.id}`);
       }
     } else if (metric.status !== 'unknown') {
       throw new Error(`missing metric was converted to a numeric value: ${name} ${cell.id}`);
     }
+  }
+  if (metricsReceipt.source === 'codex-jsonl') {
+    if (
+      plan.agent.kind !== 'codex' ||
+      metricsReceipt.pricingPolicySha256 !== plan.agent.pricingPolicy.sha256 ||
+      metricsReceipt.toolPolicySha256 !== plan.agent.toolPolicy.sha256
+    ) {
+      throw new Error(`Codex policy identity mismatch: ${cell.id}`);
+    }
+    validateCodexPreflight(metricsReceipt.preflight, plan, cell.id);
+    if (metricsReceipt.policyViolation !== null) {
+      if (record.process.exitCode !== 126) {
+        throw new Error(`Codex tool-policy violation was not reflected in process status: ${cell.id}`);
+      }
+    }
+    const rates = await loadPlanCreditRates(plan);
+    const { inputTokens, cachedInputTokens, outputTokens, consumedPlanCredits } = record.metrics;
+    if (
+      inputTokens.status === 'known' &&
+      cachedInputTokens.status === 'known' &&
+      outputTokens.status === 'known'
+    ) {
+      const expected = planCredits(inputTokens.value, cachedInputTokens.value, outputTokens.value, rates);
+      if (consumedPlanCredits.status !== 'known' || consumedPlanCredits.value !== expected) {
+        throw new Error(`Codex plan-credit recomputation mismatch: ${cell.id}`);
+      }
+    } else if (consumedPlanCredits.status !== 'unknown') {
+      throw new Error(`Codex plan credits became known without complete token telemetry: ${cell.id}`);
+    }
+  }
+}
+
+function validateCodexPreflight(
+  value: Record<string, unknown> | undefined,
+  plan: EvaluationPlan,
+  cellId: string,
+): void {
+  const version = value?.version as Record<string, unknown> | undefined;
+  const authentication = value?.authentication as Record<string, unknown> | undefined;
+  const versionStdout = typeof version?.stdout === 'string' ? version.stdout : '';
+  const versionStderr = typeof version?.stderr === 'string' ? version.stderr : '';
+  const authStdout = typeof authentication?.stdout === 'string' ? authentication.stdout : '';
+  const authStderr = typeof authentication?.stderr === 'string' ? authentication.stderr : '';
+  if (
+    plan.agent.kind !== 'codex' ||
+    Object.keys(value ?? {}).sort().join('\0') !== ['authentication', 'version'].join('\0') ||
+    version?.observed !== plan.agent.executable.version ||
+    versionStdout.trim() !== `codex-cli ${plan.agent.executable.version}` ||
+    versionStderr !== '' ||
+    version?.stdoutSha256 !== sha256(versionStdout) ||
+    version?.stderrSha256 !== sha256(versionStderr) ||
+    authentication?.mode !== 'chatgpt' ||
+    authStdout.trim() !== 'Logged in using ChatGPT' ||
+    authStderr !== '' ||
+    authentication?.stdoutSha256 !== sha256(authStdout) ||
+    authentication?.stderrSha256 !== sha256(authStderr)
+  ) {
+    throw new Error(`Codex executable/authentication preflight receipt mismatch: ${cellId}`);
   }
 }
 
@@ -343,9 +428,71 @@ function validateMetrics(record: RawCellRecord, cellId: string): void {
     }
   }
   if (Object.keys(record.metrics ?? {}).sort().join('\0') !==
-      ['costUsd', 'inputTokens', 'outputTokens', 'wallMilliseconds'].sort().join('\0')) {
+      [
+        'cachedInputTokens',
+        'consumedPlanCredits',
+        'costUsd',
+        'inputTokens',
+        'outputTokens',
+        'toolLoops',
+        'wallMilliseconds',
+      ].sort().join('\0')) {
     throw new Error(`metric set mismatch: ${cellId}`);
   }
+  const input = record.metrics.inputTokens;
+  const cached = record.metrics.cachedInputTokens;
+  if (input.status === 'known' && cached.status === 'known' && cached.value > input.value) {
+    throw new Error(`cached input tokens exceed input tokens: ${cellId}`);
+  }
+}
+
+async function loadPlanCreditRates(plan: EvaluationPlan): Promise<{
+  input: number;
+  cachedInput: number;
+  output: number;
+}> {
+  if (plan.agent.kind !== 'codex') throw new Error('Codex pricing policy is unavailable');
+  const details = await lstat(plan.agent.pricingPolicy.path);
+  if (!details.isFile() || details.isSymbolicLink()) {
+    throw new Error('Codex pricing policy is not a regular file');
+  }
+  const bytes = await readFile(plan.agent.pricingPolicy.path);
+  if (sha256(bytes) !== plan.agent.pricingPolicy.sha256) {
+    throw new Error('Codex pricing policy checksum mismatch during aggregation');
+  }
+  const parsed = JSON.parse(bytes.toString('utf8')) as {
+    model?: unknown;
+    rates?: { input?: unknown; cachedInput?: unknown; output?: unknown };
+  };
+  const rates = parsed.rates;
+  if (
+    parsed.model !== plan.model.declared ||
+    !rates ||
+    !validRate(rates.input) ||
+    !validRate(rates.cachedInput) ||
+    !validRate(rates.output) ||
+    rates.cachedInput > rates.input
+  ) {
+    throw new Error('Codex pricing policy is invalid during aggregation');
+  }
+  return { input: rates.input, cachedInput: rates.cachedInput, output: rates.output };
+}
+
+function validRate(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+function planCredits(
+  inputTokens: number,
+  cachedInputTokens: number,
+  outputTokens: number,
+  rates: { input: number; cachedInput: number; output: number },
+): number {
+  return (
+    (Math.max(0, inputTokens - cachedInputTokens) * rates.input) +
+    (cachedInputTokens * rates.cachedInput) +
+    (outputTokens * rates.output)
+  ) / 1_000_000;
 }
 
 function same(actual: unknown, expected: unknown, label: string): void {

@@ -63,7 +63,7 @@ describe('Phase 0 evaluation qualification', () => {
       },
     });
     const aggregate = JSON.parse(await readFile(path.join(runDir, 'aggregate.json'), 'utf8'));
-    expect(aggregate).toMatchObject({ primaryPass: 4, primaryTotal: 4, unknownMetrics: 3 });
+    expect(aggregate).toMatchObject({ primaryPass: 4, primaryTotal: 4, unknownMetrics: 6 });
   }, 30_000);
 
   it('makes a non-zero process exit authoritative even when rubric checks pass', async () => {

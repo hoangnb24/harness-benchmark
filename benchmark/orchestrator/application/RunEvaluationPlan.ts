@@ -66,6 +66,7 @@ export class RunEvaluationPlan {
       },
       process: {
         exitCode: null,
+        signal: null,
         timedOut: false,
         stdoutSha256: EMPTY_SHA256,
         stderrSha256: EMPTY_SHA256,
@@ -86,7 +87,10 @@ export class RunEvaluationPlan {
       metrics: {
         wallMilliseconds: unknown('cell was not invoked because a dependency failed'),
         inputTokens: unknown('cell was not invoked because a dependency failed'),
+        cachedInputTokens: unknown('cell was not invoked because a dependency failed'),
         outputTokens: unknown('cell was not invoked because a dependency failed'),
+        toolLoops: unknown('cell was not invoked because a dependency failed'),
+        consumedPlanCredits: unknown('cell was not invoked because a dependency failed'),
         costUsd: unknown('cell was not invoked because a dependency failed'),
       },
       workspace: { disposed: true },

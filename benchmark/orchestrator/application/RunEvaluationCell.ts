@@ -106,6 +106,7 @@ export class RunEvaluationCell {
         },
         process: {
           exitCode: process.exitCode,
+          signal: process.signal ?? null,
           timedOut: process.timedOut,
           stdoutSha256: sha256(process.stdout),
           stderrSha256: sha256(process.stderr),
@@ -120,7 +121,10 @@ export class RunEvaluationCell {
         metrics: {
           wallMilliseconds: { status: 'known', value: process.wallMilliseconds },
           inputTokens: process.inputTokens,
+          cachedInputTokens: process.cachedInputTokens ?? unknown('cached input telemetry was not provided by the adapter'),
           outputTokens: process.outputTokens,
+          toolLoops: process.toolLoops ?? unknown('tool-loop telemetry was not provided by the adapter'),
+          consumedPlanCredits: process.consumedPlanCredits ?? unknown('plan-credit telemetry was not provided by the adapter'),
           costUsd: process.costUsd,
         },
         workspace: {
@@ -150,4 +154,8 @@ export class RunEvaluationCell {
 
 function sha256(value: string | Buffer): string {
   return createHash('sha256').update(value).digest('hex');
+}
+
+function unknown(reason: string): { status: 'unknown'; reason: string } {
+  return { status: 'unknown', reason };
 }

@@ -29,13 +29,25 @@ export class FakeEvaluationAgent implements EvaluationCellExecutor {
       },
     });
     const metrics = await readMetrics(path.join(input.submissionDir, 'metrics.json'));
+    const measurements = {
+      inputTokens: metric(metrics.values, 'inputTokens'),
+      cachedInputTokens: metric(metrics.values, 'cachedInputTokens'),
+      outputTokens: metric(metrics.values, 'outputTokens'),
+      toolLoops: metric(metrics.values, 'toolLoops'),
+      consumedPlanCredits: metric(metrics.values, 'consumedPlanCredits'),
+      costUsd: metric(metrics.values, 'costUsd'),
+    };
     return {
       ...result,
       wallMilliseconds: Date.now() - started,
-      inputTokens: metric(metrics.values, 'inputTokens'),
-      outputTokens: metric(metrics.values, 'outputTokens'),
-      costUsd: metric(metrics.values, 'costUsd'),
-      metricsReceipt: Buffer.from(`${JSON.stringify({ schemaVersion: 1, emitted: metrics.emitted, values: metrics.values ?? null })}\n`),
+      ...measurements,
+      metricsReceipt: Buffer.from(`${JSON.stringify({
+        schemaVersion: 1,
+        source: 'fake-metrics-file',
+        emitted: metrics.emitted,
+        values: metrics.values ?? null,
+        measurements,
+      })}\n`),
     };
   }
 }
@@ -44,7 +56,7 @@ async function runProcessTree(
   command: string,
   args: string[],
   options: { cwd: string; stdin: string; timeoutSeconds: number; env: NodeJS.ProcessEnv },
-): Promise<{ exitCode: number; timedOut: boolean; stdout: Buffer; stderr: Buffer }> {
+): Promise<{ exitCode: number; signal: NodeJS.Signals | null; timedOut: boolean; stdout: Buffer; stderr: Buffer }> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: options.cwd,
@@ -62,11 +74,12 @@ async function runProcessTree(
     child.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
     child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
     child.on('error', reject);
-    child.on('close', (code) => {
+    child.on('close', (code, signal) => {
       clearTimeout(timer);
       terminateTree(child.pid);
       resolve({
         exitCode: timedOut ? 124 : code ?? 1,
+        signal,
         timedOut,
         stdout: Buffer.concat(stdout),
         stderr: Buffer.concat(stderr),
