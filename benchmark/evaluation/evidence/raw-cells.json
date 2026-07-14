@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "cells": [
+    {
+      "cellId": "qualification-full-v0",
+      "identities": {
+        "runner": {
+          "repository": "/Users/themrb/Documents/personal/harness-benchmark",
+          "commit": "d9e05e395c5c9db8ca5a646e602947156f426b85",
+          "entrypointSha256": "f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f"
+        },
+        "fixture": {
+          "repository": "benchmark/phase0",
+          "startCommit": "09f08841ac44cbe313c1e0e3f69e9514d4b0eeac",
+          "treeSha256": "e2fcbaed1318ae3fe234076d5d00fbd0f74fc8e5106ffb865fc0ec47744352d1"
+        },
+        "task": {
+          "id": "P0-A03-doc-command",
+          "promptSha256": "5207731e6b54b9dda834071d7631414cad20d3820f9c02d4e48076d161ee7c94",
+          "rubricSha256": "543f79b387278b7998b3046471139bcd3f7e1ffbaa62ad6b0bd04cd87d25c55a",
+          "rubricDenominator": 4
+        },
+        "candidate": {
+          "id": "FULL_V0",
+          "manifestSha256": "58b475c19fb38790ff8b673759ed7964293d06b677cb04734688b472eef738dd",
+          "materializedTreeSha256": "c054e6a9ded3b8f957e898e1c23240f59a29ad3e3c5b17b1fe3b030db9a0e77a",
+          "materializationReceiptSha256": "4ff282cf22d0d5f25e5ed2d38e37e42b7cb23bcfa7699448ebdc704c28950305",
+          "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+          "applicationReceiptSha256": "de45655396166ce14a02a742cf3d60cb2e5c1e7d62ee922798fd732290f05f71"
+        },
+        "modelRuntime": {
+          "declaredModel": "deterministic-fake",
+          "resolvedVersion": {
+            "state": "known",
+            "value": "deterministic-fake-v1"
+          },
+          "provider": "local-offline",
+          "runtime": "v25.8.1",
+          "agentCli": "deterministic-fake-node-script",
+          "reasoningSetting": "not-applicable-deterministic-fake"
+        },
+        "environment": {
+          "sandboxPolicySha256": "7ee73379ed75cc36c889b882d2de9df6637fb768cbc708d9e031e825a585a626",
+          "nonHarnessToolsSha256": "fa42508fd0d6c7fbd521f5caa482aad7b92f8529c27f875a87caf47c7f83054a",
+          "pricing": {
+            "state": "not-applicable",
+            "reason": "zero paid or live agent invocations"
+          }
+        },
+        "order": {
+          "position": 0,
+          "repetition": 0,
+          "timeWindow": "offline-single-process-window",
+          "timeoutPolicy": "hard-process-group-kill",
+          "correctionPolicy": "none; immutable raw cells"
+        }
+      },
+      "raw": {
+        "process": {
+          "status": "passed",
+          "exitCode": 0,
+          "timedOut": false
+        },
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "workspaceDiffSha256": "96614b10c8fba750df1a9ba8b0923e8bf7df59254f2326d9a80459c4a637cb57",
+        "testsReceiptSha256": "45626b44de9a42c5f3a6be01e295f79ffd6348b9f9b15138bee8eb6b52c473e3",
+        "rubricReceiptSha256": "45626b44de9a42c5f3a6be01e295f79ffd6348b9f9b15138bee8eb6b52c473e3",
+        "measurements": [
+          {
+            "id": "costUsd",
+            "state": "unknown",
+            "reason": "costUsd was not emitted by the fake agent"
+          },
+          {
+            "id": "inputTokens",
+            "state": "unknown",
+            "reason": "inputTokens was not emitted by the fake agent"
+          },
+          {
+            "id": "outputTokens",
+            "state": "unknown",
+            "reason": "outputTokens was not emitted by the fake agent"
+          },
+          {
+            "id": "wallMilliseconds",
+            "state": "unknown",
+            "reason": "offline qualification timing is diagnostic and is not a decision measurement"
+          }
+        ]
+      }
+    },
+    {
+      "cellId": "qualification-copy-once",
+      "identities": {
+        "runner": {
+          "repository": "/Users/themrb/Documents/personal/harness-benchmark",
+          "commit": "d9e05e395c5c9db8ca5a646e602947156f426b85",
+          "entrypointSha256": "f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f"
+        },
+        "fixture": {
+          "repository": "benchmark/phase0",
+          "startCommit": "09f08841ac44cbe313c1e0e3f69e9514d4b0eeac",
+          "treeSha256": "e2fcbaed1318ae3fe234076d5d00fbd0f74fc8e5106ffb865fc0ec47744352d1"
+        },
+        "task": {
+          "id": "P0-A03-doc-command",
+          "promptSha256": "5207731e6b54b9dda834071d7631414cad20d3820f9c02d4e48076d161ee7c94",
+          "rubricSha256": "543f79b387278b7998b3046471139bcd3f7e1ffbaa62ad6b0bd04cd87d25c55a",
+          "rubricDenominator": 4
+        },
+        "candidate": {
+          "id": "COPY_ONCE",
+          "manifestSha256": "5b77e5b48dc4b9df3712e9f0239a5a219a3615644c8de317deaadc3eafcbc8dd",
+          "materializedTreeSha256": "ed5df92817d52d5783fbe94e1b8231869a9fcd3ca31fc3e44b87e15895bc939e",
+          "materializationReceiptSha256": "06d18c0b6380e2d0137842da4065b32fd87f82f1bc247820c6224c5aa06f5d62",
+          "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+          "applicationReceiptSha256": "c9d3c3a99aeccff3a0298b88284a7f4668e879e9a11f7ebc0ee2bd6fd6943803"
+        },
+        "modelRuntime": {
+          "declaredModel": "deterministic-fake",
+          "resolvedVersion": {
+            "state": "known",
+            "value": "deterministic-fake-v1"
+          },
+          "provider": "local-offline",
+          "runtime": "v25.8.1",
+          "agentCli": "deterministic-fake-node-script",
+          "reasoningSetting": "not-applicable-deterministic-fake"
+        },
+        "environment": {
+          "sandboxPolicySha256": "7ee73379ed75cc36c889b882d2de9df6637fb768cbc708d9e031e825a585a626",
+          "nonHarnessToolsSha256": "fa42508fd0d6c7fbd521f5caa482aad7b92f8529c27f875a87caf47c7f83054a",
+          "pricing": {
+            "state": "not-applicable",
+            "reason": "zero paid or live agent invocations"
+          }
+        },
+        "order": {
+          "position": 1,
+          "repetition": 0,
+          "timeWindow": "offline-single-process-window",
+          "timeoutPolicy": "hard-process-group-kill",
+          "correctionPolicy": "none; immutable raw cells"
+        }
+      },
+      "raw": {
+        "process": {
+          "status": "passed",
+          "exitCode": 0,
+          "timedOut": false
+        },
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "workspaceDiffSha256": "96614b10c8fba750df1a9ba8b0923e8bf7df59254f2326d9a80459c4a637cb57",
+        "testsReceiptSha256": "45626b44de9a42c5f3a6be01e295f79ffd6348b9f9b15138bee8eb6b52c473e3",
+        "rubricReceiptSha256": "45626b44de9a42c5f3a6be01e295f79ffd6348b9f9b15138bee8eb6b52c473e3",
+        "measurements": [
+          {
+            "id": "costUsd",
+            "state": "unknown",
+            "reason": "costUsd was not emitted by the fake agent"
+          },
+          {
+            "id": "inputTokens",
+            "state": "unknown",
+            "reason": "inputTokens was not emitted by the fake agent"
+          },
+          {
+            "id": "outputTokens",
+            "state": "unknown",
+            "reason": "outputTokens was not emitted by the fake agent"
+          },
+          {
+            "id": "wallMilliseconds",
+            "state": "unknown",
+            "reason": "offline qualification timing is diagnostic and is not a decision measurement"
+          }
+        ]
+      }
+    },
+    {
+      "cellId": "qualification-modular-core",
+      "identities": {
+        "runner": {
+          "repository": "/Users/themrb/Documents/personal/harness-benchmark",
+          "commit": "d9e05e395c5c9db8ca5a646e602947156f426b85",
+          "entrypointSha256": "f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f"
+        },
+        "fixture": {
+          "repository": "benchmark/phase0",
+          "startCommit": "09f08841ac44cbe313c1e0e3f69e9514d4b0eeac",
+          "treeSha256": "e2fcbaed1318ae3fe234076d5d00fbd0f74fc8e5106ffb865fc0ec47744352d1"
+        },
+        "task": {
+          "id": "P0-A03-doc-command",
+          "promptSha256": "5207731e6b54b9dda834071d7631414cad20d3820f9c02d4e48076d161ee7c94",
+          "rubricSha256": "543f79b387278b7998b3046471139bcd3f7e1ffbaa62ad6b0bd04cd87d25c55a",
+          "rubricDenominator": 4
+        },
+        "candidate": {
+          "id": "MODULAR_CORE",
+          "manifestSha256": "43b042b5e34a25050caf66b6fd2e87e87192b94f2360b48d9e3042e7b8d27023",
+          "materializedTreeSha256": "019abc1e7a104e1cbe484eb76c357f1f173c39f0a91b6d87b724fae6a2857f3f",
+          "materializationReceiptSha256": "dcafcdd1e3daac85da09c0f966e466d7d7ce67072aa5226796be568eb0038ab2",
+          "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+          "applicationReceiptSha256": "7b309ea27b75d1c0c246f4e989faae529efc0410abe6bd61a48cc342cb1b325d"
+        },
+        "modelRuntime": {
+          "declaredModel": "deterministic-fake",
+          "resolvedVersion": {
+            "state": "known",
+            "value": "deterministic-fake-v1"
+          },
+          "provider": "local-offline",
+          "runtime": "v25.8.1",
+          "agentCli": "deterministic-fake-node-script",
+          "reasoningSetting": "not-applicable-deterministic-fake"
+        },
+        "environment": {
+          "sandboxPolicySha256": "7ee73379ed75cc36c889b882d2de9df6637fb768cbc708d9e031e825a585a626",
+          "nonHarnessToolsSha256": "fa42508fd0d6c7fbd521f5caa482aad7b92f8529c27f875a87caf47c7f83054a",
+          "pricing": {
+            "state": "not-applicable",
+            "reason": "zero paid or live agent invocations"
+          }
+        },
+        "order": {
+          "position": 2,
+          "repetition": 0,
+          "timeWindow": "offline-single-process-window",
+          "timeoutPolicy": "hard-process-group-kill",
+          "correctionPolicy": "none; immutable raw cells"
+        }
+      },
+      "raw": {
+        "process": {
+          "status": "passed",
+          "exitCode": 0,
+          "timedOut": false
+        },
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "workspaceDiffSha256": "96614b10c8fba750df1a9ba8b0923e8bf7df59254f2326d9a80459c4a637cb57",
+        "testsReceiptSha256": "45626b44de9a42c5f3a6be01e295f79ffd6348b9f9b15138bee8eb6b52c473e3",
+        "rubricReceiptSha256": "45626b44de9a42c5f3a6be01e295f79ffd6348b9f9b15138bee8eb6b52c473e3",
+        "measurements": [
+          {
+            "id": "costUsd",
+            "state": "unknown",
+            "reason": "costUsd was not emitted by the fake agent"
+          },
+          {
+            "id": "inputTokens",
+            "state": "unknown",
+            "reason": "inputTokens was not emitted by the fake agent"
+          },
+          {
+            "id": "outputTokens",
+            "state": "unknown",
+            "reason": "outputTokens was not emitted by the fake agent"
+          },
+          {
+            "id": "wallMilliseconds",
+            "state": "unknown",
+            "reason": "offline qualification timing is diagnostic and is not a decision measurement"
+          }
+        ]
+      }
+    }
+  ]
+}

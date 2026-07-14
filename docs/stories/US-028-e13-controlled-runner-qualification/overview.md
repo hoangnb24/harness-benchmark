@@ -2,11 +2,11 @@
 
 ## Status
 
-in_progress
+implemented
 
 ## Current Behavior
 
-The benchmark now owns two frozen Gate C inputs:
+The benchmark now owns and consumes two frozen Gate C inputs:
 
 - `US-027` supplies 16 isolated atomic seeds, a separate cumulative journey,
   fixed prompts/rubrics, deterministic reset identities, and offline rubric
@@ -14,12 +14,12 @@ The benchmark now owns two frozen Gate C inputs:
 - `US-026` supplies the candidate-neutral materializer that stages and applies
   the three checksummed US-106 treatment manifests.
 
-The existing TypeScript runner remains useful, but its legacy task/report path
-was designed for the T1–T12 benchmark rather than Phase 0 qualification. Shared
-mutable execution, process/probe precedence, rubric consumption, v0-shaped
-adherence, incomplete identity capture, missing telemetry, and aggregate
-reconstruction still require Gate C proof. Historical reports are discovery
-evidence and must not be rewritten.
+The evaluation-owned path at benchmark commit
+`d9e05e395c5c9db8ca5a646e602947156f426b85` now isolates those concerns from
+the legacy T1–T12 task/report path. It exercises all three treatments through
+fresh fixtures, process-authoritative scoring, frozen rubrics, retained raw
+evidence, and independent aggregation. Historical reports remain discovery
+evidence and were not rewritten.
 
 ## Target Behavior
 

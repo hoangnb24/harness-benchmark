@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "story": "US-108",
+  "mode": "offline-qualification",
+  "result": "passed",
+  "liveAgentInvocations": 0,
+  "paidAgentInvocations": 0,
+  "candidateSelection": "none",
+  "decisionRun": false,
+  "runner": {
+    "repository": "/Users/themrb/Documents/personal/harness-benchmark",
+    "commit": "d9e05e395c5c9db8ca5a646e602947156f426b85",
+    "entrypointSha256": "f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f"
+  },
+  "rawCellManifest": {
+    "path": "raw-cells.json",
+    "sha256": "d0236faa96cb9d79855fd80d2ab16931fae97af19a51734d4aaf1c94293210d8"
+  },
+  "aggregate": {
+    "path": "qualification-aggregate.json",
+    "sha256": "c1764e6fea52b6082f5c6dd9cd60301d4d935500ce143036d484a73fb7e26bc0"
+  },
+  "dependencyAudit": {
+    "path": "dependency-audit.json",
+    "sha256": "ce9c454f556f1dee7f7548ff775cbf64726e263762888751e2f0be8a77cd1ca2"
+  },
+  "canaries": {
+    "positive": [
+      {
+        "id": "three-treatment-paths",
+        "result": "passed",
+        "assertion": "three real isolated raw cells passed for FULL_V0, COPY_ONCE, and MODULAR_CORE"
+      },
+      {
+        "id": "successful-process-rubric",
+        "result": "passed",
+        "assertion": "all three processes exited zero and all 12 frozen rubric checks passed"
+      },
+      {
+        "id": "expected-product-failure",
+        "result": "passed",
+        "assertion": "authoritative nonzero-process product-failure test passed"
+      },
+      {
+        "id": "isolated-reset",
+        "result": "passed",
+        "assertion": "independent fixture materialization and disposal tests passed"
+      },
+      {
+        "id": "complete-identities",
+        "result": "passed",
+        "assertion": "all three raw wrapper identity sets passed strict validation"
+      },
+      {
+        "id": "raw-aggregate-recompute",
+        "result": "passed",
+        "assertion": "report and verify commands recomputed 12/12 from three raw records"
+      },
+      {
+        "id": "cleanup-and-legacy-boundary",
+        "result": "passed",
+        "assertion": "run cells were removed and legacy file hashes match the baseline"
+      }
+    ],
+    "negative": [
+      {
+        "id": "timeout-cannot-pass",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "failed-process-cannot-pass",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "atomic-dependency-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "contamination-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "process-contamination-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "missing-rubric-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "unused-rubric-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "identity-missing-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "identity-mismatch-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "treatment-mismatch-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "missing-metric-is-unknown",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "missing-metric-zero-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "denominator-shrink-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "raw-cell-tamper-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      },
+      {
+        "id": "aggregate-tamper-rejected",
+        "result": "rejected",
+        "assertion": "exercised by benchmark/orchestrator/test/evaluation-qualification.test.ts"
+      }
+    ]
+  },
+  "legacy": {
+    "runnerUnchanged": true,
+    "reportUnchanged": true,
+    "baselineCommit": "3729da1293545d70a96ac1c8555e68018e388252",
+    "qualificationCommit": "d9e05e395c5c9db8ca5a646e602947156f426b85"
+  },
+  "cleanup": {
+    "cellsRemoved": true,
+    "decisionResultPathsAbsent": true
+  }
+}

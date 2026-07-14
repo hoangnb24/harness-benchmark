@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "command": "npm audit --json",
+  "executionMode": "qualification dependency audit against exact package lock",
+  "lockSha256": "b7082b85cd95e271cc7c2da9ef47ec999d35fbef24ca44e23219eead8674abaa",
+  "auditOutputSha256": "f91463bb88fe6da53c208f2ae138c38fd54391a1856a2fb54f035248e9f185c3",
+  "auditReportVersion": 2,
+  "vulnerabilitySummary": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "dependencySummary": {
+    "prod": 119,
+    "dev": 118,
+    "optional": 59,
+    "peer": 0,
+    "peerOptional": 0,
+    "total": 236
+  },
+  "disposition": "mitigated-and-rebaselined",
+  "claimedPlatforms": [
+    "macos-arm64"
+  ],
+  "reachableHighOrCritical": false,
+  "proof": "npm audit returned success with zero total, high, and critical vulnerabilities"
+}

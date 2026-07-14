@@ -110,22 +110,24 @@ HARNESS_BENCHMARK_ROOT=/Users/themrb/Documents/personal/harness-benchmark \
   disposition before a Windows claim.
 - Reachable or unexplained high/critical exposure fails qualification.
 
-## Root-Refresh Fields
+## Immutable Evidence
 
-| Field | Required final value |
+| Field | Final value |
 | --- | --- |
-| Qualified runner commit | `ROOT_REFRESH_REQUIRED_AFTER_IMPLEMENTATION` |
-| Qualification entrypoint SHA-256 | `ROOT_REFRESH_REQUIRED_AFTER_IMPLEMENTATION` |
-| Raw-cell manifest SHA-256 | `ROOT_REFRESH_REQUIRED_AFTER_IMPLEMENTATION` |
-| Qualification aggregate SHA-256 | `ROOT_REFRESH_REQUIRED_AFTER_IMPLEMENTATION` |
-| Dependency audit SHA-256/disposition | `ROOT_REFRESH_REQUIRED_AFTER_IMPLEMENTATION` |
-| Qualification receipt SHA-256 | `ROOT_REFRESH_REQUIRED_AFTER_IMPLEMENTATION` |
-| Positive/negative canary counts | `ROOT_REFRESH_REQUIRED_AFTER_IMPLEMENTATION` |
+| Qualified runner commit | `d9e05e395c5c9db8ca5a646e602947156f426b85` |
+| Qualification entrypoint SHA-256 | `f486266de5ba7f4a093df8be7ae1cd6684a198d9ab1637329b0b77dc3343ad1f` |
+| Raw-cell manifest SHA-256 | `d0236faa96cb9d79855fd80d2ab16931fae97af19a51734d4aaf1c94293210d8` |
+| Qualification aggregate SHA-256 | `c1764e6fea52b6082f5c6dd9cd60301d4d935500ce143036d484a73fb7e26bc0` |
+| Dependency audit SHA-256/disposition | `ce9c454f556f1dee7f7548ff775cbf64726e263762888751e2f0be8a77cd1ca2`; `mitigated-and-rebaselined` |
+| Qualification receipt SHA-256 | `73099b735b09faee966a9d20e5b813da55df13cd01c394f87ce56340031c546b` |
+| Positive/negative canary counts | `7` passed / `15` injected faults rejected |
 
 ## Acceptance Evidence
 
-In progress. `US-028` and parent `US-108` remain incomplete until the full
-offline qualification and repository wrapper pass, final hashes replace every refresh
-marker, dependencies are dispositioned, raw aggregation reproduces, legacy
-runner/report files remain unchanged, and the receipt proves zero live and zero
-paid agent invocations.
+Complete. Three isolated real cells exercised `FULL_V0`, `COPY_ONCE`, and
+`MODULAR_CORE` through the same materialize/apply/fake-agent/rubric/raw-store
+path and reproduced a `12/12` qualification aggregate. All seven positive
+canaries passed, all fifteen injected faults were rejected, the exact lock
+audited at zero vulnerabilities, legacy runner/report bytes remained unchanged,
+and the receipt proves zero live and zero paid agent invocations. This is Gate C
+qualification evidence only; it is not a comparison or candidate selection.
