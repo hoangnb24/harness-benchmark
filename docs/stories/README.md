@@ -3,7 +3,9 @@
 Stories are work packets. They turn product intent into bounded implementation
 and validation work.
 
-No story packets are active yet.
+Phase 0 benchmark implementation:
+
+- [`US-026` E13 Candidate Materializer](US-026-e13-candidate-materializer.md)
 
 ## Normal Story
 
