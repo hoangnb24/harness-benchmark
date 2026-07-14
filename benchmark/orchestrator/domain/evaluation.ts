@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 
 export type EvaluationMode = 'atomic' | 'cumulative';
 export type CellStatus = 'passed' | 'failed' | 'invalid' | 'blocked_dependency';
@@ -330,6 +331,37 @@ export function validateEvaluationPlan(plan: EvaluationPlan): void {
       }
     }
   }
+}
+
+export function evaluationPlanSemanticSha256(plan: EvaluationPlan): string {
+  if (plan.agent.kind !== 'codex') throw new Error('Codex execution plan identity is unavailable');
+  const { authorization: _authorization, ...agent } = plan.agent;
+  const value = {
+    version: plan.version,
+    runId: plan.runId,
+    runner: plan.runner,
+    agent,
+    model: plan.model,
+    reasoningEffort: plan.reasoningEffort,
+    sandbox: plan.sandbox,
+    toolCatalogSha256: plan.toolCatalogSha256,
+    corpus: plan.corpus,
+    cells: plan.cells,
+    cumulativeJourneys: plan.cumulativeJourneys,
+  };
+  return createHash('sha256').update(`${JSON.stringify(canonicalize(value), null, 2)}\n`).digest('hex');
+}
+
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, canonicalize(item)]),
+    );
+  }
+  return value;
 }
 
 export function effectiveRubricResults(

@@ -25,8 +25,32 @@ export async function verifyPacket({ sourceRoot }) {
   const policy = JSON.parse(await readFile(path.join(PACKET, 'analysis-policy.json'), 'utf8'));
   assertPolicy(policy);
   const approval = JSON.parse(await readFile(path.join(PACKET, 'gate-d0-approval-template.json'), 'utf8'));
-  if (approval.state !== 'pending-human-approval' || approval.authorizesLiveExecution || approval.authorizesCalibration ||
-    approval.authorizesUS110 || approval.approvedHumanCreditCeiling !== null) throw new Error('approval template grants authority or invents a human ceiling');
+  const exactApprovalKeys = [
+    'acceptsPossibleOneAdmittedCallCreditOvershoot', 'approvedAt', 'approver', 'approverRole',
+    'authorizesApiBilling', 'authorizesCalibration', 'authorizesLiveExecution', 'authorizesOverage',
+    'authorizesPurchasedCredits', 'authorizesUS110', 'executableSha', 'gate', 'maxElapsedSeconds',
+    'maxInvocations', 'maxPlanCredits', 'model', 'openBlockers', 'authMode', 'perInvocationCreditReserve',
+    'pricingPolicySha', 'protocolId', 'protocolSha', 'reasoningEffort', 'runId', 'executionPlanSha',
+    'runDirectory', 'schemaVersion', 'scope', 'state', 'statement', 'toolPolicySha',
+  ].sort();
+  if (Object.keys(approval).sort().join('\0') !== exactApprovalKeys.join('\0') ||
+    approval.state !== 'pending-human-approval' || approval.authorizesLiveExecution || approval.authorizesCalibration ||
+    approval.authorizesUS110 || approval.maxPlanCredits !== null || approval.maxElapsedSeconds !== null ||
+    approval.perInvocationCreditReserve !== null || approval.executionPlanSha !== null ||
+    approval.runDirectory !== null || approval.protocolSha !== null || approval.executableSha !== null ||
+    approval.pricingPolicySha !== null || approval.toolPolicySha !== null ||
+    approval.acceptsPossibleOneAdmittedCallCreditOvershoot !== false) {
+    throw new Error('approval template grants authority or invents a human ceiling');
+  }
+  const futureCeiling = JSON.parse(await readFile(
+    path.join(PACKET, 'future-decision-credit-ceiling-template.json'),
+    'utf8',
+  ));
+  if (futureCeiling.schemaVersion !== 1 || futureCeiling.scope !== 'future-decision-planning' ||
+    futureCeiling.policyId !== policy.policyId || futureCeiling.approvedHumanCreditCeiling !== null ||
+    futureCeiling.authorizesCalibrationExecution !== false) {
+    throw new Error('future-decision credit ceiling template grants authority or invents a human ceiling');
+  }
   await verifyCandidates(sourceRoot);
   const corpus = await loadCalibrationCorpus();
   for (const taskId of ['H01-config-precedence', 'H02-brownfield-script-merge']) {

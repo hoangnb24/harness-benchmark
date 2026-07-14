@@ -153,6 +153,7 @@ describe('US-029 decision runner prelock', () => {
     for (const variant of [
       'missing-live-flag', 'missing-external-hash', 'external-hash-mismatch',
       'missing', 'tampered', 'wrong-run', 'wrong-model', 'non-approved', 'tampered-protocol',
+      'rejects-one-call-credit-overshoot',
       'tampered-tool-policy', 'tampered-executable', 'nonempty-run-dir', 'symlink-parent',
       'unsafe-id', 'later-treatment-mismatch',
     ] as const) {
@@ -197,6 +198,9 @@ describe('US-029 decision runner prelock', () => {
         if (variant === 'wrong-run') authorization.runId = 'another-run';
         if (variant === 'wrong-model') authorization.model = 'another-model';
         if (variant === 'non-approved') authorization.state = 'pending';
+        if (variant === 'rejects-one-call-credit-overshoot') {
+          authorization.acceptsPossibleOneAdmittedCallCreditOvershoot = false;
+        }
         await writeFile(authorizationPath, JSON.stringify(authorization, null, 2));
         plan.agent.authorization.sha256 = await fileSha(authorizationPath);
         externalSha = plan.agent.authorization.sha256;
@@ -553,6 +557,7 @@ async function atomicCodexPlan(root: string, executable: string, runDirectory: s
     authorizesApiBilling: false,
     authorizesPurchasedCredits: false,
     authorizesOverage: false,
+    acceptsPossibleOneAdmittedCallCreditOvershoot: true,
     executionPlanSha: codexExecutionPlanSha(value as unknown as EvaluationPlan),
     runDirectory,
   }, null, 2));

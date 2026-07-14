@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "scope": "future-decision-planning",
+  "policyId": "e13-gate-d0-blinded-sizing-v1",
+  "approvedHumanCreditCeiling": null,
+  "authorizesCalibrationExecution": false
+}

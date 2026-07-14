@@ -1,9 +1,9 @@
 import { lstat, readFile, realpath } from 'node:fs/promises';
-import type { EvaluationPlan } from '../domain/evaluation';
-import { canonicalJson, sha256 } from './EvaluationFiles';
+import { evaluationPlanSemanticSha256, type EvaluationPlan } from '../domain/evaluation';
+import { sha256 } from './EvaluationFiles';
 
 const AUTHORIZATION_KEYS = [
-  'approvedAt', 'approver', 'approverRole', 'authorizesApiBilling',
+  'acceptsPossibleOneAdmittedCallCreditOvershoot', 'approvedAt', 'approver', 'approverRole', 'authorizesApiBilling',
   'authorizesCalibration', 'authorizesLiveExecution', 'authorizesOverage',
   'authorizesPurchasedCredits', 'authorizesUS110', 'executableSha', 'gate',
   'maxElapsedSeconds', 'maxInvocations', 'maxPlanCredits', 'model', 'openBlockers',
@@ -106,6 +106,7 @@ export async function verifyCodexExecutionAuthorization(
     authorizesApiBilling: false,
     authorizesPurchasedCredits: false,
     authorizesOverage: false,
+    acceptsPossibleOneAdmittedCallCreditOvershoot: true,
     toolPolicySha,
     executionPlanSha: codexExecutionPlanSha(plan),
     runDirectory,
@@ -142,21 +143,7 @@ export async function verifyCodexExecutionAuthorization(
 }
 
 export function codexExecutionPlanSha(plan: EvaluationPlan): string {
-  if (plan.agent.kind !== 'codex') throw new Error('Codex execution plan identity is unavailable');
-  const { authorization: _authorization, ...agent } = plan.agent;
-  return sha256(canonicalJson({
-    version: plan.version,
-    runId: plan.runId,
-    runner: plan.runner,
-    agent,
-    model: plan.model,
-    reasoningEffort: plan.reasoningEffort,
-    sandbox: plan.sandbox,
-    toolCatalogSha256: plan.toolCatalogSha256,
-    corpus: plan.corpus,
-    cells: plan.cells,
-    cumulativeJourneys: plan.cumulativeJourneys,
-  }));
+  return evaluationPlanSemanticSha256(plan);
 }
 
 function parseToolPolicy(bytes: Buffer, codexVersion: string): CodexToolPolicy {

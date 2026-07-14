@@ -113,8 +113,8 @@ export function assertHeldOutCalibrationPlan(plan: EvaluationPlan): void {
   if (plan.agent.kind !== 'codex' || plan.agent.scope !== 'calibration') {
     throw new Error('held-out calibration requires a Codex calibration-scope plan');
   }
-  if (plan.runner.commit !== '2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef') {
-    throw new Error('held-out calibration runner commit must equal the US-029 commit');
+  if (plan.runner.repository !== 'harness-benchmark' || !/^[a-f0-9]{40}$/.test(plan.runner.commit)) {
+    throw new Error('held-out calibration runner must name an exact harness-benchmark commit');
   }
   if (
     plan.corpus.lockSha256 !== CALIBRATION_CORPUS_LOCK_SHA256 ||

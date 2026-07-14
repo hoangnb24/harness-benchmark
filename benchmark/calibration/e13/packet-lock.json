@@ -2,38 +2,530 @@
   "schemaVersion": 1,
   "packetId": "e13-gate-d0-held-out-v1",
   "state": "approval-ready-offline-template",
-  "runner": {"repository":"harness-benchmark","us029Commit":"2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef"},
-  "scope": {"calibrationOnly":true,"decisionCorpusEligible":false,"decisionAggregateEligible":false,"liveExecutionAuthorized":false,"us110Authorized":false},
+  "runner": {
+    "repository": "harness-benchmark",
+    "qualifiedBaseCommit": "2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef",
+    "executionCommit": {
+      "state": "supplied-by-cycle-free-governance-after-this-packet-is-committed"
+    }
+  },
+  "scope": {
+    "calibrationOnly": true,
+    "decisionCorpusEligible": false,
+    "decisionAggregateEligible": false,
+    "liveExecutionAuthorized": false,
+    "us110Authorized": false,
+    "failFastAfterFirstInvalidCell": true,
+    "blindedSizingReportImplemented": true
+  },
   "outputRoot": "benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v1",
   "plannedCalls": 18,
   "concurrency": 1,
   "retries": 0,
   "identities": [
-    {"path":"benchmark/calibration/e13/analysis-policy.json","sha256":"6a02be188fe08465b3d8d761e990bf90051990962576e93583379ecf78650ac4"},
-    {"path":"benchmark/calibration/e13/blinded-report-template.json","sha256":"71dcb8ef1a43f3fcec03a00c70f7e14c5ef6a96ae4dd53adc2adce83bca6bc08"},
-    {"path":"benchmark/calibration/e13/build-packet-lock.mjs","sha256":"7536cbdaba099998098b556728abca86178390649adc6ed74603d02dbc302204"},
-    {"path":"benchmark/calibration/e13/candidate-identities.json","sha256":"ae9c72919fb328ee5638f7c015f7cfa5263bafc51cad91f4296c3e15aea7d9f4"},
-    {"path":"benchmark/calibration/e13/corpus/atomic-catalog.json","sha256":"f47a0907ba1725d5258256bf86cc0c441f4c1a2ba8b7b2268a6b693412e2a212"},
-    {"path":"benchmark/calibration/e13/corpus/build-lock.mjs","sha256":"dfcad90bf8c6f476d32f5bd04836f04ca3ffdaabae03a534a1f74339ebdd78a1"},
-    {"path":"benchmark/calibration/e13/corpus/calibration-lib.mjs","sha256":"11b69ba25df363df1303651e5d01259d518409b97fc39be9b415a7b841ac5430"},
-    {"path":"benchmark/calibration/e13/corpus/corpus-lock.json","sha256":"da1a24586d22f4e3f3399292e869f1ce63c7680cb9fc613f76597922ca30a406"},
-    {"path":"benchmark/calibration/e13/corpus/materialize-fixture.mjs","sha256":"dcbf9112c18886ee4afecc398b28dbe4238428cfaffd74c4278b83aee9c96c0c"},
-    {"path":"benchmark/calibration/e13/corpus/rubric-runner.mjs","sha256":"8f1dc51997c8eb39e3b2d755430320b90f387bf6fed284b3dc48a2d956ff5dd9"},
-    {"path":"benchmark/calibration/e13/execution-contract-template.json","sha256":"60650c26b4f4f5b6630a0be7c24e26db28c09106e93b30f0ff82c7be35967066"},
-    {"path":"benchmark/calibration/e13/gate-d0-approval-template.json","sha256":"c7b3bc1f9be7899021a645897357919874c93e53aa6a65af7acd07fcde8dc636"},
-    {"path":"benchmark/calibration/e13/schedule.json","sha256":"22eee172c4e8d545777230a379f796d0be12753ce2bcd28b7f9c50178fe646aa"},
-    {"path":"benchmark/calibration/e13/verify-packet.mjs","sha256":"e95fd1c89e3a100a26d7a77abab253ace6456e6a95d400e769562c42d96efe19"},
-    {"path":"benchmark/candidates/e13/materialize-candidate.mjs","sha256":"0bb99ae578c66cf2faaab52f8635824111585927f89cafc02bf45cc9f4e47bd0"},
-    {"path":"benchmark/orchestrator/application/GenerateCalibrationAggregate.ts","sha256":"e1ac24512fca5f3030fad95441c8afac2c613ef28ce0ead29a72dc60e33bf04e"},
-    {"path":"benchmark/orchestrator/application/GenerateCalibrationAnalysis.ts","sha256":"5dd8e3310a6824b4771bbc1144cff1fc656fcc49bd61659c872bea92a60c6a27"},
-    {"path":"benchmark/orchestrator/domain/calibration.ts","sha256":"cfbda90cf7e716a0cbdc1753b6a51e24d3586c7688c0cbd7552500861600cf89"},
-    {"path":"benchmark/orchestrator/interface/evaluation-cli.ts","sha256":"9dcef4083e578ffbe4f9a88583eeaddc24bbaa8db222e81363c75225d46fcc1a"},
-    {"path":"benchmark/orchestrator/test/held-out-calibration-packet.test.ts","sha256":"92a39d7a44d5f4b8e0cd56e58d2877774d4c29859fd569dab05c7dbde3fabd71"},
-    {"path":"benchmark/phase0/corpus-lib.mjs","sha256":"bbd20c6cb19690e682ae68691aa570bd1f974bd298922c015cff5e2392a72a82"},
-    {"path":"benchmark/phase0/rubric-runner.mjs","sha256":"547ae4bd8038238e1a2f53382f0c807f6886076f975480ee781d94b677349962"},
-    {"path":"package-lock.json","sha256":"b7082b85cd95e271cc7c2da9ef47ec999d35fbef24ca44e23219eead8674abaa"}
+    {
+      "path": "benchmark/calibration/e13/analysis-policy.json",
+      "sha256": "6a02be188fe08465b3d8d761e990bf90051990962576e93583379ecf78650ac4"
+    },
+    {
+      "path": "benchmark/calibration/e13/blinded-report-template.json",
+      "sha256": "71dcb8ef1a43f3fcec03a00c70f7e14c5ef6a96ae4dd53adc2adce83bca6bc08"
+    },
+    {
+      "path": "benchmark/calibration/e13/build-packet-lock.mjs",
+      "sha256": "9926ab656127fd5f8e05ef1a124f823395fd1aac60aa361a91ea6c15395a8a56"
+    },
+    {
+      "path": "benchmark/calibration/e13/candidate-identities.json",
+      "sha256": "ae9c72919fb328ee5638f7c015f7cfa5263bafc51cad91f4296c3e15aea7d9f4"
+    },
+    {
+      "path": "benchmark/calibration/e13/corpus/atomic-catalog.json",
+      "sha256": "f47a0907ba1725d5258256bf86cc0c441f4c1a2ba8b7b2268a6b693412e2a212"
+    },
+    {
+      "path": "benchmark/calibration/e13/corpus/build-lock.mjs",
+      "sha256": "dfcad90bf8c6f476d32f5bd04836f04ca3ffdaabae03a534a1f74339ebdd78a1"
+    },
+    {
+      "path": "benchmark/calibration/e13/corpus/calibration-lib.mjs",
+      "sha256": "11b69ba25df363df1303651e5d01259d518409b97fc39be9b415a7b841ac5430"
+    },
+    {
+      "path": "benchmark/calibration/e13/corpus/corpus-lock.json",
+      "sha256": "da1a24586d22f4e3f3399292e869f1ce63c7680cb9fc613f76597922ca30a406"
+    },
+    {
+      "path": "benchmark/calibration/e13/corpus/materialize-fixture.mjs",
+      "sha256": "dcbf9112c18886ee4afecc398b28dbe4238428cfaffd74c4278b83aee9c96c0c"
+    },
+    {
+      "path": "benchmark/calibration/e13/corpus/rubric-runner.mjs",
+      "sha256": "8f1dc51997c8eb39e3b2d755430320b90f387bf6fed284b3dc48a2d956ff5dd9"
+    },
+    {
+      "path": "benchmark/calibration/e13/execution-contract-template.json",
+      "sha256": "3ced124a235dd4ef2d6d9403288df3a869fb5334bca62885accc4eb4e6f7509e"
+    },
+    {
+      "path": "benchmark/calibration/e13/future-decision-credit-ceiling-template.json",
+      "sha256": "066505d1ded689a74f364f074184f6b9884324d0affc18dece9e4c0976a798f9"
+    },
+    {
+      "path": "benchmark/calibration/e13/gate-d0-approval-template.json",
+      "sha256": "57b3cbabc880fc3c224689a4655d76c29981e2166e0ce919b060f2652ded88ab"
+    },
+    {
+      "path": "benchmark/calibration/e13/schedule.json",
+      "sha256": "22eee172c4e8d545777230a379f796d0be12753ce2bcd28b7f9c50178fe646aa"
+    },
+    {
+      "path": "benchmark/calibration/e13/verify-packet.mjs",
+      "sha256": "816c1d12ead3c540894695f13a4156304a7cf7a17d84183541d543ae4b5ac057"
+    },
+    {
+      "path": "benchmark/candidates/e13/materialize-candidate.mjs",
+      "sha256": "0bb99ae578c66cf2faaab52f8635824111585927f89cafc02bf45cc9f4e47bd0"
+    },
+    {
+      "path": "benchmark/orchestrator/application/BuildRunExecutionPlan.ts",
+      "sha256": "3cebd00c347449352e0ff6c534425b5785acd760778d6e43f1761667e4d9a74b"
+    },
+    {
+      "path": "benchmark/orchestrator/application/GenerateBlindedCalibrationReport.ts",
+      "sha256": "2c25b191150eb42d4ef82c88937895e46e401bd9ab749933d504b8858256b8af"
+    },
+    {
+      "path": "benchmark/orchestrator/application/GenerateCalibrationAggregate.ts",
+      "sha256": "e1ac24512fca5f3030fad95441c8afac2c613ef28ce0ead29a72dc60e33bf04e"
+    },
+    {
+      "path": "benchmark/orchestrator/application/GenerateCalibrationAnalysis.ts",
+      "sha256": "5dd8e3310a6824b4771bbc1144cff1fc656fcc49bd61659c872bea92a60c6a27"
+    },
+    {
+      "path": "benchmark/orchestrator/application/GenerateCumulativeEvaluationAggregate.ts",
+      "sha256": "670fcc585d09ade1b0255e7fd0ac92773c8f86a5dab9000d4f7fec2a9d68df95"
+    },
+    {
+      "path": "benchmark/orchestrator/application/GenerateEvaluationAggregate.ts",
+      "sha256": "604a6104c228cf2bfca09fd873188dd352aad563395ea5985fdb91eef2f6033e"
+    },
+    {
+      "path": "benchmark/orchestrator/application/GenerateReport.ts",
+      "sha256": "63a36d7e3b9dc869e02a10df20e3ebda39d97e393c40a6094941939fdf6f4ae4"
+    },
+    {
+      "path": "benchmark/orchestrator/application/PrepareRun.ts",
+      "sha256": "eb399459af3617a21339981560a9ca17900f20fde9629af24f8b33add0379a62"
+    },
+    {
+      "path": "benchmark/orchestrator/application/RecordUsage.ts",
+      "sha256": "ab6e9f20564cf6c3db6d0d570371598b71dc0efa48b87c2a85e6c5ca6bbd70fe"
+    },
+    {
+      "path": "benchmark/orchestrator/application/ResumeRun.ts",
+      "sha256": "e28650c52cd90de6ac011dd35d373b15c1f02a17ad79f57e6b3976e04ecc5d1d"
+    },
+    {
+      "path": "benchmark/orchestrator/application/ReviewAdherence.ts",
+      "sha256": "9100db584d78116a126dd41e86b56ac302afa6755ebe173f868e6698e62a56ad"
+    },
+    {
+      "path": "benchmark/orchestrator/application/RunBenchmark.ts",
+      "sha256": "3fb407c9f11739bda0b64c934e5ea727e6da260770a773906dffeca20be31855"
+    },
+    {
+      "path": "benchmark/orchestrator/application/RunCalibrationPlan.ts",
+      "sha256": "0b2699199fb960a5b56be021a037511f41fe990a798eb42b10568bb548ff079e"
+    },
+    {
+      "path": "benchmark/orchestrator/application/RunCumulativeEvaluationPlan.ts",
+      "sha256": "80d47e8916e4bb07e3d49221d551c1b2527d26273c0abdee1827965f84c13d43"
+    },
+    {
+      "path": "benchmark/orchestrator/application/RunEvaluationCell.ts",
+      "sha256": "6995b5009a5e6127af623eea421561512997618b7bde1451560e445c88b0bfe6"
+    },
+    {
+      "path": "benchmark/orchestrator/application/RunEvaluationPlan.ts",
+      "sha256": "e73122b6e75cd90fbe573d02bebfa10c548389e207e6178490a107700e27ce87"
+    },
+    {
+      "path": "benchmark/orchestrator/application/ScoreAdherence.ts",
+      "sha256": "550a80777ee54454224f06a843c4cb8aa8185a862f30c76f390bbbefed25d9e5"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/adherence.ts",
+      "sha256": "ee8e51e0af7bcd9b739a0c028a88a92714c6ad6cc898eacdeae73ec2363fdc79"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/calibration.ts",
+      "sha256": "3ad2d58cd8d3bd4f4cfd7bd30b7bab6e7f178e3529dedc7bcad9bab32e1e8d49"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/checkpoint.ts",
+      "sha256": "b8fbcf498121f68072e8b3c1976661b3bdea2546a6c0ab4568ef5184943fd847"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/cost.ts",
+      "sha256": "047ee582aa2edf60c13ec8db2acb1966a84de238f7897fee2dce47a2cf6441f0"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/evaluation.ts",
+      "sha256": "9404bed54dad5e16cba1f09552274da18372d15a74d19dadedf92554471cee22"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/functional-check.ts",
+      "sha256": "77763921d97694ef06c3e6861b13422c5dc81fd953c78e3277f6f24c682c11da"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/score.ts",
+      "sha256": "555cb0a8a9d4ec1ff25a193407fe3008024439903e6ef9935af702d354c91586"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/task.ts",
+      "sha256": "ae8d4639d35b1974965eb08fdbb297e3f146b5da976c0a90fb90aa0f7355b74d"
+    },
+    {
+      "path": "benchmark/orchestrator/domain/usage.ts",
+      "sha256": "da7d47370ce0e988c52037c0b7f1cb22c1d9f0f7d2e3c671edbf318272116f6f"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/AnthropicUsageParser.ts",
+      "sha256": "980a11edbb7e62466e228e7d57cd170d34432a51df28a92114a955c458d01f3a"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/BudgetedEvaluationAgent.ts",
+      "sha256": "e90c2450edbf55426456403e5dda66801f50c919d5579658942f80017aef3fb0"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/CalibrationPlanLock.ts",
+      "sha256": "f35689428e60165abc01e11329ed2009a83fb3097af454ef7df8480f7d2104b5"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/CodexEvaluationAgent.ts",
+      "sha256": "cd4b04e70176095e3984e76e240743ceaa433d373f7949161f77a4cd04dcba41"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/CodexExecutionAuthorization.ts",
+      "sha256": "b3100fdb002d2e297e8d4f0283a56bd78b8eed1904fef5a00e637e1d0621040f"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/CommandAdherenceEvidenceProvider.ts",
+      "sha256": "b9a401f559523022d4b71d44309a1a41b98389bbda272a9176235f76452f5970"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/CommandEvaluationTreatmentMaterializer.ts",
+      "sha256": "3b0d7376d169e5421a64589cabcb9fc59bcf33b9ac2102ea717695f6a2c8411c"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/CustomUsageParser.ts",
+      "sha256": "c48052c82bdadd85bf4d69126cdda584b626cf5f9688179f8511ab1431547a9d"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/DeclarativeFunctionalProbe.ts",
+      "sha256": "5159ba6a54dc4211c6315556bfe236e90baf562408a3b4b2087ee5ea056840b2"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/EvaluationFiles.ts",
+      "sha256": "e9ee046b0c989b305c469c501c7d9ef8d8cf6e8124262eeaade2345bf6b92e70"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/FakeEvaluationAgent.ts",
+      "sha256": "16cae0b2d623969abf5a89b29c8bb7af7142edf987527e1eebeace6517ab6355"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/FetchHttpClient.ts",
+      "sha256": "6fe5b43b37034c05ac1310ac81b624327f9f31507b536d4e945f0512bd0e435a"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/FsAdherenceArtifactWriter.ts",
+      "sha256": "cf0d665073d410bad0957012118f6f04ec6fc18d9575ef02a4d4d40ef72ddae0"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/FsCheckpointStore.ts",
+      "sha256": "d1fb25f054fef5b8771b266cc0650f0304ad63283af802962fc88babceb5282a"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/FsRawCellStore.ts",
+      "sha256": "1a924f36b1b5699b6f52c1c148921ad45e74e414d7f83206892ece2e5d379e88"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/FsUsageArtifactWriter.ts",
+      "sha256": "0e454c50ecb55407e3672100ddb8827733a4486e1e1b4ff3c86c3a00c43f822a"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/FsWorkspaceSnapshotStore.ts",
+      "sha256": "29aed85c6b0dac241383be0872e5d8827697173bfc0590242369f203be82c321"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/FunctionalCheckLoader.ts",
+      "sha256": "b7e09e14f996a2d5371f0baa84ff9c94bfaf42659a063616b7e1d8f39f1622aa"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/JsonAdherenceEvidenceProvider.ts",
+      "sha256": "f61e09c533d323e99b429e8b3aa0d7a98b00e71ee90080683a0e0e239aa6a17d"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/JsonEvaluationPlanLoader.ts",
+      "sha256": "665a2e975fd33a4967c341c6de3e7410df2b00856e3aa687027f4a6874d7dafa"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/JsonPricingProvider.ts",
+      "sha256": "10fa0634181224ca680e9452bc5a97ac3af126c486842f7db81e9c9b9b9e39d9"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/LegacyCodexAdapter.ts",
+      "sha256": "cc8711e34408a868ddc45b2d9fe51b0bbae09d75c9276631008898115c02bcc3"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/LegacyTaskArtifactRecorder.ts",
+      "sha256": "9fce2739f09ab946af04199075a4bd8f15e8b221a84297a60ccc650e45ac9bc7"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/NodeCommandRunner.ts",
+      "sha256": "b466d1bffa4d26aa5be6ee981cc2abfe4635d76092dc5b4ead458fd852ca36de"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/OpenAiUsageParser.ts",
+      "sha256": "0b90cd3487d536f1b9b344183b019f1acba9d9ca9c6a964ceda045a31383f1c5"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/Phase0CumulativeJourneyExecutor.ts",
+      "sha256": "1fa5646c5b076c9470281923bab99f56390963d8a501a6e4ac1d5d6b1521d6fc"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/Phase0EvaluationWorkspace.ts",
+      "sha256": "468511a967e1163a31b383b94cfee53677a03d5d17e03024b35b01a6a9bb9e9c"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/Phase0RubricEvaluator.ts",
+      "sha256": "3255e613906c6837033a9ccde319e2deebe679998d5a66a7439cf958505b7afc"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/ScriptedFunctionalRunners.ts",
+      "sha256": "17378e3b7dd931dbd4b367705253dcf5b71a2a2175b38f87abbfa638ec5497cc"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/ServerManagedFunctionalProbe.ts",
+      "sha256": "a1da55fbe915b7970d9f9074de7352ed127c3482ede0993742bfc97dceea0552"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/ShellHarnessInstaller.ts",
+      "sha256": "b864d58034eff72b5f9da5674130f39803f811ad49c0eca98a18bf364ff942fc"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/SnapshotPolicy.ts",
+      "sha256": "f5b97ec2734b67f54866d1868d37b0e67c7b068c4f7ecf0e79fff2865f33805c"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/SystemClock.ts",
+      "sha256": "06aa33f8928b63e944787fd972fd70a676ee2db66f136299f1d189e2fdd97e8b"
+    },
+    {
+      "path": "benchmark/orchestrator/infrastructure/TaskManifestLoader.ts",
+      "sha256": "d7165ff24205080dc7482ecc9682bb8eb597179c7abeeef9b4564d8126cef3bf"
+    },
+    {
+      "path": "benchmark/orchestrator/interface/calibration-plan-cli.ts",
+      "sha256": "bab68c462aa9c33878dab1a84cc97b910af02e5004d92d0d2198e1da0a1c06d2"
+    },
+    {
+      "path": "benchmark/orchestrator/interface/cli.ts",
+      "sha256": "1bc552e7f6e974f3e1e5250705158e27acc49709e9bcf16b98ac6f9262fbea42"
+    },
+    {
+      "path": "benchmark/orchestrator/interface/composition-root.ts",
+      "sha256": "30717d8959477f4d64d4b00d1e93e812770f1a8227803000498b7d62287d80de"
+    },
+    {
+      "path": "benchmark/orchestrator/interface/evaluation-cli.ts",
+      "sha256": "b5c8887984a6f1de626d9843330dc4b28047756af85e8166a86c1a9d1a9dbec1"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/AgentAdapter.ts",
+      "sha256": "fd9aef49abb65f2ec702a145154186cdb71db086efce34c04d8917778e55bad2"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/CheckpointStore.ts",
+      "sha256": "2247609628d0105823cbf7331307334ce5b9371d8ee93e75cbdb5cce213e9d2f"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/Clock.ts",
+      "sha256": "9365c20912d1eaf50b425923a77865f405c39e4ad48860ccdcd0f2e974067c53"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/CumulativeJourneyExecutor.ts",
+      "sha256": "e2ab4b41a7d14dfaa3b25c7e15adf947d487e99d41091fb8ee6a18c85c8329b0"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/EvaluationCellExecutor.ts",
+      "sha256": "5dbcccf5a2754754633d13ee3543231cb781f54bcb36bb68287e37e6edf17a40"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/EvaluationRubricEvaluator.ts",
+      "sha256": "4f729fa2276ec9be32196396381c80a6fa5fb864b95c5632bf5d5c13036c8b92"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/EvaluationTreatmentMaterializer.ts",
+      "sha256": "7b8f67b8d767e22a4aca0ad36557edbf99648f1bf8d7192d2950daf7bbfe69c3"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/EvaluationWorkspace.ts",
+      "sha256": "b8f2f63e36d2c3ca9b7ac88b7458a46cee9e3cdfa667ad409e8214e17075497c"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/FileStore.ts",
+      "sha256": "e9324da9d6da8c3b1d9a9bd5b02390014ca24e5fc25e1adb48b707e8e78492fe"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/FunctionalProbe.ts",
+      "sha256": "8387d04e21eb1407c8068b01ffd68b729927653b9a868915f6b1ab0438e52893"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/HarnessGateway.ts",
+      "sha256": "15946a77c2494fa917730f16a42b6574ef8c67b60fd199d67f8339fca0b61b06"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/HarnessInstaller.ts",
+      "sha256": "fb6fe740c965f7e65fd0795ad52170aa6a90885eb1b0a0f926914ec74dc11969"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/PricingProvider.ts",
+      "sha256": "40c66c7e0123bab23e3fd9a93af0d94636141396168554aea276c7231e0e5315"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/RawCellStore.ts",
+      "sha256": "bad6216af3bdd9af85e3bbd6799879791a00894bf0c171182631ab040a6f70ec"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/TaskArtifactRecorder.ts",
+      "sha256": "343a450c98530df81609e0f286c4f0d75930a39a5cede4bbbaa766d1341e7739"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/UsageArtifactWriter.ts",
+      "sha256": "9ca252b41f1ba49685062b54ab76756022e9f57b811afb7b36b4b836232f1649"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/UsageParser.ts",
+      "sha256": "c8de42b66b2ae831e4057d6af4b8396e1a3a3a0076fba89f65dea744e013f84c"
+    },
+    {
+      "path": "benchmark/orchestrator/ports/WorkspaceSnapshotStore.ts",
+      "sha256": "a6a2b7be66dfcb29463c18b3eae799e39f49f06609ccdb720967354a6e8a9fb9"
+    },
+    {
+      "path": "benchmark/orchestrator/test/adherence-review.test.ts",
+      "sha256": "3396f6e4eaff947e979dafaa550417f1644d0e2504b0f2d3cb9b6add585d85b4"
+    },
+    {
+      "path": "benchmark/orchestrator/test/agent-adapters.test.ts",
+      "sha256": "60aee6f567b208b83500a76269da32c9499f4930b8aaf06d91353ccd029c8831"
+    },
+    {
+      "path": "benchmark/orchestrator/test/architecture-boundaries.test.ts",
+      "sha256": "4db1b336461ba28e7134eec3b124b6045b4ac6657fab1c8e0283024913eded4d"
+    },
+    {
+      "path": "benchmark/orchestrator/test/build-run-execution-plan.test.ts",
+      "sha256": "d380832a95f2233b21d39c76c949ad0f0e668db5a843f212710547601aa9b8f5"
+    },
+    {
+      "path": "benchmark/orchestrator/test/calibration-fail-fast-and-blinded-report.test.ts",
+      "sha256": "f0b0d5740d26aa6cb33dd89c3a9104f0b6c73a6d50e2fd4f2e61f9f9ba6786f6"
+    },
+    {
+      "path": "benchmark/orchestrator/test/calibration-plan-lock.test.ts",
+      "sha256": "e873f343c05a261bfde1753d2afd85ced55c8416c94f07361a7d9c81cae4fc42"
+    },
+    {
+      "path": "benchmark/orchestrator/test/checkpoint.test.ts",
+      "sha256": "77658fc021331af0932e58c983c3b0cfaa8c0018ae0b4c7bd0bca21e112d6d1f"
+    },
+    {
+      "path": "benchmark/orchestrator/test/cli.test.ts",
+      "sha256": "260414760a16022ab364db70d85b9911659b0d75e80723c700b2f8e97e7b2166"
+    },
+    {
+      "path": "benchmark/orchestrator/test/command-adherence-evidence-provider.test.ts",
+      "sha256": "ddfd3b36a9923aa20982edc3d66d7b7e54973cd95b6ea9919a6013a435105a91"
+    },
+    {
+      "path": "benchmark/orchestrator/test/decision-runner-prelock.test.ts",
+      "sha256": "d785e3481ae9866bd18fc696407686a0e037149519c2bfd04c4ddff6ddf861ba"
+    },
+    {
+      "path": "benchmark/orchestrator/test/declarative-functional-probe.test.ts",
+      "sha256": "8a74b6c219c0189ed29a6340cd0315148f34a36369ba2361d12b76d02fe6f162"
+    },
+    {
+      "path": "benchmark/orchestrator/test/evaluation-qualification.test.ts",
+      "sha256": "17d807ca0b88b8a85b15c2dd0e98d212231b38212e96adf1203df3303692b9a3"
+    },
+    {
+      "path": "benchmark/orchestrator/test/functional-check-loader.test.ts",
+      "sha256": "d0aaf2f4e9431408da6eb518d3ec67af9073874ddfd60721922759bdef2cdaea"
+    },
+    {
+      "path": "benchmark/orchestrator/test/generate-report.test.ts",
+      "sha256": "6910860fb87b66c0d2a10b17f8efdd6e51e2a4cff389d7d8be5e83cc11496b82"
+    },
+    {
+      "path": "benchmark/orchestrator/test/held-out-calibration-packet.test.ts",
+      "sha256": "92a39d7a44d5f4b8e0cd56e58d2877774d4c29859fd569dab05c7dbde3fabd71"
+    },
+    {
+      "path": "benchmark/orchestrator/test/prepare-run.test.ts",
+      "sha256": "3df0005a4795103cde2011d80bada9590b48dafd2091b5f7bafdf9747dde9a4d"
+    },
+    {
+      "path": "benchmark/orchestrator/test/record-usage.test.ts",
+      "sha256": "32cf9d2e09426c10bf521031a1745bcbfc2d98bf4d0b5f3ce0205139435f1296"
+    },
+    {
+      "path": "benchmark/orchestrator/test/resume-run.test.ts",
+      "sha256": "e7bee529a9e111d820ec7cb9c315d6e4c82bedba76c5d3317a6a1e561de775aa"
+    },
+    {
+      "path": "benchmark/orchestrator/test/run-benchmark.test.ts",
+      "sha256": "a3d7ca9c4908c975da45eb60eea2b39b4b885cb18e1ba384be1cee930482b116"
+    },
+    {
+      "path": "benchmark/orchestrator/test/score-adherence.test.ts",
+      "sha256": "040baef1bc547dfb79f47a6562a53882b1d9bbabed545a7a914dc831629b4a2e"
+    },
+    {
+      "path": "benchmark/orchestrator/test/server-managed-functional-probe.test.ts",
+      "sha256": "e0e711ecacf538bed1e7e0e87e3291e4d2c02e8998a878e4d505ba0a96703627"
+    },
+    {
+      "path": "benchmark/orchestrator/test/task-manifest.test.ts",
+      "sha256": "c2809e69a3db6067429a2ccd1168ce8c6fcb0c5e6e7985529c11d7f34fe1c455"
+    },
+    {
+      "path": "benchmark/orchestrator/test/usage-and-pricing.test.ts",
+      "sha256": "1bf5f90c60b2d75a28d571d8e8a25fbd2f4dd69f908d949a0c1bd279bcbd01ec"
+    },
+    {
+      "path": "benchmark/orchestrator/test/workspace-snapshot-store.test.ts",
+      "sha256": "ec8e178c4db79e1c0a8cb14d0f189a9a722d415ffd54f53da555c1fbdb3fa882"
+    },
+    {
+      "path": "benchmark/phase0/corpus-lib.mjs",
+      "sha256": "bbd20c6cb19690e682ae68691aa570bd1f974bd298922c015cff5e2392a72a82"
+    },
+    {
+      "path": "benchmark/phase0/rubric-runner.mjs",
+      "sha256": "547ae4bd8038238e1a2f53382f0c807f6886076f975480ee781d94b677349962"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "b7082b85cd95e271cc7c2da9ef47ec999d35fbef24ca44e23219eead8674abaa"
+    }
   ],
   "candidateIdentityFile": "benchmark/calibration/e13/candidate-identities.json",
   "approvalTemplate": "benchmark/calibration/e13/gate-d0-approval-template.json",
+  "futureDecisionCreditCeilingTemplate": "benchmark/calibration/e13/future-decision-credit-ceiling-template.json",
   "blindedReportTemplate": "benchmark/calibration/e13/blinded-report-template.json"
 }

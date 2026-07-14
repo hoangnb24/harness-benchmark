@@ -1,37 +1,20 @@
 #!/usr/bin/env node
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { canonicalJson, sha256 } from '../../phase0/corpus-lib.mjs';
 
 const REPOSITORY = path.resolve(import.meta.dirname, '../../..');
 const PACKET = path.resolve(import.meta.dirname);
-const relativeFiles = [
-  'benchmark/calibration/e13/analysis-policy.json',
-  'benchmark/calibration/e13/blinded-report-template.json',
-  'benchmark/calibration/e13/build-packet-lock.mjs',
-  'benchmark/calibration/e13/candidate-identities.json',
-  'benchmark/calibration/e13/corpus/atomic-catalog.json',
-  'benchmark/calibration/e13/corpus/build-lock.mjs',
-  'benchmark/calibration/e13/corpus/calibration-lib.mjs',
-  'benchmark/calibration/e13/corpus/corpus-lock.json',
-  'benchmark/calibration/e13/corpus/materialize-fixture.mjs',
-  'benchmark/calibration/e13/corpus/rubric-runner.mjs',
-  'benchmark/calibration/e13/execution-contract-template.json',
-  'benchmark/calibration/e13/gate-d0-approval-template.json',
-  'benchmark/calibration/e13/schedule.json',
-  'benchmark/calibration/e13/verify-packet.mjs',
-  'benchmark/candidates/e13/materialize-candidate.mjs',
-  'benchmark/orchestrator/application/GenerateCalibrationAggregate.ts',
-  'benchmark/orchestrator/application/GenerateCalibrationAnalysis.ts',
-  'benchmark/orchestrator/domain/calibration.ts',
-  'benchmark/orchestrator/interface/evaluation-cli.ts',
-  'benchmark/orchestrator/test/held-out-calibration-packet.test.ts',
-  'benchmark/phase0/corpus-lib.mjs',
-  'benchmark/phase0/rubric-runner.mjs',
-  'package-lock.json'
-];
 
 export async function buildPacketLock() {
+  const relativeFiles = [
+    ...(await filesUnder('benchmark/calibration/e13', (relative) => relative !== 'benchmark/calibration/e13/packet-lock.json')),
+    'benchmark/candidates/e13/materialize-candidate.mjs',
+    ...(await filesUnder('benchmark/orchestrator', (relative) => relative.endsWith('.ts'))),
+    'benchmark/phase0/corpus-lib.mjs',
+    'benchmark/phase0/rubric-runner.mjs',
+    'package-lock.json',
+  ].sort();
   const identities = [];
   for (const relative of relativeFiles) {
     identities.push({ path: relative, sha256: sha256(await readFile(path.join(REPOSITORY, relative))) });
@@ -42,14 +25,19 @@ export async function buildPacketLock() {
     state: 'approval-ready-offline-template',
     runner: {
       repository: 'harness-benchmark',
-      us029Commit: '2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef'
+      qualifiedBaseCommit: '2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef',
+      executionCommit: {
+        state: 'supplied-by-cycle-free-governance-after-this-packet-is-committed'
+      }
     },
     scope: {
       calibrationOnly: true,
       decisionCorpusEligible: false,
       decisionAggregateEligible: false,
       liveExecutionAuthorized: false,
-      us110Authorized: false
+      us110Authorized: false,
+      failFastAfterFirstInvalidCell: true,
+      blindedSizingReportImplemented: true
     },
     outputRoot: 'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v1',
     plannedCalls: 18,
@@ -58,10 +46,29 @@ export async function buildPacketLock() {
     identities,
     candidateIdentityFile: 'benchmark/calibration/e13/candidate-identities.json',
     approvalTemplate: 'benchmark/calibration/e13/gate-d0-approval-template.json',
+    futureDecisionCreditCeilingTemplate: 'benchmark/calibration/e13/future-decision-credit-ceiling-template.json',
     blindedReportTemplate: 'benchmark/calibration/e13/blinded-report-template.json'
   };
 }
 
+async function filesUnder(relativeRoot, include) {
+  const files = [];
+  async function walk(relativeDirectory) {
+    const entries = await readdir(path.join(REPOSITORY, relativeDirectory), { withFileTypes: true });
+    entries.sort((left, right) => left.name.localeCompare(right.name));
+    for (const entry of entries) {
+      const relative = path.posix.join(relativeDirectory, entry.name);
+      if (entry.isDirectory()) await walk(relative);
+      else if (entry.isFile() && include(relative)) files.push(relative);
+      else if (entry.isSymbolicLink()) throw new Error(`packet input is a symbolic link: ${relative}`);
+    }
+  }
+  await walk(relativeRoot);
+  return files;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  process.stdout.write(`${JSON.stringify(await buildPacketLock(), null, 2)}\n`);
+  const output = `${JSON.stringify(await buildPacketLock(), null, 2)}\n`;
+  if (process.argv.includes('--write')) await writeFile(path.join(PACKET, 'packet-lock.json'), output);
+  else process.stdout.write(output);
 }

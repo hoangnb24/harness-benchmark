@@ -10,6 +10,7 @@ Phase 0 benchmark implementation:
 - [`US-028` E13 Controlled Runner Qualification](US-028-e13-controlled-runner-qualification/overview.md)
 - [`US-029` E13 Decision Runner Prelock](US-029-e13-decision-runner-prelock.md)
 - [`US-030` E13 Held-Out Calibration Packet](US-030-e13-held-out-calibration-packet/overview.md)
+- [`US-031` E13 Gate D0 Executable Calibration Readiness](US-031-e13-gate-d0-executable-calibration-readiness/overview.md)
 
 ## Normal Story
 

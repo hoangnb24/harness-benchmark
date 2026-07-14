@@ -4,7 +4,8 @@
   "state": "blocked-pending-exact-human-approval",
   "runner": {
     "repository": "harness-benchmark",
-    "us029Commit": "2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef",
+    "qualifiedBaseCommit": "2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef",
+    "executionCommit": null,
     "entrypoint": "benchmark/orchestrator/interface/evaluation-cli.ts"
   },
   "run": {
@@ -33,7 +34,9 @@
   "limits": {
     "maximumInvocations": 18,
     "maximumElapsedSeconds": null,
-    "approvedHumanCreditCeiling": null,
+    "calibrationExecutionMaxPlanCredits": null,
+    "perInvocationCreditReserve": null,
+    "maximumProjectedDecisionPlanningCredits": null,
     "planningCreditsPerInvocation": {
       "value": 40,
       "classification": "published-average-range-upper-end-not-cap",
@@ -42,8 +45,12 @@
   },
   "approval": {
     "required": true,
+    "exactAuthorizationTemplate": "benchmark/calibration/e13/gate-d0-approval-template.json",
+    "futureDecisionCreditCeilingTemplate": "benchmark/calibration/e13/future-decision-credit-ceiling-template.json",
     "exactAuthorizationSha256": null,
+    "semanticPlanSha256": null,
     "allowLiveCodexFlagMayBeUsed": false,
+    "acceptsPossibleOneAdmittedCallCreditOvershoot": false,
     "authorizesCalibration": false,
     "authorizesUS110": false
   }

@@ -5,7 +5,9 @@ import { lstat, readdir, realpath } from 'node:fs/promises';
 import { GenerateEvaluationAggregate } from '../application/GenerateEvaluationAggregate';
 import { GenerateCumulativeEvaluationAggregate } from '../application/GenerateCumulativeEvaluationAggregate';
 import { GenerateCalibrationAggregate } from '../application/GenerateCalibrationAggregate';
+import { GenerateBlindedCalibrationReport } from '../application/GenerateBlindedCalibrationReport';
 import { RunCumulativeEvaluationPlan } from '../application/RunCumulativeEvaluationPlan';
+import { RunCalibrationPlan } from '../application/RunCalibrationPlan';
 import { RunEvaluationCell } from '../application/RunEvaluationCell';
 import { RunEvaluationPlan } from '../application/RunEvaluationPlan';
 import { CommandEvaluationTreatmentMaterializer } from '../infrastructure/CommandEvaluationTreatmentMaterializer';
@@ -20,6 +22,7 @@ import { Phase0CumulativeJourneyExecutor } from '../infrastructure/Phase0Cumulat
 import { Phase0RubricEvaluator } from '../infrastructure/Phase0RubricEvaluator';
 import { assertHeldOutCalibrationPlan, isHeldOutCalibrationPlan } from '../domain/calibration';
 import type { EvaluationPlan } from '../domain/evaluation';
+import { assertCalibrationExecutionSnapshot } from '../infrastructure/CalibrationPlanLock';
 
 interface EvaluationCliIo {
   stdout: (message: string) => void;
@@ -39,15 +42,19 @@ export async function runEvaluationCli(
   const planPath = flag(rest, '--plan');
   const runDir = flag(rest, '--run-dir');
   if (!planPath || !runDir ||
-    !['qualify', 'report', 'verify', 'calibration-report', 'calibration-verify'].includes(command ?? '')) {
+    !['qualify', 'report', 'verify', 'calibration-report', 'calibration-verify', 'calibration-analyze']
+      .includes(command ?? '')) {
     io.stderr(
-      'Usage: evaluation-cli <qualify|report|verify|calibration-report|calibration-verify> --plan PLAN.json --run-dir DIR [--materializer FILE]\n',
+      'Usage: evaluation-cli <qualify|report|verify|calibration-report|calibration-verify|calibration-analyze> --plan PLAN.json --run-dir DIR [--materializer FILE] [--analysis-policy FILE --future-decision-credit-ceiling FILE]\n',
     );
     return 1;
   }
   try {
     const plan = await new JsonEvaluationPlanLoader().load(planPath);
     assertCalibrationCommandBoundary(command, plan);
+    const calibrationSnapshot = plan.agent.kind === 'codex' && isHeldOutCalibrationPlan(plan)
+      ? await assertCalibrationExecutionSnapshot(plan)
+      : undefined;
     if (command === 'qualify' && plan.agent.kind === 'codex') await assertFreshCodexRunDir(runDir);
     if (command === 'qualify' && plan.agent.kind === 'codex') {
       const externallyApprovedSha = flag(rest, '--approved-authorization-sha');
@@ -61,7 +68,6 @@ export async function runEvaluationCli(
         throw new Error('external Codex authorization SHA does not match the plan');
       }
     }
-    const authorization = await verifyCodexExecutionAuthorization(plan, runDir);
     const rubric = new Phase0RubricEvaluator({
       lockSha256: plan.corpus.lockSha256,
       atomicCatalogSha256: plan.corpus.atomicCatalogSha256,
@@ -69,6 +75,23 @@ export async function runEvaluationCli(
     const aggregate = new GenerateEvaluationAggregate(rubric);
     const calibrationAggregate = new GenerateCalibrationAggregate(aggregate);
     const cumulativeAggregate = new GenerateCumulativeEvaluationAggregate();
+    const authorization = await verifyCodexExecutionAuthorization(plan, runDir);
+    if (command === 'calibration-analyze') {
+      const frozenPolicyPath = flag(rest, '--analysis-policy');
+      const futureDecisionCreditCeilingPath = flag(rest, '--future-decision-credit-ceiling');
+      if (!frozenPolicyPath || !futureDecisionCreditCeilingPath) {
+        throw new Error('calibration-analyze requires --analysis-policy and --future-decision-credit-ceiling');
+      }
+      const result = await new GenerateBlindedCalibrationReport(aggregate).write({
+        plan,
+        runDir,
+        frozenPolicyPath,
+        expectedFrozenPolicySha256: calibrationSnapshot!.analysisPolicySha256,
+        futureDecisionCreditCeilingPath,
+      });
+      io.stdout(`${JSON.stringify(result)}\n`);
+      return result.report.status === 'selected' ? 0 : 1;
+    }
     if (command === 'calibration-report') {
       const result = await calibrationAggregate.write(plan, runDir);
       io.stdout(`${JSON.stringify(result)}\n`);
@@ -146,7 +169,14 @@ export async function runEvaluationCli(
       rubric,
       store,
     );
-    const records = await new RunEvaluationPlan(runCell, rubric, store).execute(plan);
+    const calibrationRun = isHeldOutCalibrationPlan(plan)
+      ? await new RunCalibrationPlan(runCell, runDir).execute(plan)
+      : undefined;
+    const records = calibrationRun?.records ?? await new RunEvaluationPlan(runCell, rubric, store).execute(plan);
+    if (calibrationRun?.receipt.status === 'stopped-invalid') {
+      io.stdout(`${JSON.stringify(calibrationRun.receipt)}\n`);
+      return 1;
+    }
     const cumulativeRecords = await new RunCumulativeEvaluationPlan(
       cumulativeExecutor,
     ).execute(plan);
@@ -175,6 +205,9 @@ export function assertCalibrationCommandBoundary(command: string, plan: Evaluati
   if ((command === 'calibration-report' || command === 'calibration-verify') &&
     (!calibrationScope || !heldOutCalibration)) {
     throw new Error('calibration report commands accept only a held-out calibration plan');
+  }
+  if (command === 'calibration-analyze' && (!calibrationScope || !heldOutCalibration)) {
+    throw new Error('calibration analysis accepts only a held-out calibration plan');
   }
 }
 
