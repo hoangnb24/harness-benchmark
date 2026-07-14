@@ -16,7 +16,10 @@
 
 ## Application Flow
 
-1. `verify-qualification.mjs --offline` loads and verifies the input lock.
+1. `verify-qualification.mjs --offline` verifies the pinned inputs and emits a
+   deterministic `qualification-input-lock.json` that binds the runner commit
+   and entrypoint, US-105 corpus/rubric runner, all US-106 treatments, and the
+   fake execution environment.
 2. The planner expands frozen canaries and rejects atomic dependencies.
 3. The fixture materializer creates a fresh one-commit US-105 start.
 4. The US-106 materializer stages/applies one candidate through shared policy;
@@ -45,6 +48,10 @@ Expected entrypoint:
 node benchmark/evaluation/verify-qualification.mjs --offline --repository-harness-root <path>
 ```
 
+`--output-root <path>` may redirect the five evidence files for repeatability
+verification. Output-root paths and transient wall durations are excluded from
+canonical identities, so equivalent runs produce byte-identical artifacts.
+
 Expected evidence:
 
 ```text
@@ -65,6 +72,13 @@ repetition/order/time/timeout/correction; and raw process/output/workspace/test/
 rubric/measurement fields. Offline qualification identities are explicit (for
 example, scripted adapter and not-applicable pricing), never fabricated live
 provider versions.
+
+Cleanup evidence does not assert that a mutable present-day directory must
+remain absent forever. It records a SHA-256 proof over the named
+`benchmark/evaluation/decision-runs` path, the pinned runner commit/tree, and
+the path's absence in that commit tree. The current pre-Gate-D absence is an
+informational generation observation; future legitimate Gate-D outputs do not
+invalidate historical qualification evidence.
 
 ## Status And Denominator Precedence
 

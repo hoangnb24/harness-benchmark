@@ -64,13 +64,14 @@ try {
 
   const runDir = path.join(temporaryRoot, 'run');
   const agentPath = path.join(temporaryRoot, 'passing-agent.mjs');
-  await writeFile(agentPath, [
+  const agentSource = [
     "import { mkdir, readFile, writeFile } from 'node:fs/promises';",
     "const readme = await readFile('README.md', 'utf8');",
     "await writeFile('README.md', readme.replace('npm start', 'npm run dev'));",
     "await mkdir(process.env.EVALUATION_SUBMISSION, { recursive: true });",
     "await writeFile(`${process.env.EVALUATION_SUBMISSION}/proof.md`, 'checked package.json\\n');",
-  ].join('\n'));
+  ].join('\n');
+  await writeFile(agentPath, agentSource);
 
   const corpusRoot = path.join(benchmarkRoot, 'benchmark/phase0');
   const catalog = JSON.parse(await readFile(path.join(corpusRoot, 'atomic-catalog.json'), 'utf8'));
@@ -85,6 +86,15 @@ try {
   ];
   const artifactCache = path.join(temporaryRoot, 'artifact-cache');
   const commit = (await git(['rev-parse', 'HEAD'])).stdout.trim();
+  const runnerTree = (await git(['rev-parse', `${commit}^{tree}`])).stdout.trim();
+  const entrypointSha256 = await fileSha(entrypoint);
+  const corpusLockSha256 = await fileSha(path.join(corpusRoot, 'corpus-lock.json'));
+  const atomicCatalogSha256 = sha256(compactCanonical(catalog));
+  const rubricRunnerSha256 = await fileSha(path.join(corpusRoot, 'rubric-runner.mjs'));
+  const materializerPath = path.join(benchmarkRoot, 'benchmark/candidates/e13/materialize-candidate.mjs');
+  const materializerSha256 = await fileSha(materializerPath);
+  const sandboxIdentity = 'disposable-cell-process-group';
+  const toolCatalogSha256 = sha256('node,git,fake-agent-only');
   const cliPath = path.join(benchmarkRoot, 'benchmark/orchestrator/interface/evaluation-cli.ts');
   const plan = {
     version: 1,
@@ -97,12 +107,12 @@ try {
       runtime: process.version,
       resolved: { status: 'known', value: 'deterministic-fake-v1' },
     },
-    sandbox: 'disposable-cell-process-group',
-    toolCatalogSha256: sha256('node,git,fake-agent-only'),
+    sandbox: sandboxIdentity,
+    toolCatalogSha256,
     corpus: {
       root: corpusRoot,
-      lockSha256: await fileSha(path.join(corpusRoot, 'corpus-lock.json')),
-      atomicCatalogSha256: sha256(compactCanonical(catalog)),
+      lockSha256: corpusLockSha256,
+      atomicCatalogSha256,
     },
     cells: await Promise.all(candidates.map(async (candidate, position) => {
       const manifestPath = path.join(candidateDirectory, `${candidate.slug}.json`);
@@ -150,7 +160,6 @@ try {
     throw new Error('all three real candidate treatment cells must pass the frozen rubric');
   }
 
-  const entrypointSha256 = await fileSha(entrypoint);
   const rawCells = {
     schemaVersion: 1,
     cells: rawRecords.map(({ raw }) => ({
@@ -209,8 +218,70 @@ try {
   };
   assertCompleteWrapperIdentities(rawCells, candidates.map(({ id }) => id));
 
+  const inputLock = {
+    schemaVersion: 1,
+    qualificationMode: 'offline-qualification',
+    runner: {
+      repository: 'harness-benchmark',
+      commit,
+      gitTree: { algorithm: 'sha1', value: runnerTree },
+      entrypoint: 'benchmark/evaluation/verify-qualification.mjs',
+      entrypointSha256,
+    },
+    corpus: {
+      id: 'US-105-phase0-frozen-corpus',
+      lockPath: 'benchmark/phase0/corpus-lock.json',
+      lockSha256: corpusLockSha256,
+      atomicCatalogPath: 'benchmark/phase0/atomic-catalog.json',
+      atomicCatalogSemanticSha256: atomicCatalogSha256,
+      rubricRunnerPath: 'benchmark/phase0/rubric-runner.mjs',
+      rubricRunnerSha256,
+    },
+    candidates: await Promise.all(candidates.map(async (candidate) => {
+      const manifestPath = path.join(candidateDirectory, `${candidate.slug}.json`);
+      const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+      const computedPolicySha256 = sha256(prettyCanonicalJson(manifest.applicationPolicy));
+      if (
+        manifest.candidateId !== candidate.id ||
+        manifest.materializer?.sha256 !== materializerSha256 ||
+        manifest.applicationPolicySha256 !== computedPolicySha256
+      ) {
+        throw new Error(`candidate input identity mismatch: ${candidate.id}`);
+      }
+      return {
+        id: candidate.id,
+        manifestPath: path.relative(repositoryHarnessRoot, manifestPath).replaceAll(path.sep, '/'),
+        manifestSha256: await fileSha(manifestPath),
+        materializerPath: 'benchmark/candidates/e13/materialize-candidate.mjs',
+        materializerSha256,
+        applicationPolicySha256: computedPolicySha256,
+        activationProfile: 'tiny-documentation',
+      };
+    })),
+    execution: {
+      model: {
+        declared: plan.model.declared,
+        resolved: plan.model.resolved,
+        provider: plan.model.provider,
+      },
+      runtime: process.version,
+      agent: {
+        kind: 'fake',
+        identity: 'deterministic-fake-node-script',
+        sourceSha256: sha256(agentSource),
+      },
+      sandbox: { identity: sandboxIdentity, sha256: sha256(sandboxIdentity) },
+      nonHarnessToolsSha256: toolCatalogSha256,
+      platform: platform(),
+      liveAgentInvocations: 0,
+      paidAgentInvocations: 0,
+    },
+  };
+
   await rm(evidenceRoot, { recursive: true, force: true });
   await mkdir(evidenceRoot, { recursive: true });
+  const inputLockPath = path.join(evidenceRoot, 'qualification-input-lock.json');
+  await writeJson(inputLockPath, inputLock);
   const rawCellsPath = path.join(evidenceRoot, 'raw-cells.json');
   await writeJson(rawCellsPath, rawCells);
   const rawCellManifestSha = await fileSha(rawCellsPath);
@@ -270,6 +341,7 @@ try {
   if (await pathExists(path.join(runDir, 'cells'))) {
     throw new Error('disposable qualification cells remain after cleanup');
   }
+  const decisionResultPathProof = await decisionRunPathProof({ commit, runnerTree });
   const receipt = {
     schemaVersion: 1,
     story: 'US-108',
@@ -280,6 +352,10 @@ try {
     candidateSelection: 'none',
     decisionRun: false,
     runner: { repository: benchmarkRoot, commit, entrypointSha256 },
+    qualificationInputLock: {
+      path: 'qualification-input-lock.json',
+      sha256: await fileSha(inputLockPath),
+    },
     rawCellManifest: { path: 'raw-cells.json', sha256: rawCellManifestSha },
     aggregate: { path: 'qualification-aggregate.json', sha256: await fileSha(aggregatePath) },
     dependencyAudit: { path: 'dependency-audit.json', sha256: await fileSha(dependencyPath) },
@@ -296,7 +372,7 @@ try {
       })),
     },
     legacy,
-    cleanup: { cellsRemoved: true, decisionResultPathsAbsent: true },
+    cleanup: { cellsRemoved: true, decisionResultPathProof },
   };
   await writeJson(path.join(evidenceRoot, 'qualification-receipt.json'), receipt);
   process.stdout.write('US-108 offline qualification passed with zero live or paid agent invocations.\n');
@@ -348,6 +424,50 @@ async function fileSha(file) {
 
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
+}
+
+async function decisionRunPathProof({ commit, runnerTree }) {
+  const relativePath = 'benchmark/evaluation/decision-runs';
+  if (await gitPathExistsAtCommit(commit, relativePath)) {
+    throw new Error(`${relativePath} exists in pinned qualification commit ${commit}`);
+  }
+  const proofPayload = {
+    path: relativePath,
+    pinnedRunnerCommit: commit,
+    pinnedRunnerTree: { algorithm: 'sha1', value: runnerTree },
+    stateInPinnedCommitTree: 'absent',
+  };
+  return {
+    ...proofPayload,
+    proofSha256: sha256(compactCanonical(proofPayload)),
+    currentGenerationObservation: {
+      state: await pathExists(path.join(benchmarkRoot, relativePath)) ? 'present' : 'absent',
+      scope: 'informational pre-Gate-D observation; historical proof is commit-tree pinned',
+    },
+  };
+}
+
+async function gitPathExistsAtCommit(commit, relativePath) {
+  try {
+    await execFile('git', ['cat-file', '-e', `${commit}:${relativePath}`], { cwd: benchmarkRoot });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function prettyCanonicalJson(value) {
+  return `${JSON.stringify(sortJson(value), null, 2)}\n`;
+}
+
+function sortJson(value) {
+  if (Array.isArray(value)) return value.map(sortJson);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value).sort().map((key) => [key, sortJson(value[key])]),
+    );
+  }
+  return value;
 }
 
 function assertCompleteWrapperIdentities(rawCells, expectedCandidateIds) {
