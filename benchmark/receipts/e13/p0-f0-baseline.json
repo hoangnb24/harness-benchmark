@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "P0-F0",
+  "parentEpic": "repository-harness:E13-phase-0-product-shape-evaluation",
+  "recordedAt": "2026-07-14T14:10:53+07:00",
+  "status": "passed_with_gate_c_follow_up",
+  "source": {
+    "repository": "https://github.com/hoangnb24/harness-benchmark",
+    "branch": "codex/phase-0-evaluation-foundation",
+    "commit": "f9f2cfdcf6c977de7148a8e074501b184a052e8c",
+    "trackedWorktreeBeforeReceipt": "clean"
+  },
+  "host": {
+    "platform": "Darwin 24.4.0 arm64",
+    "node": "v25.8.1",
+    "npm": "11.11.0",
+    "git": "2.41.0",
+    "jq": "1.8.1",
+    "sqlite": "3.43.2",
+    "rustc": "1.92.0",
+    "cargo": "1.92.0",
+    "codexCli": "0.144.3"
+  },
+  "inputs": {
+    "package.json": "c3d50604561c5be534ed276bf5eabfdac520f283feca1fac162640851947556c",
+    "package-lock.json": "f7a4c0c841e22a83924ee6d07d9a70ed930f8f6e379a0d84192fc1da9772d426",
+    "benchmark/PROTOCOL.md": "512bb9325ebe2f75485c465e6df66c33379484ec2db996196a6991dcad5fe9b2",
+    "benchmark/tasks/manifest.json": "7427d30394712bada3a8bf723b7e14c9fd38a989f3f8b02bbee6a3504fb34989",
+    "benchmark/pricing/models.json": "a312b5d9dfc084cd27fd7c462bc54a4bd651365cd10347674fb8d10a6fca625f"
+  },
+  "localHarness": {
+    "trackedFilesChanged": false,
+    "databasePath": "harness.db",
+    "databaseTracked": false,
+    "binaryPath": "scripts/bin/harness-cli",
+    "binaryTracked": false,
+    "binaryVersion": "0.1.17",
+    "binarySha256": "be5ac086f79e5cf68c62b3a8b26d6c1c39c4d89e2dc6528bc554e6815201aa4d",
+    "sourceRepository": "/Users/themrb/Documents/personal/repository-harness",
+    "sourceCommit": "f74b13fd3349c89047038c1db10c69144f1cadf6",
+    "schemaVersion": 13,
+    "activationMethod": [
+      "Copy the ignored repository-local Harness CLI binary from repository-harness.",
+      "Initialize with benchmark-owned migrations 001-005.",
+      "Apply migrations 006-013 from the recorded repository-harness source directly to the ignored local database.",
+      "Run brownfield import, matrix preflight, and tool-manifest preflight."
+    ],
+    "schemaMigrationSha256": {
+      "006-changeset-applied.sql": "848e75302f44ad432b16a67587200f1a63e96781f4536d0c27ec3942a871f0f2",
+      "007-story-dependencies.sql": "50f5c4b5d37086a2c0438586b5676ae6009a9b281f9d36ceca48caa56a3313f9",
+      "008-story-hierarchy.sql": "e0fdc87ab02f96e1eacb8da1f701d126afc30fcc7fa9c3ff043fed6e818d55cc",
+      "009-improvement-identity.sql": "436e049e36e62dc5daadaca2c6d994834a230ed441c21d7da432dc117e55504d",
+      "010-story-backlog-links.sql": "d24e192f9999e30952cc7a7db02ffcb541fd349e7eb4585be306290753f0d2f7",
+      "011-legacy-evidence-snapshots.sql": "02b5df902f709f7ab1c645055d1faad997177b5cafc34c84f0c2aa315bb8007c",
+      "012-review-finding-closure.sql": "73a0506837553cecb4c6931b6d0fde39e4dadd29c47da506f432821b1907d6ea",
+      "013-changeset-content-sha.sql": "11be4d35ba079c8199d067246423b8fddd7bea6573688179618da483239d09d1"
+    },
+    "preflight": {
+      "matrix": "passed; zero active benchmark-local stories before E13 activation",
+      "toolManifest": "passed; compiled capabilities present and no registered external providers required"
+    },
+    "friction": "The current CLI could create only a v5 database from the benchmark's stale tracked schema set; matrix query then failed on missing story_dependency. Applying checksum-recorded v6-v13 migrations to ignored local state restored compatibility without tracked drift."
+  },
+  "validation": [
+    {
+      "command": "npm ci",
+      "result": "passed",
+      "detail": "186 packages installed from the exact lock"
+    },
+    {
+      "command": "node -e better-sqlite3 in-memory SELECT 1",
+      "result": "passed",
+      "detail": "native module loaded and returned { ok: 1 }"
+    },
+    {
+      "command": "npm run build",
+      "result": "passed"
+    },
+    {
+      "command": "npm run typecheck:orchestrator",
+      "result": "passed"
+    },
+    {
+      "command": "npm test",
+      "result": "passed",
+      "detail": "20 files; 117 tests"
+    },
+    {
+      "command": "npm run lint:orchestrator",
+      "result": "passed",
+      "detail": "architecture-boundary test passed"
+    },
+    {
+      "command": "npm run harness-bench -- pricing validate --pricing benchmark/pricing/models.json",
+      "result": "passed",
+      "detail": "five committed model prices validated"
+    },
+    {
+      "command": "npm run harness-bench -- run --dry-run --run-id p0-f0 --run-dir /tmp/harness-benchmark-p0-f0-dry-run --harness f9f2cfdcf6c977de7148a8e074501b184a052e8c --model gpt-5.4",
+      "result": "passed",
+      "detail": "12 tasks planned; no live agent invoked"
+    }
+  ],
+  "dependencyAudit": {
+    "command": "npm audit --json",
+    "result": "six vulnerable package nodes: four moderate, one high, one critical",
+    "productionOnly": "one moderate direct uuid finding",
+    "disposition": "accepted_for_p0_f0_only",
+    "reasoning": [
+      "The direct uuid package has no import in src or benchmark code, and the affected v3/v5/v6 buffer APIs are not exercised by the baseline path.",
+      "Vitest is invoked with 'vitest run'; the vulnerable Vitest UI server is not enabled or listening.",
+      "Vite and esbuild are development transitive dependencies. The baseline uses build/test/typecheck commands, not a Vite development server.",
+      "The Vite Windows path findings are not reachable on this Darwin baseline; any future Windows qualification must explicitly re-evaluate them."
+    ],
+    "gateCRequirement": "Before runner qualification can pass, US-108 must either upgrade/remove the affected dependencies in a separately reviewed change or prove that the frozen qualification and claimed platform paths cannot activate the vulnerable server/buffer behaviors. Any runner-affecting upgrade requires rebaselining."
+  },
+  "limitations": [
+    "This receipt proves development-machine readiness only; it is not decision evidence.",
+    "No live Codex canary, paid run, immutable benchmark tag, candidate treatment, or neutral rubric is proven.",
+    "The local Harness activation depends on an external pinned repository-harness checkout because benchmark tracked schemas stop at version 5.",
+    "The observed Node version differs from the earlier discovery smoke and is recorded rather than treated as equivalent."
+  ]
+}
