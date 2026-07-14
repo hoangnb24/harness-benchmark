@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "e13-us105-atomic-v1",
+  "atomicCatalogSha256": "82202e8b15124d49a779e7e888460873bdb38c6e72a5d0ed1474023c3cfbb409",
+  "cumulativeCatalogSha256": "8ae40be273a2eceb0a69e51b5b984959e31bd47a641e7094d6cde595b7a2702b",
+  "atomicTasks": [
+    {"id":"P0-A01-diagnose-timeout","fixtureSha256":"04091439b921e514f042b466ad5987589fc87ace8bcea0629662aba50b5f44f9","promptSha256":"60293eca7f5e5638e3e7e7fe01a7bcb2e4bee444c4de2aa8b4846fbf63d32fa5","rubricSha256":"12f378c04f408348ee73137d871213e8e7602cef485ac7dbedbd79cce79dbdb9","startCommit":"93609ad03bfc695d45a6efd1356044af5c0d8d47"},
+    {"id":"P0-A02-diagnose-cache","fixtureSha256":"896ed1a7fd164b492c9850801d8ddfb10adc06d146850fbc107f4807815dac23","promptSha256":"d4786816a771c81d06f837c23a45e8e573edbfd80ec668265661fe767dca847b","rubricSha256":"a15763d9ad5b1e04339e588dfb9307b4599db9187701c9b8162b27825352c11d","startCommit":"b70bad11d2b9940fa8f3496ace38a71c1a588904"},
+    {"id":"P0-A03-doc-command","fixtureSha256":"4e40362355732dd073e8a5c5cd02ab2e237abdbbbdddb7c11dedf9aea7bf0497","promptSha256":"5207731e6b54b9dda834071d7631414cad20d3820f9c02d4e48076d161ee7c94","rubricSha256":"543f79b387278b7998b3046471139bcd3f7e1ffbaa62ad6b0bd04cd87d25c55a","startCommit":"09f08841ac44cbe313c1e0e3f69e9514d4b0eeac"},
+    {"id":"P0-A04-doc-port","fixtureSha256":"4263f2f91a60642eb6659b639ff774f0a8e72382c8d890d9cdbe4da47297dc7c","promptSha256":"b791f3eedc710f04aac119278a70f50a8a5e9c6f982d9416adf048b523eb13e4","rubricSha256":"5d4ad1e5c06ca5bc601c32595a33f77555f5c14d5a171377f0d80cf832dd41f2","startCommit":"34e506975303353261361d396ecc962ea487d2f7"},
+    {"id":"P0-A05-defect-page-boundary","fixtureSha256":"5e1d26c4c8352d699fc90ea13d1ef75da163f5d23a956d2c560a3602f50da5d5","promptSha256":"80d841406c2a903f0cdddfc772448f48ac378d89ed87b657aae084bec9ebf02a","rubricSha256":"eba494a986c550b5889e5fa4336ca796d53c2956bd6a67f15dc608ef7651ccab","startCommit":"30a70dfa38f633ca45f1c92dfff782c604b5de01"},
+    {"id":"P0-A06-defect-slug","fixtureSha256":"91ee131902009d5c8f19121fb47c88e78de4afa5693141a969ddc68c1b0b9485","promptSha256":"299bed4651dadc7aaefbcefacd71d79c79e45789e1902120ac3a4917f7e1b26f","rubricSha256":"a05e8419ff8a09f83909d3a8940d88608dab529448df4fcc98e107cf047aae9e","startCommit":"0568d05acd985a4046030647788c3b48ef0aeea6"},
+    {"id":"P0-A07-feature-label-filter","fixtureSha256":"f15f462db709b6080a17c531a812793f29f35d410a2b60d93fff40de2da39103","promptSha256":"170393f6bce8dc636b83421be8481b8e2c781b73e3aff612a54ba3e6a58618c4","rubricSha256":"48968c731091bc4c0ca85fb25600fa4543da69f2df7e4efb511ab310d4461b0f","startCommit":"32aae75913506723b2cf736774077ff8eea22f42"},
+    {"id":"P0-A08-feature-archive","fixtureSha256":"064482a1be86624765cfd8bbb13e93a5cc7c35de8a6682f9f089a70c635f096e","promptSha256":"6b50e3dfb6d947a816d0dee0772aaae0926f24068e32ed823a3839c5a6d3aa20","rubricSha256":"489082dc38068e9f868e691d567e658ff0789eafe07bc70862d23d0911e28cd8","startCommit":"3a18d2e915e250c0ef004546cd476c04b19a8c12"},
+    {"id":"P0-A09-identity-tenant","fixtureSha256":"60693b59baa5fa6c8be56a06b97d3caf153adecd028aeb87269e7ac58e81c2c6","promptSha256":"542a2a93da8ab00d7328194fc991a57be71b4ed2c81c96c7752a9ce43ab8cd0d","rubricSha256":"367bb727ad89dafa4d78dcf227739a62b03d9ba23aab6ff7dc6e56b84c8e645c","startCommit":"25f8db9bc43cf5b4728b32886fa2bd5e30503b02"},
+    {"id":"P0-A10-identity-token","fixtureSha256":"9f662e4148b5614b99ba445e39aa09b1d45611801797cf8f142362b317b7b5fb","promptSha256":"eb65108b16d6f6d8ad8b799b38d1f8701ba37a00363188eae6281076125ed3e0","rubricSha256":"a58b7891f9a03388fd2e329ae2aa6cefa3ce0ecbb054d98bab963f6359315442","startCommit":"6b82c47b6cc8814121457fa156890a424b00cce9"},
+    {"id":"P0-A11-data-migration","fixtureSha256":"0dea49c940cd0c6a0845fab5b8f611232a1cdbace17b13053b47e168445778f5","promptSha256":"01dfc7ebdac57d123f9e648521d764fd3e13b9dd503be180e679b68881b2ad3f","rubricSha256":"0f0f68c8d5d5bf51d9e8378c0801a1e5dea8a4348a81285fbc68c9dd3a30f892","startCommit":"208acd6ca044bff5b98efee4bd64eaeb87052ffa"},
+    {"id":"P0-A12-release-checksum","fixtureSha256":"37453fe804471a30a6753ce7e238c2be1870271f3fc479d76ce29e647e6a916c","promptSha256":"7da270ce4a56e9eacbf8ca3d73e83678e71f02ad09b3a5d26e073fc31098581f","rubricSha256":"0a99c6ba4b6bacecbb2475fb257ff0359177c9872624a72f6c70c945105c0dfd","startCommit":"8a3e3a2224aeb6811f394c3b981e4e6040e01cf5"},
+    {"id":"P0-A13-brownfield-agent-block","fixtureSha256":"e484b4e3b247111977f6419aa0c0e40140460941000f0fd45c16a12d4297665c","promptSha256":"08ca4d588951af278c79e45bc20fce90517c73d0e97017fab954312b8ade2a5d","rubricSha256":"4f191fc67bf7e0def12631d5f5d605e9df65f4ce365c33035ac7e4f836b3c52a","startCommit":"36b38186e1b0dbf44d3c8851bb625c3e54fc257a"},
+    {"id":"P0-A14-brownfield-decision-index","fixtureSha256":"3e9db32cb6d8f3038b1c88a3efd0c58da5991cf249358e4e5a15e912b1a525e1","promptSha256":"84a03abc6bd870520ab942377070f9e001625ec5dbc9d5c8c9ea290ab176eae2","rubricSha256":"3bfe9bd5867b66f4d1792af535348faa9ba359034302c9b56a9564a69239ff89","startCommit":"b31a85757b2823cbf5ec85456d96a5398abd6bcd"},
+    {"id":"P0-A15-runtime-health","fixtureSha256":"a50af3bb3d2a10fb9519f6266bd310ca7689aac97493796dd9cb457a9b429c55","promptSha256":"34b7e7e25bbd2fb066ef3bc08057b11e939380fc8a1dbcc10f9065c91d630166","rubricSha256":"5801a12515ed831d40d08d98de8258c072f300329168b92cca3dece705d32e17","startCommit":"4bc424d7d8beb3802ff67461d57b021743939c76"},
+    {"id":"P0-A16-runtime-worker","fixtureSha256":"a330dbff71ea47e8c2594d9489abd7aa8d3966ca5229f97ad1f9769b1e7c387c","promptSha256":"74442f8ff9da5e824aa97095b8ec617f4f9f90e86fcc23d2f5c8fc7a15dfa585","rubricSha256":"482ddc3e53dec68335b53f72feb0129ca28d0f3e5bee94e52ac760c474552c79","startCommit":"6fb870c4f6d736ed1e945b76343578713f55e00a"}
+  ],
+  "cumulativeJourneys": [
+    {
+      "id": "P0-J01-service-evolution",
+      "fixtureSha256": "879a8231d406d1f0811e9a2e6ae6d623f4617906220cc1c17a02295640da9335",
+      "startCommit": "f91e2d245c7605bdbbbdc7dd4e49537891fc955e",
+      "steps": [
+        {"id":"P0-J01-S01-doc","promptSha256":"534d132dc0db6ab3487e44f3ecb4402c374b701bcb5f1e94a483a5bcf117a1d2","rubricSha256":"6868999568fc8b57139a9093b2fe838c67f798d2a08ee024133aa56d132725f5"},
+        {"id":"P0-J01-S02-retry","promptSha256":"987d57320b1aafa1af887312263a21a46d08f3cf04f519b2e31f2bb17884593f","rubricSha256":"ce5b3f9b0a4a66b7c5063f6bca5d4f2f0bf5419dd85186aa2ea685f0f46d87f8"},
+        {"id":"P0-J01-S03-operations","promptSha256":"d1da2730d16e4681bfb4e6c44a2007ab5200f42e9a007cc07a9faec5a0efde5a","rubricSha256":"5821afcb7e81476d92e812b5369d5e94b57a04b73b5ab7c8cfb1312c26e2b4ba"}
+      ]
+    }
+  ]
+}

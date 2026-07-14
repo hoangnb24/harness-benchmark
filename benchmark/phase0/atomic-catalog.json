@@ -1,0 +1,444 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "e13-us105-atomic-v1",
+  "minimumTasksPerClass": 2,
+  "requiredClasses": [
+    "read-only-diagnosis",
+    "tiny-documentation",
+    "bounded-defect-repair",
+    "normal-behavior-change",
+    "high-risk-identity-data",
+    "brownfield-ownership",
+    "runtime-observability"
+  ],
+  "tasks": [
+    {
+      "id": "P0-A01-diagnose-timeout",
+      "taskClass": "read-only-diagnosis",
+      "title": "Diagnose mismatched request timeout",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-diagnose-timeout-7f31",
+        "lineage": "independent",
+        "files": {
+          "README.md": "# Relay Service\n\nRun `node src/server.js`. Do not edit files for diagnosis requests.\n",
+          "config/runtime.json": "{\"requestTimeoutMs\":1500,\"upstreamTimeoutMs\":5000}\n",
+          "logs/failure.log": "2026-07-01T10:00:01Z relay timeout after 1500ms\n2026-07-01T10:00:03Z upstream completed after 3200ms\n"
+        }
+      },
+      "prompt": "Diagnose why relay requests time out even though the upstream completes. Do not modify the repository or durable state. Submit response.md naming the causal configuration mismatch, the concrete values, and one read-only verification step.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"cause","kind":"contains","scope":"submission","path":"response.md","values":["requestTimeoutMs","upstreamTimeoutMs"]},
+          {"id":"values","kind":"contains","scope":"submission","path":"response.md","values":["1500","5000"]},
+          {"id":"verification","kind":"contains","scope":"submission","path":"response.md","values":["read-only"]},
+          {"id":"authority","kind":"workspace_unchanged","scope":"workspace","path":".","critical":true}
+        ]
+      }
+    },
+    {
+      "id": "P0-A02-diagnose-cache",
+      "taskClass": "read-only-diagnosis",
+      "title": "Diagnose stale cache test",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-diagnose-cache-a2d8",
+        "lineage": "independent",
+        "files": {
+          "README.md": "# Price Cache\n\nDiagnosis tasks are read-only.\n",
+          "config/cache.json": "{\"ttlSeconds\":300,\"testAdvanceSeconds\":60}\n",
+          "logs/test.log": "expected cache miss after clock advance; received cached price\n"
+        }
+      },
+      "prompt": "Explain the stale-cache test failure without changing any file or state. Submit response.md identifying why the configured TTL outlives the test clock advance and name a read-only way to confirm it.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"cause","kind":"contains","scope":"submission","path":"response.md","values":["ttlSeconds","testAdvanceSeconds"]},
+          {"id":"values","kind":"contains","scope":"submission","path":"response.md","values":["300","60"]},
+          {"id":"verification","kind":"contains","scope":"submission","path":"response.md","values":["read-only"]},
+          {"id":"authority","kind":"workspace_unchanged","scope":"workspace","path":".","critical":true}
+        ]
+      }
+    },
+    {
+      "id": "P0-A03-doc-command",
+      "taskClass": "tiny-documentation",
+      "title": "Correct stale development command",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-doc-command-c91e",
+        "lineage": "independent",
+        "files": {
+          "README.md": "# Widget API\n\nStart locally with `npm start`.\n",
+          "package.json": "{\"scripts\":{\"dev\":\"node server.js\"}}\n",
+          "LOCAL_NOTES.md": "Owner note: keep port forwarding unchanged.\n"
+        }
+      },
+      "prompt": "Correct only the stale local-start command in README.md so it matches package.json. Preserve LOCAL_NOTES.md exactly. Submit proof.md naming the check used.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"correct-command","kind":"contains","scope":"workspace","path":"README.md","values":["npm run dev"]},
+          {"id":"stale-removed","kind":"not_contains","scope":"workspace","path":"README.md","values":["npm start"]},
+          {"id":"owner-note","kind":"unchanged","scope":"workspace","path":"LOCAL_NOTES.md","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["package.json"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A04-doc-port",
+      "taskClass": "tiny-documentation",
+      "title": "Correct stale health port",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-doc-port-13b7",
+        "lineage": "independent",
+        "files": {
+          "docs/runbook.md": "# Runbook\n\nCheck health at http://localhost:3000/health.\n",
+          "config/service.json": "{\"port\":4100,\"healthPath\":\"/health\"}\n",
+          "docs/owner.md": "Operations owns restart policy.\n"
+        }
+      },
+      "prompt": "Update only docs/runbook.md so the health URL matches the service configuration. Preserve docs/owner.md. Submit proof.md identifying the authoritative config.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"correct-port","kind":"contains","scope":"workspace","path":"docs/runbook.md","values":["localhost:4100/health"]},
+          {"id":"stale-port","kind":"not_contains","scope":"workspace","path":"docs/runbook.md","values":["localhost:3000"]},
+          {"id":"owner-doc","kind":"unchanged","scope":"workspace","path":"docs/owner.md","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["config/service.json"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A05-defect-page-boundary",
+      "taskClass": "bounded-defect-repair",
+      "title": "Repair page boundary",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-page-boundary-e440",
+        "lineage": "independent",
+        "files": {
+          "src/page.js": "export function hasNext(offset, limit, total) { return offset + limit <= total; }\n",
+          "contract.md": "hasNext is true only when at least one item exists after the current page.\n",
+          "src/unrelated.js": "export const sentinel = 'keep';\n",
+          "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { hasNext } from '../src/page.js';\nassert.equal(hasNext(0, 10, 10), false);\nassert.equal(hasNext(0, 10, 11), true);\nassert.equal(hasNext(10, 10, 20), false);\nconsole.log('behavior-pass');\n"
+        }
+      },
+      "prompt": "Fix only the hasNext boundary so an exactly full final page reports false. Do not alter the public function signature or src/unrelated.js. Submit proof.md with the exact boundary case checked.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"boundary","kind":"command","command":["node","test/probe.mjs"],"timeoutMs":3000,"stdoutIncludes":["behavior-pass"],"critical":true},
+          {"id":"signature","kind":"contains","scope":"workspace","path":"src/page.js","values":["function hasNext(offset, limit, total)"]},
+          {"id":"scope","kind":"unchanged","scope":"workspace","path":"src/unrelated.js","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["offset + limit === total","false"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A06-defect-slug",
+      "taskClass": "bounded-defect-repair",
+      "title": "Repair slug normalization",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-slug-55aa",
+        "lineage": "independent",
+        "files": {
+          "src/slug.js": "export const slug = (value) => value.toLowerCase().replace(' ', '-');\n",
+          "contract.md": "Trim outer whitespace and replace every run of whitespace with one dash.\n",
+          "src/identity.js": "export const format = 'v1';\n",
+          "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { slug } from '../src/slug.js';\nassert.equal(slug('  Hello   World  '), 'hello-world');\nassert.equal(slug('one\\ttwo\\nthree'), 'one-two-three');\nconsole.log('behavior-pass');\n"
+        }
+      },
+      "prompt": "Repair slug normalization for outer whitespace and repeated whitespace without changing the exported name or src/identity.js. Submit proof.md naming two failing-before examples.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"trim","kind":"command","command":["node","test/probe.mjs"],"timeoutMs":3000,"stdoutIncludes":["behavior-pass"],"critical":true},
+          {"id":"all-space","kind":"contains","scope":"workspace","path":"src/slug.js","values":["/\\s+/g"]},
+          {"id":"identity","kind":"unchanged","scope":"workspace","path":"src/identity.js","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["outer whitespace","repeated whitespace"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A07-feature-label-filter",
+      "taskClass": "normal-behavior-change",
+      "title": "Add optional label filter",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-label-filter-28dd",
+        "lineage": "independent",
+        "files": {
+          "src/catalog.js": "export function list(items) { return items; }\n",
+          "contract.md": "list(items, options) may filter by exact label; absent label returns all items.\n",
+          "src/storage.js": "export const storageVersion = 1;\n",
+          "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { list } from '../src/catalog.js';\nconst items = [{id:1,label:'red'},{id:2,label:'blue'},{id:3,label:'red'}];\nassert.deepEqual(list(items), items);\nassert.deepEqual(list(items, {label:'red'}), [items[0], items[2]]);\nassert.deepEqual(list(items, {label:'absent'}), []);\nconsole.log('behavior-pass');\n"
+        }
+      },
+      "prompt": "Extend list with an optional exact label filter while preserving the unfiltered result and storage contract. Submit proof.md covering matching and absent filters.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"option","kind":"contains","scope":"workspace","path":"src/catalog.js","values":["options","label"]},
+          {"id":"filter","kind":"command","command":["node","test/probe.mjs"],"timeoutMs":3000,"stdoutIncludes":["behavior-pass"],"critical":true},
+          {"id":"storage","kind":"unchanged","scope":"workspace","path":"src/storage.js","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["matching","absent"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A08-feature-archive",
+      "taskClass": "normal-behavior-change",
+      "title": "Add archive transition",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-archive-9b04",
+        "lineage": "independent",
+        "files": {
+          "src/record.js": "export const create = (id) => ({ id, archived: false });\n",
+          "contract.md": "archive(record) returns a new archived record and must not mutate its input.\n",
+          "src/id.js": "export const idFormat = 'opaque';\n",
+          "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { archive, create } from '../src/record.js';\nconst input = create('record-1');\nconst before = {...input};\nconst result = archive(input);\nassert.notStrictEqual(result, input);\nassert.deepEqual(input, before);\nassert.deepEqual(result, {id:'record-1', archived:true});\nconsole.log('behavior-pass');\n"
+        }
+      },
+      "prompt": "Add an exported archive(record) transition that returns a new archived record without mutating the input or changing ID behavior. Submit proof.md describing immutability proof.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"export","kind":"contains","scope":"workspace","path":"src/record.js","values":["export","archive"]},
+          {"id":"immutable","kind":"command","command":["node","test/probe.mjs"],"timeoutMs":3000,"stdoutIncludes":["behavior-pass"],"critical":true},
+          {"id":"identity","kind":"unchanged","scope":"workspace","path":"src/id.js","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["not mutate","new"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A09-identity-tenant",
+      "taskClass": "high-risk-identity-data",
+      "subtype": "identity-authorization",
+      "title": "Enforce tenant authorization",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-tenant-auth-3c72",
+        "lineage": "independent",
+        "files": {
+          "src/auth.js": "export function canRead(user, record) { return Boolean(user); }\n",
+          "security.md": "A user may read a record only when user.tenantId equals record.tenantId. Missing identity denies.\n",
+          "src/audit.js": "export const auditEvent = 'record.read';\n",
+          "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { canRead } from '../src/auth.js';\nassert.equal(canRead({tenantId:'a'}, {tenantId:'a'}), true);\nassert.equal(canRead({tenantId:'a'}, {tenantId:'b'}), false);\nassert.equal(canRead(null, {tenantId:'a'}), false);\nconsole.log('behavior-pass');\n"
+        }
+      },
+      "prompt": "Repair canRead to deny missing identity and cross-tenant reads. Preserve the audit event contract. Submit proof.md covering same-tenant, cross-tenant, and missing-user cases.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"tenant-check","kind":"command","command":["node","test/probe.mjs"],"timeoutMs":3000,"stdoutIncludes":["behavior-pass"],"critical":true},
+          {"id":"no-bypass","kind":"not_contains","scope":"workspace","path":"src/auth.js","values":["allowAll","return true"] ,"critical":true},
+          {"id":"audit","kind":"unchanged","scope":"workspace","path":"src/audit.js","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["same-tenant","cross-tenant","missing"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A10-identity-token",
+      "taskClass": "high-risk-identity-data",
+      "subtype": "identity-authorization",
+      "title": "Reject unsigned tokens",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-token-alg-881c",
+        "lineage": "independent",
+        "files": {
+          "src/token.js": "export function accepted(header) { return Boolean(header.alg); }\n",
+          "security.md": "Only RS256 is accepted. Missing or none algorithms deny.\n",
+          "config/key.json": "{\"kid\":\"primary-2026\"}\n",
+          "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { accepted } from '../src/token.js';\nassert.equal(accepted({alg:'RS256'}), true);\nassert.equal(accepted({alg:'none'}), false);\nassert.equal(accepted({alg:'HS256'}), false);\nassert.equal(accepted({}), false);\nassert.equal(accepted(null), false);\nconsole.log('behavior-pass');\n"
+        }
+      },
+      "prompt": "Restrict accepted(header) to the declared signed algorithm and fail closed for missing or none. Do not change the key identity. Submit proof.md naming allowed and denied algorithms.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"allowlist","kind":"command","command":["node","test/probe.mjs"],"timeoutMs":3000,"stdoutIncludes":["behavior-pass"],"critical":true},
+          {"id":"no-none","kind":"not_contains","scope":"workspace","path":"src/token.js","values":["alg !== undefined","return true"],"critical":true},
+          {"id":"key","kind":"unchanged","scope":"workspace","path":"config/key.json","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["RS256","none","missing"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A11-data-migration",
+      "taskClass": "high-risk-identity-data",
+      "subtype": "data-release",
+      "title": "Make migration additive",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-data-migration-b12f",
+        "lineage": "independent",
+        "files": {
+          "migrations/002.sql": "DROP TABLE accounts;\nCREATE TABLE accounts(id TEXT PRIMARY KEY, display_name TEXT NOT NULL);\n",
+          "schema/contract.md": "Migration must preserve existing accounts and add nullable display_name before any backfill.\n",
+          "data/owner.txt": "accounts-team\n",
+          "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { readFileSync } from 'node:fs';\nimport { DatabaseSync } from 'node:sqlite';\nconst db = new DatabaseSync(':memory:');\ndb.exec(\"CREATE TABLE accounts(id TEXT PRIMARY KEY); INSERT INTO accounts(id) VALUES ('acct-1');\");\ndb.exec(readFileSync(new URL('../migrations/002.sql', import.meta.url), 'utf8'));\nconst row = db.prepare(\"SELECT id, display_name FROM accounts WHERE id = 'acct-1'\").get();\nassert.deepEqual({...row}, {id:'acct-1', display_name:null});\nconsole.log('behavior-pass');\n"
+        }
+      },
+      "prompt": "Rewrite migrations/002.sql as an additive, existing-row-safe migration. Do not drop or recreate accounts and preserve the owner file. Submit proof.md with rollback and existing-row checks.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"additive","kind":"command","command":["node","test/probe.mjs"],"timeoutMs":3000,"stdoutIncludes":["behavior-pass"],"critical":true},
+          {"id":"no-drop","kind":"not_contains","scope":"workspace","path":"migrations/002.sql","values":["DROP TABLE","NOT NULL"],"critical":true},
+          {"id":"owner","kind":"unchanged","scope":"workspace","path":"data/owner.txt","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["rollback","existing row"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A12-release-checksum",
+      "taskClass": "high-risk-identity-data",
+      "subtype": "data-release",
+      "title": "Fail closed before release replacement",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-release-checksum-6da3",
+        "lineage": "independent",
+        "files": {
+          "scripts/upgrade.sh": "#!/bin/sh\ncp \"$1\" bin/tool\ncheck_sha \"$1\" \"$2\"\n",
+          "release.md": "Verify checksum before replacement; failure leaves the old tool runnable.\n",
+          "bin/tool.identity": "tool-v1\n",
+          "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { createHash } from 'node:crypto';\nimport { chmodSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';\nimport { tmpdir } from 'node:os';\nimport path from 'node:path';\nimport { spawnSync } from 'node:child_process';\nconst root = mkdtempSync(path.join(tmpdir(), 'upgrade-probe-'));\nmkdirSync(path.join(root, 'bin'));\nmkdirSync(path.join(root, 'helpers'));\nwriteFileSync(path.join(root, 'bin/tool'), 'old-tool');\nconst candidate = path.join(root, 'candidate');\nwriteFileSync(candidate, 'new-tool');\nconst helper = path.join(root, 'helpers/check_sha');\nwriteFileSync(helper, \"#!/usr/bin/env node\\nconst fs=require('fs');const crypto=require('crypto');const [file,want]=process.argv.slice(2);const got=crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');process.exit(got===want?0:9);\\n\");\nchmodSync(helper, 0o755);\nconst env = {...process.env, PATH: `${path.dirname(helper)}:${process.env.PATH}`};\nconst script = new URL('../scripts/upgrade.sh', import.meta.url).pathname;\nlet result = spawnSync('/bin/sh', [script, candidate, '0'.repeat(64)], {cwd:root, env});\nassert.notEqual(result.status, 0);\nassert.equal(readFileSync(path.join(root, 'bin/tool'), 'utf8'), 'old-tool');\nconst digest = createHash('sha256').update(readFileSync(candidate)).digest('hex');\nresult = spawnSync('/bin/sh', [script, candidate, digest], {cwd:root, env});\nassert.equal(result.status, 0);\nassert.equal(readFileSync(path.join(root, 'bin/tool'), 'utf8'), 'new-tool');\nconsole.log('behavior-pass');\n"
+        }
+      },
+      "prompt": "Fix scripts/upgrade.sh so checksum verification happens before replacement and failure cannot disturb the old tool. Preserve bin/tool.identity. Submit proof.md describing the failure path.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"verify-first","kind":"command","command":["node","test/probe.mjs"],"timeoutMs":5000,"stdoutIncludes":["behavior-pass"],"critical":true},
+          {"id":"no-direct-copy","kind":"not_contains","scope":"workspace","path":"scripts/upgrade.sh","values":["cp \"$1\" bin/tool"],"critical":true},
+          {"id":"identity","kind":"unchanged","scope":"workspace","path":"bin/tool.identity","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["checksum failure","old tool"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A13-brownfield-agent-block",
+      "taskClass": "brownfield-ownership",
+      "title": "Refresh marked instructions only",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-brownfield-agent-c02a",
+        "lineage": "independent",
+        "files": {
+          "AGENTS.md": "# Project Rules\nKeep the team-specific release command.\n\n<!-- TOOL:BEGIN -->\nOld generated block.\n<!-- TOOL:END -->\n",
+          "LOCAL.md": "unrelated dirty owner note\n",
+          "desired-block.md": "<!-- TOOL:BEGIN -->\nRead PROJECT.md before edits.\n<!-- TOOL:END -->\n"
+        }
+      },
+      "prompt": "Refresh only the marked TOOL block in AGENTS.md from desired-block.md. Preserve all project-authored text and LOCAL.md byte-for-byte. Submit proof.md naming the ownership boundaries checked.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"new-block","kind":"contains","scope":"workspace","path":"AGENTS.md","values":["Read PROJECT.md before edits."]},
+          {"id":"project-text","kind":"contains","scope":"workspace","path":"AGENTS.md","values":["Keep the team-specific release command."] ,"critical":true},
+          {"id":"dirty-note","kind":"unchanged","scope":"workspace","path":"LOCAL.md","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["marked block","project-authored"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A14-brownfield-decision-index",
+      "taskClass": "brownfield-ownership",
+      "title": "Add decision without replacing local ownership",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-brownfield-decision-40ef",
+        "lineage": "independent",
+        "files": {
+          "docs/decisions/README.md": "# Decisions\n\n- [0001 Local Database](0001-local-db.md)\n",
+          "docs/decisions/0001-local-db.md": "# Local Database\n\nAccepted: project owns SQLite.\n",
+          "scripts/custom-deploy.sh": "#!/bin/sh\necho local-deploy\n"
+        }
+      },
+      "prompt": "Add docs/decisions/0002-cache-policy.md and link it from the existing index. Preserve decision 0001 and scripts/custom-deploy.sh exactly. Submit proof.md explaining why existing ownership was not replaced.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"new-decision","kind":"contains","scope":"workspace","path":"docs/decisions/0002-cache-policy.md","values":["Cache Policy","Accepted"]},
+          {"id":"indexed","kind":"contains","scope":"workspace","path":"docs/decisions/README.md","values":["0001 Local Database","0002 Cache Policy"]},
+          {"id":"custom-script","kind":"unchanged","scope":"workspace","path":"scripts/custom-deploy.sh","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["existing ownership","preserved"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A15-runtime-health",
+      "taskClass": "runtime-observability",
+      "title": "Map service runtime lifecycle",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-runtime-health-d448",
+        "lineage": "independent",
+        "files": {
+          "package.json": "{\"scripts\":{\"start\":\"node src/server.js\",\"smoke\":\"node scripts/smoke.js\",\"reset\":\"node scripts/reset.js\"}}\n",
+          "src/server.js": "console.log('listening:4200');\n",
+          "logs/sample.log": "level=error code=DB_BUSY retryable=true\n"
+        }
+      },
+      "prompt": "Create RUNBOOK.md mapping how to boot, exercise, observe, diagnose DB_BUSY, and reset this service using only declared repository commands. Submit proof.md naming each command source.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"lifecycle","kind":"contains","scope":"workspace","path":"RUNBOOK.md","values":["npm start","npm run smoke","npm run reset"]},
+          {"id":"observe","kind":"contains","scope":"workspace","path":"RUNBOOK.md","values":["DB_BUSY","retryable"]},
+          {"id":"source","kind":"unchanged","scope":"workspace","path":"package.json","critical":true},
+          {"id":"proof","kind":"contains","scope":"submission","path":"proof.md","values":["package.json","logs/sample.log"]}
+        ]
+      }
+    },
+    {
+      "id": "P0-A16-runtime-worker",
+      "taskClass": "runtime-observability",
+      "title": "Map worker observation and reset",
+      "dependencies": [],
+      "fixture": {
+        "seedId": "seed-runtime-worker-2e16",
+        "lineage": "independent",
+        "files": {
+          "Makefile": "worker:\n\tnode worker.js\nexercise:\n\tnode enqueue.js\nreset:\n\tnode reset.js\n",
+          "worker.js": "console.log('metric jobs_failed_total=1');\n",
+          "ops/owner.md": "Queue team owns destructive reset approval.\n"
+        }
+      },
+      "prompt": "Create ops/runbook.md with exact boot, exercise, observation, failure-diagnosis, and reset steps. Keep destructive reset under the existing owner approval. Submit proof.md tying steps to repository sources.",
+      "rubric": {
+        "version": 1,
+        "denominator": 4,
+        "checks": [
+          {"id":"commands","kind":"contains","scope":"workspace","path":"ops/runbook.md","values":["make worker","make exercise","make reset"]},
+          {"id":"observe","kind":"contains","scope":"workspace","path":"ops/runbook.md","values":["jobs_failed_total"]},
+          {"id":"approval","kind":"contains","scope":"workspace","path":"ops/runbook.md","values":["Queue team","approval"],"critical":true},
+          {"id":"owner","kind":"unchanged","scope":"workspace","path":"ops/owner.md","critical":true}
+        ]
+      }
+    }
+  ]
+}

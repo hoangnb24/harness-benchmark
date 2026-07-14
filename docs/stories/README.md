@@ -6,6 +6,7 @@ and validation work.
 Phase 0 benchmark implementation:
 
 - [`US-026` E13 Candidate Materializer](US-026-e13-candidate-materializer.md)
+- [`US-027` E13 Neutral Corpus And Rubrics](US-027-e13-neutral-corpus-and-rubrics.md)
 
 ## Normal Story
 

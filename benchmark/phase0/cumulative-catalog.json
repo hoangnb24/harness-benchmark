@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "e13-phase0-cumulative-v1",
+  "journeys": [
+    {
+      "id": "P0-J01-service-evolution",
+      "taskClass": "cumulative-coordination",
+      "atomic": false,
+      "excludedFromAtomicScores": true,
+      "fixture": {
+        "seedId": "p0-journey-service-evolution-v1",
+        "lineage": "independent-cumulative-root",
+        "files": {
+          "README.md": "# Queue Service\n\nRun with `npm start`.\n",
+          "config.json": "{\"port\":4200,\"retryLimit\":2}\n",
+          "src/queue.js": "export function shouldRetry(attempt, limit) { return attempt < limit; }\n"
+        }
+      },
+      "steps": [
+        {
+          "id": "P0-J01-S01-doc",
+          "dependsOn": [],
+          "prompt": "Add RUNBOOK.md documenting the declared start command and port. Submit proof.md naming the source files.",
+          "rubric": {
+            "denominator": 2,
+            "checks": [
+              {"id": "runbook", "kind": "contains", "scope": "workspace", "path": "RUNBOOK.md", "values": ["npm start", "4200"]},
+              {"id": "proof", "kind": "contains", "scope": "submission", "path": "proof.md", "values": ["README.md", "config.json"]}
+            ]
+          }
+        },
+        {
+          "id": "P0-J01-S02-retry",
+          "dependsOn": ["P0-J01-S01-doc"],
+          "prompt": "Change the retry rule to allow the configured final attempt, preserving RUNBOOK.md. Submit proof.md naming the boundary.",
+          "rubric": {
+            "denominator": 2,
+            "checks": [
+              {"id": "boundary", "kind": "contains", "scope": "workspace", "path": "src/queue.js", "values": ["attempt <= limit"]},
+              {"id": "history", "kind": "contains", "scope": "workspace", "path": "RUNBOOK.md", "values": ["npm start", "4200"]}
+            ]
+          }
+        },
+        {
+          "id": "P0-J01-S03-operations",
+          "dependsOn": ["P0-J01-S01-doc", "P0-J01-S02-retry"],
+          "prompt": "Extend RUNBOOK.md with retry-limit diagnosis while preserving the prior start instructions and repaired boundary. Submit proof.md naming both retained outcomes.",
+          "rubric": {
+            "denominator": 3,
+            "checks": [
+              {"id": "diagnosis", "kind": "contains", "scope": "workspace", "path": "RUNBOOK.md", "values": ["retryLimit", "diagnose"]},
+              {"id": "prior-doc", "kind": "contains", "scope": "workspace", "path": "RUNBOOK.md", "values": ["npm start", "4200"]},
+              {"id": "prior-code", "kind": "contains", "scope": "workspace", "path": "src/queue.js", "values": ["attempt <= limit"]}
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

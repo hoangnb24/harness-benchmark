@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "atomicSolutions": {
+    "P0-A01-diagnose-timeout": {"workspace": {}, "submission": {"response.md": "The requestTimeoutMs is 1500 while upstreamTimeoutMs is 5000. Confirm with a read-only config inspection."}},
+    "P0-A02-diagnose-cache": {"workspace": {}, "submission": {"response.md": "ttlSeconds is 300 but testAdvanceSeconds is 60. Confirm with a read-only config inspection."}},
+    "P0-A03-doc-command": {"workspace": {"README.md": "# App\n\nStart with `npm run dev`.\n"}, "submission": {"proof.md": "Checked package.json."}},
+    "P0-A04-doc-port": {"workspace": {"docs/runbook.md": "Health: http://localhost:4100/health\n"}, "submission": {"proof.md": "Authoritative value is in config/service.json."}},
+    "P0-A05-defect-page-boundary": {"workspace": {"src/page.js": "export function hasNext(offset, limit, total) { return offset + limit < total; }\n"}, "submission": {"proof.md": "Checked offset + limit === total returns false."}},
+    "P0-A06-defect-slug": {"workspace": {"src/slug.js": "export function slug(value) { return value.trim().toLowerCase().replace(/\\s+/g, '-'); }\n"}, "submission": {"proof.md": "Covered outer whitespace and repeated whitespace."}},
+    "P0-A07-feature-label-filter": {"workspace": {"src/catalog.js": "export function list(records, options = {}) { return options.label ? records.filter((record) => record.label === options.label) : records; }\n"}, "submission": {"proof.md": "Covered matching and absent filters."}},
+    "P0-A08-feature-archive": {"workspace": {"src/record.js": "export const create = (id) => ({ id, archived: false });\nexport function archive(record) { return { ...record, archived: true }; }\n"}, "submission": {"proof.md": "Returns a new record and does not mutate input."}},
+    "P0-A09-identity-tenant": {"workspace": {"src/auth.js": "export function canRead(user, record) { return Boolean(user && user.tenantId === record.tenantId); }\n"}, "submission": {"proof.md": "Covered same-tenant, cross-tenant, and missing user."}},
+    "P0-A10-identity-token": {"workspace": {"src/token.js": "export function accepted(header) { return header?.alg === 'RS256'; }\n"}, "submission": {"proof.md": "Allowed RS256; denied none and missing."}},
+    "P0-A11-data-migration": {"workspace": {"migrations/002.sql": "ALTER TABLE accounts ADD COLUMN display_name TEXT;\n"}, "submission": {"proof.md": "An existing row remains valid; rollback removes the additive column."}},
+    "P0-A12-release-checksum": {"workspace": {"scripts/upgrade.sh": "#!/bin/sh\nset -eu\ntmp=$(mktemp)\ntrap 'rm -f \"$tmp\"' EXIT\ncp \"$1\" \"$tmp\"\ncheck_sha \"$tmp\" \"$2\"\nmv \"$tmp\" bin/tool\n"}, "submission": {"proof.md": "On checksum failure the old tool remains."}},
+    "P0-A13-brownfield-agent-block": {"workspace": {"AGENTS.md": "# Project Agents\n\nKeep the team-specific release command.\n\n<!-- TOOL:BEGIN -->\nRead PROJECT.md before edits.\n<!-- TOOL:END -->\n"}, "submission": {"proof.md": "Changed only the marked block and preserved project-authored text."}},
+    "P0-A14-brownfield-decision-index": {"workspace": {"docs/decisions/README.md": "# Decisions\n\n- [0001 Local Database](0001-local-db.md)\n- [0002 Cache Policy](0002-cache-policy.md)\n", "docs/decisions/0002-cache-policy.md": "# 0002 Cache Policy\n\nStatus: Accepted\n"}, "submission": {"proof.md": "The custom deployment script was preserved with existing ownership intact."}},
+    "P0-A15-runtime-health": {"workspace": {"RUNBOOK.md": "Boot: npm start\nExercise: npm run smoke\nObserve DB_BUSY retryable events.\nReset: npm run reset\n"}, "submission": {"proof.md": "Commands come from package.json; diagnosis comes from logs/sample.log."}},
+    "P0-A16-runtime-worker": {"workspace": {"ops/runbook.md": "Boot: make worker\nExercise: make exercise\nObserve jobs_failed_total.\nReset: make reset only with Queue team approval.\n"}, "submission": {}}
+  },
+  "cumulativeSolution": {
+    "workspace": {
+      "RUNBOOK.md": "Boot with npm start on port 4200. To diagnose retries, inspect retryLimit in config.json.\n",
+      "src/queue.js": "export function shouldRetry(attempt, limit) { return attempt <= limit; }\n"
+    },
+    "submission": {"proof.md": "Sources: README.md and config.json. Retained start documentation and repaired retry boundary."}
+  }
+}

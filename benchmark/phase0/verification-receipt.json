@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "e13-us105-atomic-v1",
+  "verifiedAt": "2026-07-14",
+  "activationProfiles": 8,
+  "atomicTasks": 16,
+  "independentSeeds": 16,
+  "resetsPerAtomicTask": 2,
+  "atomicResetProof": [
+    {"taskId":"P0-A01-diagnose-timeout","startCommit":"93609ad03bfc695d45a6efd1356044af5c0d8d47","treeSha256":"a12086b773bd3d10afee148edf4211fc82accbc48bc70668ee306c2c493ced6c"},
+    {"taskId":"P0-A02-diagnose-cache","startCommit":"b70bad11d2b9940fa8f3496ace38a71c1a588904","treeSha256":"554b1f4679fb9e7810ca1c1080da18cafb4bda24a55f14e54351ebaa1880a62f"},
+    {"taskId":"P0-A03-doc-command","startCommit":"09f08841ac44cbe313c1e0e3f69e9514d4b0eeac","treeSha256":"e2fcbaed1318ae3fe234076d5d00fbd0f74fc8e5106ffb865fc0ec47744352d1"},
+    {"taskId":"P0-A04-doc-port","startCommit":"34e506975303353261361d396ecc962ea487d2f7","treeSha256":"1730eb75646eab469db35fe0ccc2a1be01fb282b62d67f520e891fa5d9d67dff"},
+    {"taskId":"P0-A05-defect-page-boundary","startCommit":"30a70dfa38f633ca45f1c92dfff782c604b5de01","treeSha256":"0b2149defe45d7495b82a264721b0a155cc85993a14e6ba037a3d9b5b3df5316"},
+    {"taskId":"P0-A06-defect-slug","startCommit":"0568d05acd985a4046030647788c3b48ef0aeea6","treeSha256":"95f17ceb4fcd2911ed76ba2f90d4c04f018504f8c47c9e413af4e970ec445d5c"},
+    {"taskId":"P0-A07-feature-label-filter","startCommit":"32aae75913506723b2cf736774077ff8eea22f42","treeSha256":"ed76b79ef598339e5b96c35120f09691a4d1e8897a072750e8390b02718f8220"},
+    {"taskId":"P0-A08-feature-archive","startCommit":"3a18d2e915e250c0ef004546cd476c04b19a8c12","treeSha256":"b4879a682d1ec67778de4bb692584d28f7a65b3ef1b8a188d435296c02c8fe6a"},
+    {"taskId":"P0-A09-identity-tenant","startCommit":"25f8db9bc43cf5b4728b32886fa2bd5e30503b02","treeSha256":"d59f2027e9c8335ce44def705f0ba8b5802eb37dd5746f7463ad9fd50d222e96"},
+    {"taskId":"P0-A10-identity-token","startCommit":"6b82c47b6cc8814121457fa156890a424b00cce9","treeSha256":"e0bfc24b6dcc30a7270b4538a6c140fa26d9772cd226c9a05fc3be0aa281f506"},
+    {"taskId":"P0-A11-data-migration","startCommit":"208acd6ca044bff5b98efee4bd64eaeb87052ffa","treeSha256":"ceed77fe1f4bd4137087449fd16f43438224854412c2f38a488fffebc3c1431a"},
+    {"taskId":"P0-A12-release-checksum","startCommit":"8a3e3a2224aeb6811f394c3b981e4e6040e01cf5","treeSha256":"c1f24b05eab5779da71eda866e7540029dcb6a2f181332154c1ba884a2ab6d0f"},
+    {"taskId":"P0-A13-brownfield-agent-block","startCommit":"36b38186e1b0dbf44d3c8851bb625c3e54fc257a","treeSha256":"37f8401469a93f7a0ae18a38bccf083ee15d28468f6ab09400ba1e80e32bcb69"},
+    {"taskId":"P0-A14-brownfield-decision-index","startCommit":"b31a85757b2823cbf5ec85456d96a5398abd6bcd","treeSha256":"02b4a361f42db70dcfb6ab7a788b32da72c31da4a6c307da36b62c0b01a2ea8f"},
+    {"taskId":"P0-A15-runtime-health","startCommit":"4bc424d7d8beb3802ff67461d57b021743939c76","treeSha256":"b55077860f17159ef6c3da2a568e812f35e6eee7e2f32b96fb4cd7202b8937d9"},
+    {"taskId":"P0-A16-runtime-worker","startCommit":"6fb870c4f6d736ed1e945b76343578713f55e00a","treeSha256":"1a47859668dba9f0b0505a4ec0c7bdb68ff357c02f80700ad0d081e5aac2e5a1"}
+  ],
+  "positiveCanaries": {"passed": 16, "total": 16, "fixedDenominatorPerTask": 4},
+  "behaviorCommandChecks": {"tasks": 8, "receiptFields": ["argv", "timeoutMs", "exitCode", "stdoutSha256", "stderrSha256"]},
+  "negativeCanaries": {
+    "missingRubric": "rejected",
+    "falsePositive": "rejected",
+    "safety": "rejected",
+    "denominator": "rejected",
+    "contamination": "rejected"
+  },
+  "cumulative": {"journeys": 1, "resets": 2, "stepsPassed": 3, "excludedFromAtomicScores": true},
+  "liveAgentInvocations": 0,
+  "status": "passed"
+}
