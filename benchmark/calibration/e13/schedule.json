@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "scheduleId": "e13-gate-d0-held-out-18-call-v1",
+  "scope": "held-out-calibration-only",
+  "concurrency": 1,
+  "retries": 0,
+  "infrastructureFailureDisposition": "invalidate-complete-calibration-packet",
+  "plannedCalls": 18,
+  "blocks": [
+    {"blockId":"B01","taskId":"H01-config-precedence","repetition":0,"order":["FULL_V0","COPY_ONCE","MODULAR_CORE"]},
+    {"blockId":"B02","taskId":"H02-brownfield-script-merge","repetition":0,"order":["FULL_V0","MODULAR_CORE","COPY_ONCE"]},
+    {"blockId":"B03","taskId":"H01-config-precedence","repetition":1,"order":["COPY_ONCE","MODULAR_CORE","FULL_V0"]},
+    {"blockId":"B04","taskId":"H02-brownfield-script-merge","repetition":1,"order":["MODULAR_CORE","COPY_ONCE","FULL_V0"]},
+    {"blockId":"B05","taskId":"H01-config-precedence","repetition":2,"order":["MODULAR_CORE","FULL_V0","COPY_ONCE"]},
+    {"blockId":"B06","taskId":"H02-brownfield-script-merge","repetition":2,"order":["COPY_ONCE","FULL_V0","MODULAR_CORE"]}
+  ],
+  "calls": [
+    {"callId":"C01","blockId":"B01","taskId":"H01-config-precedence","repetition":0,"localPosition":0,"treatment":"FULL_V0"},
+    {"callId":"C02","blockId":"B01","taskId":"H01-config-precedence","repetition":0,"localPosition":1,"treatment":"COPY_ONCE"},
+    {"callId":"C03","blockId":"B01","taskId":"H01-config-precedence","repetition":0,"localPosition":2,"treatment":"MODULAR_CORE"},
+    {"callId":"C04","blockId":"B02","taskId":"H02-brownfield-script-merge","repetition":0,"localPosition":0,"treatment":"FULL_V0"},
+    {"callId":"C05","blockId":"B02","taskId":"H02-brownfield-script-merge","repetition":0,"localPosition":1,"treatment":"MODULAR_CORE"},
+    {"callId":"C06","blockId":"B02","taskId":"H02-brownfield-script-merge","repetition":0,"localPosition":2,"treatment":"COPY_ONCE"},
+    {"callId":"C07","blockId":"B03","taskId":"H01-config-precedence","repetition":1,"localPosition":0,"treatment":"COPY_ONCE"},
+    {"callId":"C08","blockId":"B03","taskId":"H01-config-precedence","repetition":1,"localPosition":1,"treatment":"MODULAR_CORE"},
+    {"callId":"C09","blockId":"B03","taskId":"H01-config-precedence","repetition":1,"localPosition":2,"treatment":"FULL_V0"},
+    {"callId":"C10","blockId":"B04","taskId":"H02-brownfield-script-merge","repetition":1,"localPosition":0,"treatment":"MODULAR_CORE"},
+    {"callId":"C11","blockId":"B04","taskId":"H02-brownfield-script-merge","repetition":1,"localPosition":1,"treatment":"COPY_ONCE"},
+    {"callId":"C12","blockId":"B04","taskId":"H02-brownfield-script-merge","repetition":1,"localPosition":2,"treatment":"FULL_V0"},
+    {"callId":"C13","blockId":"B05","taskId":"H01-config-precedence","repetition":2,"localPosition":0,"treatment":"MODULAR_CORE"},
+    {"callId":"C14","blockId":"B05","taskId":"H01-config-precedence","repetition":2,"localPosition":1,"treatment":"FULL_V0"},
+    {"callId":"C15","blockId":"B05","taskId":"H01-config-precedence","repetition":2,"localPosition":2,"treatment":"COPY_ONCE"},
+    {"callId":"C16","blockId":"B06","taskId":"H02-brownfield-script-merge","repetition":2,"localPosition":0,"treatment":"COPY_ONCE"},
+    {"callId":"C17","blockId":"B06","taskId":"H02-brownfield-script-merge","repetition":2,"localPosition":1,"treatment":"FULL_V0"},
+    {"callId":"C18","blockId":"B06","taskId":"H02-brownfield-script-merge","repetition":2,"localPosition":2,"treatment":"MODULAR_CORE"}
+  ]
+}

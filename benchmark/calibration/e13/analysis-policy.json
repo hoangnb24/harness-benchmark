@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "policyId": "e13-gate-d0-blinded-sizing-v1",
+  "requiredSizingEndpoints": ["correctness","proof","inputTokens","wallMilliseconds","toolLoops","consumedPlanCredits"],
+  "diagnosticTelemetry": ["cachedInputTokens","outputTokens","costUsd"],
+  "design": {
+    "power": 0.8,
+    "balancedRepetitionMultiple": 6,
+    "minimumBalancedRepetitions": 6,
+    "primaryAndCumulativeInvocationsPerRepetition": 57,
+    "primaryAndCumulativeFormula": "16 atomic tasks x 3 treatments + 1 cumulative journey x 3 treatments x 3 steps",
+    "ablationInvocationsPerRepetition": null,
+    "ablationBudgetRule": "Gate D must freeze a separate ablation budget or an approved E13 amendment before final decision execution",
+    "planningCreditsPerInvocation": {
+      "value": 40,
+      "classification": "published-average-range-upper-end-not-cap",
+      "oneCallOvershootPossible": true
+    },
+    "residualDegreesOfFreedom": 4,
+    "varianceFamily": {"alpha":0.05,"endpointCount":6},
+    "endpoints": [
+      {"id":"correctness","purpose":"non-inferiority","transform":"identity","planningBasis":{"kind":"absolute-margin","threshold":-0.05,"plannedValue":0,"transformedGap":0.05},"familyAlpha":0.0017857142857142859,"oneSidedAlpha":0.0017857142857142859,"varianceTailAlpha":0.008333333333333333,"decisionTaskCountK":2,"precisionHalfWidth":0.025,"designDelta":0.05,"varianceFloor":0.000625},
+      {"id":"proof","purpose":"non-inferiority","transform":"identity","planningBasis":{"kind":"absolute-margin","threshold":-0.05,"plannedValue":0,"transformedGap":0.05},"familyAlpha":0.0017857142857142859,"oneSidedAlpha":0.0017857142857142859,"varianceTailAlpha":0.008333333333333333,"decisionTaskCountK":2,"precisionHalfWidth":0.025,"designDelta":0.05,"varianceFloor":0.000625},
+      {"id":"inputTokens","purpose":"material-benefit","transform":"natural-log","planningBasis":{"kind":"ratio-bound","threshold":0.85,"plannedValue":0.8,"transformedGap":0.06062462181643484},"familyAlpha":0.025,"oneSidedAlpha":0.025,"varianceTailAlpha":0.008333333333333333,"decisionTaskCountK":16,"precisionHalfWidth":0.03031231090821742,"designDelta":0.06062462181643484,"varianceFloor":0.0004},
+      {"id":"wallMilliseconds","purpose":"guardrail","transform":"natural-log","planningBasis":{"kind":"ratio-bound","threshold":1.1,"plannedValue":1,"transformedGap":0.09531017980432493},"familyAlpha":0.016666666666666666,"oneSidedAlpha":0.016666666666666666,"varianceTailAlpha":0.008333333333333333,"decisionTaskCountK":16,"precisionHalfWidth":0.04765508990216247,"designDelta":0.09531017980432493,"varianceFloor":0.0004},
+      {"id":"toolLoops","purpose":"guardrail","transform":"natural-log","planningBasis":{"kind":"ratio-bound","threshold":1.1,"plannedValue":1,"transformedGap":0.09531017980432493},"familyAlpha":0.016666666666666666,"oneSidedAlpha":0.016666666666666666,"varianceTailAlpha":0.008333333333333333,"decisionTaskCountK":16,"precisionHalfWidth":0.04765508990216247,"designDelta":0.09531017980432493,"varianceFloor":0.0004},
+      {"id":"consumedPlanCredits","purpose":"guardrail","transform":"natural-log","planningBasis":{"kind":"ratio-bound","threshold":1.1,"plannedValue":1,"transformedGap":0.09531017980432493},"familyAlpha":0.016666666666666666,"oneSidedAlpha":0.016666666666666666,"varianceTailAlpha":0.008333333333333333,"decisionTaskCountK":16,"precisionHalfWidth":0.04765508990216247,"designDelta":0.09531017980432493,"varianceFloor":0.0004}
+    ]
+  },
+  "approvedHumanCreditCeiling": null
+}

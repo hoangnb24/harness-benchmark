@@ -4,6 +4,7 @@ import path from 'node:path';
 import { lstat, readdir, realpath } from 'node:fs/promises';
 import { GenerateEvaluationAggregate } from '../application/GenerateEvaluationAggregate';
 import { GenerateCumulativeEvaluationAggregate } from '../application/GenerateCumulativeEvaluationAggregate';
+import { GenerateCalibrationAggregate } from '../application/GenerateCalibrationAggregate';
 import { RunCumulativeEvaluationPlan } from '../application/RunCumulativeEvaluationPlan';
 import { RunEvaluationCell } from '../application/RunEvaluationCell';
 import { RunEvaluationPlan } from '../application/RunEvaluationPlan';
@@ -17,6 +18,8 @@ import { JsonEvaluationPlanLoader } from '../infrastructure/JsonEvaluationPlanLo
 import { Phase0EvaluationWorkspace } from '../infrastructure/Phase0EvaluationWorkspace';
 import { Phase0CumulativeJourneyExecutor } from '../infrastructure/Phase0CumulativeJourneyExecutor';
 import { Phase0RubricEvaluator } from '../infrastructure/Phase0RubricEvaluator';
+import { assertHeldOutCalibrationPlan, isHeldOutCalibrationPlan } from '../domain/calibration';
+import type { EvaluationPlan } from '../domain/evaluation';
 
 interface EvaluationCliIo {
   stdout: (message: string) => void;
@@ -35,14 +38,16 @@ export async function runEvaluationCli(
   const [command, ...rest] = args;
   const planPath = flag(rest, '--plan');
   const runDir = flag(rest, '--run-dir');
-  if (!planPath || !runDir || !['qualify', 'report', 'verify'].includes(command ?? '')) {
+  if (!planPath || !runDir ||
+    !['qualify', 'report', 'verify', 'calibration-report', 'calibration-verify'].includes(command ?? '')) {
     io.stderr(
-      'Usage: evaluation-cli <qualify|report|verify> --plan PLAN.json --run-dir DIR [--materializer FILE]\n',
+      'Usage: evaluation-cli <qualify|report|verify|calibration-report|calibration-verify> --plan PLAN.json --run-dir DIR [--materializer FILE]\n',
     );
     return 1;
   }
   try {
     const plan = await new JsonEvaluationPlanLoader().load(planPath);
+    assertCalibrationCommandBoundary(command, plan);
     if (command === 'qualify' && plan.agent.kind === 'codex') await assertFreshCodexRunDir(runDir);
     if (command === 'qualify' && plan.agent.kind === 'codex') {
       const externallyApprovedSha = flag(rest, '--approved-authorization-sha');
@@ -62,7 +67,18 @@ export async function runEvaluationCli(
       atomicCatalogSha256: plan.corpus.atomicCatalogSha256,
     });
     const aggregate = new GenerateEvaluationAggregate(rubric);
+    const calibrationAggregate = new GenerateCalibrationAggregate(aggregate);
     const cumulativeAggregate = new GenerateCumulativeEvaluationAggregate();
+    if (command === 'calibration-report') {
+      const result = await calibrationAggregate.write(plan, runDir);
+      io.stdout(`${JSON.stringify(result)}\n`);
+      return result.infrastructureValidity === 'valid' ? 0 : 1;
+    }
+    if (command === 'calibration-verify') {
+      const result = await calibrationAggregate.verify(plan, runDir);
+      io.stdout(`${JSON.stringify(result)}\n`);
+      return result.infrastructureValidity === 'valid' ? 0 : 1;
+    }
     if (command === 'report') {
       const atomicBuilt = plan.cells.length > 0 ? await aggregate.build(plan, runDir) : undefined;
       const cumulative = plan.cumulativeJourneys.length > 0
@@ -146,6 +162,19 @@ export async function runEvaluationCli(
   } catch (error) {
     io.stderr(`Evaluation failed: ${error instanceof Error ? error.message : String(error)}\n`);
     return 1;
+  }
+}
+
+export function assertCalibrationCommandBoundary(command: string, plan: EvaluationPlan): void {
+  const heldOutCalibration = isHeldOutCalibrationPlan(plan);
+  const calibrationScope = plan.agent.kind === 'codex' && plan.agent.scope === 'calibration';
+  if (calibrationScope || heldOutCalibration) assertHeldOutCalibrationPlan(plan);
+  if ((command === 'report' || command === 'verify') && heldOutCalibration) {
+    throw new Error('calibration evidence is excluded from decision report and verification commands');
+  }
+  if ((command === 'calibration-report' || command === 'calibration-verify') &&
+    (!calibrationScope || !heldOutCalibration)) {
+    throw new Error('calibration report commands accept only a held-out calibration plan');
   }
 }
 

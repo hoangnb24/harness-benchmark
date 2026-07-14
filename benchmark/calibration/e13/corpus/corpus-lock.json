@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "e13-gate-d0-held-out-v1",
+  "scope": "held-out-calibration-only",
+  "decisionCorpusEligible": false,
+  "atomicCatalogSha256": "c4e798e59205c8bcc647204816bc7d1eeddac230c25c06f14c8b2889fbef30c9",
+  "atomicTasks": [
+    {
+      "id": "H01-config-precedence",
+      "fixtureSha256": "5607f138a76777cd90a21c50d9e0ccf4a49a90a012e30f9836dd4bef5b534cc1",
+      "promptSha256": "dd0a14983fdfca3b10286792a809a692ff32a59b24318685ab95c94d3b9b2a27",
+      "rubricSha256": "4e121fb178706e4b72d1c6cf880be9e7efc94592e3c593990989df79b4b5885b",
+      "startCommit": "747fff0fd0a44671952bf7ecb8208974aa21fc27",
+      "materializedTreeSha256": "c75e33ab33697c1689f51d329e77eba59f8ac0cc0fe3f36a7fac0cb13fb5bf47",
+      "dirtyFiles": []
+    },
+    {
+      "id": "H02-brownfield-script-merge",
+      "fixtureSha256": "7bf04b3efd0d8ed960f1c280357f70051674d4afe5debdcdc071eb7b3e7c672b",
+      "promptSha256": "d91c2c45573a9b72dfdba07f3290156dd8745d4beacc80a28af60d640eefbaa5",
+      "rubricSha256": "a52aff0077269000eeecd3c96ab1c83b18a29ad535cb911db153541a10920188",
+      "startCommit": "000cd201567e913a3c839744885db16c05540273",
+      "materializedTreeSha256": "cef002943cf70dfe8bcd0aca19197943adfbc403cb569b9f563c7a70aa138795",
+      "dirtyFiles": ["LOCAL_PATCH.md"]
+    }
+  ],
+  "implementationIdentities": {
+    "materializeFixtureSha256": "dcbf9112c18886ee4afecc398b28dbe4238428cfaffd74c4278b83aee9c96c0c",
+    "rubricRunnerSha256": "8f1dc51997c8eb39e3b2d755430320b90f387bf6fed284b3dc48a2d956ff5dd9"
+  }
+}

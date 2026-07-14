@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "packetId": "e13-gate-d0-held-out-v1",
+  "state": "blocked-pending-exact-human-approval",
+  "runner": {
+    "repository": "harness-benchmark",
+    "us029Commit": "2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef",
+    "entrypoint": "benchmark/orchestrator/interface/evaluation-cli.ts"
+  },
+  "run": {
+    "runId": "e13-gate-d0-calibration-v1",
+    "outputDirectory": "benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v1",
+    "schedule": "benchmark/calibration/e13/schedule.json",
+    "plannedInvocations": 18,
+    "concurrency": 1,
+    "retries": 0,
+    "infrastructureFailureDisposition": "invalidate-complete-calibration-packet"
+  },
+  "agent": {
+    "kind": "codex",
+    "scope": "calibration",
+    "authentication": "chatgpt-plan-only",
+    "executableCanonicalPath": null,
+    "executableSha256": null,
+    "executableVersion": null,
+    "declaredModel": null,
+    "reasoningEffort": null,
+    "resolvedModel": {"status":"unknown","reason":"no provider call has occurred"},
+    "apiBillingAllowed": false,
+    "purchasedCreditsAllowed": false,
+    "overageAllowed": false
+  },
+  "limits": {
+    "maximumInvocations": 18,
+    "maximumElapsedSeconds": null,
+    "approvedHumanCreditCeiling": null,
+    "planningCreditsPerInvocation": {
+      "value": 40,
+      "classification": "published-average-range-upper-end-not-cap",
+      "oneCallOvershootPossible": true
+    }
+  },
+  "approval": {
+    "required": true,
+    "exactAuthorizationSha256": null,
+    "allowLiveCodexFlagMayBeUsed": false,
+    "authorizesCalibration": false,
+    "authorizesUS110": false
+  }
+}

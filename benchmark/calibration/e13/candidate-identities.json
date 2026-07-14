@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "repository-harness",
+  "sourceCommit": "e8c15825e7cea6d6974df98bf02b047b5ec4f593",
+  "manifestRoot": "docs/stories/epics/E13-phase-0-product-shape-evaluation/evidence/candidates",
+  "treatments": [
+    {"id":"FULL_V0","file":"full-v0.json","sha256":"58b475c19fb38790ff8b673759ed7964293d06b677cb04734688b472eef738dd"},
+    {"id":"COPY_ONCE","file":"copy-once.json","sha256":"5b77e5b48dc4b9df3712e9f0239a5a219a3615644c8de317deaadc3eafcbc8dd"},
+    {"id":"MODULAR_CORE","file":"modular-core.json","sha256":"43b042b5e34a25050caf66b6fd2e87e87192b94f2360b48d9e3042e7b8d27023"}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "status": "evidence-design-blocker",
+  "blocker": "calibration-observations-and-approved-human-credit-ceiling-missing",
+  "treatmentLabelsExposed": false,
+  "meansExposed": false,
+  "ranksExposed": false,
+  "effectsExposed": false,
+  "selectedBalancedRepetitions": null,
+  "authorizesLiveExecution": false,
+  "authorizesUS110": false
+}
