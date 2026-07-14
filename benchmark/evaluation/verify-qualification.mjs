@@ -9,12 +9,16 @@ import { promisify } from 'node:util';
 
 const execFile = promisify(execFileCallback);
 const benchmarkRoot = path.resolve(import.meta.dirname, '../..');
-const evidenceRoot = path.join(import.meta.dirname, 'evidence');
 const entrypoint = path.join(import.meta.dirname, 'verify-qualification.mjs');
 const args = parseArgs(process.argv.slice(2));
 if (!args.offline || !args.repositoryHarnessRoot) {
-  throw new Error('usage: verify-qualification.mjs --offline --repository-harness-root ROOT');
+  throw new Error(
+    'usage: verify-qualification.mjs --offline --repository-harness-root ROOT [--output-root DIR]',
+  );
 }
+const evidenceRoot = args.outputRoot
+  ? path.resolve(args.outputRoot)
+  : path.join(import.meta.dirname, 'evidence');
 
 const positiveCanaries = [
   'three-treatment-paths',
@@ -412,10 +416,11 @@ async function git(argv) {
 }
 
 function parseArgs(argv) {
-  const parsed = { offline: false, repositoryHarnessRoot: undefined };
+  const parsed = { offline: false, repositoryHarnessRoot: undefined, outputRoot: undefined };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--offline') parsed.offline = true;
     else if (argv[index] === '--repository-harness-root') parsed.repositoryHarnessRoot = argv[++index];
+    else if (argv[index] === '--output-root') parsed.outputRoot = argv[++index];
     else throw new Error(`unknown qualification argument: ${argv[index]}`);
   }
   return parsed;
