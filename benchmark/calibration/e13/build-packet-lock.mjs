@@ -21,7 +21,7 @@ export async function buildPacketLock() {
   }
   return {
     schemaVersion: 1,
-    packetId: 'e13-gate-d0-held-out-v2',
+    packetId: 'e13-gate-d0-held-out-v3',
     state: 'approval-ready-offline-template',
     runner: {
       repository: 'harness-benchmark',
@@ -39,7 +39,7 @@ export async function buildPacketLock() {
       failFastAfterFirstInvalidCell: true,
       blindedSizingReportImplemented: true
     },
-    outputRoot: 'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v2',
+    outputRoot: 'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v3',
     plannedCalls: 18,
     concurrency: 1,
     retries: 0,

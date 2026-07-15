@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "packetId": "e13-gate-d0-held-out-v2",
+  "packetId": "e13-gate-d0-held-out-v3",
   "state": "blocked-pending-exact-human-approval",
   "runner": {
     "repository": "harness-benchmark",
@@ -9,8 +9,8 @@
     "entrypoint": "benchmark/orchestrator/interface/evaluation-cli.ts"
   },
   "run": {
-    "runId": "e13-gate-d0-calibration-v2",
-    "outputDirectory": "benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v2",
+    "runId": "e13-gate-d0-calibration-v3",
+    "outputDirectory": "benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v3",
     "schedule": "benchmark/calibration/e13/schedule.json",
     "plannedInvocations": 18,
     "concurrency": 1,

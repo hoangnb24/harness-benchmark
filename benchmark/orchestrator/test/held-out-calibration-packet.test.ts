@@ -162,7 +162,7 @@ function calibrationPlan(): EvaluationPlan {
       ? '5b77e5b48dc4b9df3712e9f0239a5a219a3615644c8de317deaadc3eafcbc8dd'
       : '43b042b5e34a25050caf66b6fd2e87e87192b94f2360b48d9e3042e7b8d27023';
   return {
-    version: 1, runId: 'e13-gate-d0-calibration-v2',
+    version: 1, runId: 'e13-gate-d0-calibration-v3',
     runner: { repository: 'harness-benchmark', commit: '2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef' },
     agent: { kind: 'codex', scope: 'calibration',
       executable: { path: '/tmp/codex', sha256: 'd'.repeat(64), version: 'test' },
@@ -172,8 +172,8 @@ function calibrationPlan(): EvaluationPlan {
     reasoningEffort: 'max', sandbox: 'workspace-write', toolCatalogSha256: '2'.repeat(64),
     corpus: {
       root: '/tmp/corpus',
-      lockSha256: 'c8e972289a166173d2da2cd238ba6d0fe912a905065751a4a35287f04533dfbe',
-      atomicCatalogSha256: 'b753b0a15d3d6fc8543890fe9529761d2f4b4734713c090bc60a4898252caf63',
+      lockSha256: 'dc0ec614913cf863e5205efdb15634e3ad1d04c4109f73a0c8b715f62edbfe0d',
+      atomicCatalogSha256: '0b3e45f9a7689fc95fdfbaafd76340e2ab9f3baf917c6aa4aa4aeb5d77421e81',
     },
     cells: orders.flatMap((order, block) => order.map((name, localPosition) => ({
       id: `C${String(block * 3 + localPosition + 1).padStart(2, '0')}`,

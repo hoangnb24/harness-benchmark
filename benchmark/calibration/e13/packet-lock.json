@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "packetId": "e13-gate-d0-held-out-v2",
+  "packetId": "e13-gate-d0-held-out-v3",
   "state": "approval-ready-offline-template",
   "runner": {
     "repository": "harness-benchmark",
@@ -18,7 +18,7 @@
     "failFastAfterFirstInvalidCell": true,
     "blindedSizingReportImplemented": true
   },
-  "outputRoot": "benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v2",
+  "outputRoot": "benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v3",
   "plannedCalls": 18,
   "concurrency": 1,
   "retries": 0,
@@ -33,7 +33,7 @@
     },
     {
       "path": "benchmark/calibration/e13/build-packet-lock.mjs",
-      "sha256": "1b55beebea759ef44f1df6405176236d3b0fd06f39ae8cd73c1b70679bf1e156"
+      "sha256": "830e2d2ca695acc1d8855d87a2883e1bdfe3fd64ec65caef1991bd9ee438aab6"
     },
     {
       "path": "benchmark/calibration/e13/candidate-identities.json",
@@ -41,7 +41,7 @@
     },
     {
       "path": "benchmark/calibration/e13/corpus/atomic-catalog.json",
-      "sha256": "3aa32c965d58bd46df965bc583815b92d3712ce6e28f0c585b1b2ba70d78678d"
+      "sha256": "ce067b0d674e86c98ac3eab5cc99b8af0b50ad2685c5f8ea0e4c5baae36ad512"
     },
     {
       "path": "benchmark/calibration/e13/corpus/build-lock.mjs",
@@ -53,7 +53,7 @@
     },
     {
       "path": "benchmark/calibration/e13/corpus/corpus-lock.json",
-      "sha256": "c8e972289a166173d2da2cd238ba6d0fe912a905065751a4a35287f04533dfbe"
+      "sha256": "dc0ec614913cf863e5205efdb15634e3ad1d04c4109f73a0c8b715f62edbfe0d"
     },
     {
       "path": "benchmark/calibration/e13/corpus/materialize-fixture.mjs",
@@ -65,7 +65,7 @@
     },
     {
       "path": "benchmark/calibration/e13/execution-contract-template.json",
-      "sha256": "e1e7332e1dda5bfd6b5e0dcb8dfeaeede85f036e5b1c98fef9f33ae1f62c1add"
+      "sha256": "fb5b8cf3b6c6b766f29b3712c76dd0412a80346b5a9c1f1fe2cc99ac7fe2686b"
     },
     {
       "path": "benchmark/calibration/e13/future-decision-credit-ceiling-template.json",
@@ -73,7 +73,7 @@
     },
     {
       "path": "benchmark/calibration/e13/gate-d0-approval-template.json",
-      "sha256": "099444446d4ab96d1952ebf6baed826dcf9edafa8fc2b14cba70c880548f64be"
+      "sha256": "8fec36ea53f01b0e6738fda3f7c359bd127dfc2bc31bccec8e5605c6b085ec9c"
     },
     {
       "path": "benchmark/calibration/e13/schedule.json",
@@ -161,7 +161,7 @@
     },
     {
       "path": "benchmark/orchestrator/domain/calibration.ts",
-      "sha256": "0d895abe94b717319de809a277abde1885ff704c787d88f880af01d90a85be57"
+      "sha256": "7001ffb7cb36b90c96355767be55e2680899f21ba2b033a3679dedde5152f427"
     },
     {
       "path": "benchmark/orchestrator/domain/checkpoint.ts",
@@ -201,7 +201,7 @@
     },
     {
       "path": "benchmark/orchestrator/infrastructure/CalibrationPlanLock.ts",
-      "sha256": "3a4c7856fd621bf781da52a1b31e5f977835b929a66eca3760d04ffbd63531bb"
+      "sha256": "f77a69b88c243e3497f03898760c2b7528ee682640ac14aa3e29517514a54eba"
     },
     {
       "path": "benchmark/orchestrator/infrastructure/CodexEvaluationAgent.ts",
@@ -433,11 +433,11 @@
     },
     {
       "path": "benchmark/orchestrator/test/calibration-fail-fast-and-blinded-report.test.ts",
-      "sha256": "52d60048d6727906042e87c2b7fe8724c6341efe06f399cf078c74678ad3ad3f"
+      "sha256": "288d14745691eb412f89c1ae2dcbfd1b2beee8f3a8a5ebb16aa9eabde73a98b3"
     },
     {
       "path": "benchmark/orchestrator/test/calibration-plan-lock.test.ts",
-      "sha256": "8b41a3bf3ef090c85b9dd13949ea94497c4ae42fcff6bc469bfca347a7a20602"
+      "sha256": "b90b3e25dd6538b7ad40bb16dcc59c3dd482ee62abe931040086e45087120fc3"
     },
     {
       "path": "benchmark/orchestrator/test/checkpoint.test.ts",
@@ -473,7 +473,7 @@
     },
     {
       "path": "benchmark/orchestrator/test/held-out-calibration-packet.test.ts",
-      "sha256": "c183b8ffa3c66962fc9c905edcf4b9817b92585fc5b8a7002e17e83bb3fb20b4"
+      "sha256": "eb82d1e8e6a88358a89fccc2b2b33554e41c64742e35a49f4f0e5460f201e117"
     },
     {
       "path": "benchmark/orchestrator/test/prepare-run.test.ts",

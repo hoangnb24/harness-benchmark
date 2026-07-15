@@ -61,7 +61,7 @@ amendment.
 
 `calibration-report` and `calibration-verify` write/read only
 `calibration-only/aggregate.json`. Ordinary decision `report` and `verify`
-reject run ID `e13-gate-d0-calibration-v2`. The aggregate retains per-metric
+reject run ID `e13-gate-d0-calibration-v3`. The aggregate retains per-metric
 known/unknown counts and marks calibration evidence ineligible for both the
 decision corpus and aggregate.
 

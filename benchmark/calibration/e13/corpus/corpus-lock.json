@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "corpusId": "e13-gate-d0-held-out-v2",
+  "corpusId": "e13-gate-d0-held-out-v3",
   "scope": "held-out-calibration-only",
   "decisionCorpusEligible": false,
-  "atomicCatalogSha256": "b753b0a15d3d6fc8543890fe9529761d2f4b4734713c090bc60a4898252caf63",
+  "atomicCatalogSha256": "0b3e45f9a7689fc95fdfbaafd76340e2ab9f3baf917c6aa4aa4aeb5d77421e81",
   "atomicTasks": [
     {
       "id": "H01-config-precedence",
       "fixtureSha256": "5607f138a76777cd90a21c50d9e0ccf4a49a90a012e30f9836dd4bef5b534cc1",
-      "promptSha256": "43d8d402261de176ebb31c7a151851d17ef45703c25d3d74a8ff2416ea5ba183",
+      "promptSha256": "9455179839750e9b8ccee4d638dfcf64f77e1fb2cddf33458d3474e73bff97d5",
       "rubricSha256": "4e121fb178706e4b72d1c6cf880be9e7efc94592e3c593990989df79b4b5885b",
       "startCommit": "747fff0fd0a44671952bf7ecb8208974aa21fc27",
       "materializedTreeSha256": "c75e33ab33697c1689f51d329e77eba59f8ac0cc0fe3f36a7fac0cb13fb5bf47",
