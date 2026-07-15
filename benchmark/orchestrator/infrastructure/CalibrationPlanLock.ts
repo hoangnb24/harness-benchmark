@@ -16,10 +16,10 @@ import {
 import { assertSha256, canonicalJson, sha256 } from './EvaluationFiles';
 
 const execFile = promisify(execFileCallback);
-const PACKET_ID = 'e13-gate-d0-held-out-v3';
+const PACKET_ID = 'e13-gate-d0-held-out-v4';
 const MODEL = 'gpt-5.6-sol';
 export const HELD_OUT_CALIBRATION_RUN_DIRECTORY =
-  'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v3';
+  'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v4';
 export const HELD_OUT_CALIBRATION_QUALIFIED_BASE_COMMIT =
   '2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef';
 export const HELD_OUT_CALIBRATION_TIMEOUT_SECONDS = 600;
@@ -47,8 +47,8 @@ export type CalibrationPlanCore = Omit<EvaluationPlan, 'agent'> & {
 
 export interface CalibrationGovernanceInput {
   schemaVersion: 1;
-  protocolId: 'e13-gate-d0-calibration-v3';
-  packetId: 'e13-gate-d0-held-out-v3';
+  protocolId: 'e13-gate-d0-calibration-v4';
+  packetId: 'e13-gate-d0-held-out-v4';
   runner: {
     repository: 'harness-benchmark';
     executionCommit: string;

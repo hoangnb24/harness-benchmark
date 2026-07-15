@@ -327,6 +327,20 @@ describe('US-029 decision runner prelock', () => {
     ).execute({ cell: cell('slow-preflight', 5), workspaceDir, submissionDir, prompt: 'offline' }))
       .rejects.toThrow('not authenticated with the approved ChatGPT plan mode');
 
+    const inertTodoList = path.join(root, 'codex-inert-todo-list.mjs');
+    await executableFile(inertTodoList, [
+      '#!/usr/bin/env node',
+      "if(process.argv[2]==='--version'){process.stdout.write('codex-cli 0.test-offline\\n');process.exit(0)}",
+      "if(process.argv[2]==='login'&&process.argv[3]==='status'){process.stdout.write('Logged in using ChatGPT\\n');process.exit(0)}",
+      "process.stdout.write(JSON.stringify({type:'item.completed',item:{id:'plan-1',type:'todo_list',items:[{text:'offline plan',completed:true}]}})+'\\n');",
+      "process.stdout.write(JSON.stringify({type:'turn.completed',usage:{input_tokens:10,cached_input_tokens:0,output_tokens:1}})+'\\n');",
+    ].join('\n'));
+    const inertTodoResult = await adapter(inertTodoList).execute({
+      cell: cell('inert-todo-list', 2), workspaceDir, submissionDir, prompt: 'offline',
+    });
+    expect(inertTodoResult.exitCode).toBe(0);
+    expect(inertTodoResult.toolLoops).toEqual({ status: 'known', value: 0 });
+
     const forbiddenTool = path.join(root, 'codex-forbidden-tool.mjs');
     await executableFile(forbiddenTool, [
       '#!/usr/bin/env node',

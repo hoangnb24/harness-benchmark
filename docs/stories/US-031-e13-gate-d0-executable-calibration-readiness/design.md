@@ -20,9 +20,9 @@ the manifest.
   committed. Plan construction proves that every packet identity and every
   execution artifact still matches that commit.
 - Qualified base: `2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef`, verified as an ancestor.
-- Run ID: `e13-gate-d0-calibration-v3`.
+- Run ID: `e13-gate-d0-calibration-v4`.
 - Result directory:
-  `benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v3`.
+  `benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v4`.
 - Cells: C01–C18 in the US-030 six-block schedule.
 - Concurrency: one; retries: zero.
 
@@ -37,10 +37,13 @@ The superseded v1 run stopped after C01 because the prompt did not identify
 the rubric's separate submission directory. V2 freezes an explicit
 `$EVALUATION_SUBMISSION/proof.md` contract and injects only that scoped path
 into the otherwise sanitized Codex environment. V1 evidence remains retained
-under its original run ID and cannot be resumed or counted in v3. V2 then
+under its original run ID and cannot be resumed or counted in v4. V2 then
 proved the submission path but stopped because H01's prompt did not name the
-literal proof values enforced by its rubric. V3 explicitly requires `2500`
-and `5000`; v2 evidence also remains immutable and ineligible.
+literal proof values enforced by its rubric. V3 explicitly required `2500`
+and `5000`, then stopped when the runner misclassified Codex's inert
+`todo_list` event as a forbidden tool. V4 permits that planning record while
+retaining rejection of external tool types; v1–v3 evidence remains immutable
+and ineligible.
 
 ## Fail-Fast State Machine
 

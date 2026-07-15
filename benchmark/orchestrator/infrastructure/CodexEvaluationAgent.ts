@@ -347,7 +347,10 @@ function parseUsage(
           : undefined;
         if (
           typeof itemType === 'string' &&
-          !['agent_message', 'reasoning', 'error', 'command_execution', 'file_change'].includes(itemType)
+          ![
+            'agent_message', 'reasoning', 'error', 'todo_list',
+            'command_execution', 'file_change',
+          ].includes(itemType)
         ) {
           forbiddenCompletedItems.add(itemType);
         }

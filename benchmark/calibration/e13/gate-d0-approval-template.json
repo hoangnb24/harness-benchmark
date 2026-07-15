@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "gate": "D0",
-  "protocolId": "e13-gate-d0-calibration-v3",
+  "protocolId": "e13-gate-d0-calibration-v4",
   "protocolSha": null,
   "state": "pending-human-approval",
   "approver": null,
@@ -9,7 +9,7 @@
   "approvedAt": null,
   "statement": null,
   "openBlockers": ["pending-exact-human-approval"],
-  "runId": "e13-gate-d0-calibration-v3",
+  "runId": "e13-gate-d0-calibration-v4",
   "scope": "calibration",
   "model": "gpt-5.6-sol",
   "reasoningEffort": "max",

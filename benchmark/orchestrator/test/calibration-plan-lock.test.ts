@@ -38,7 +38,7 @@ describe('US-031 executable Gate D0 calibration plan lock', () => {
     const plan = await writeCalibrationEvaluationPlan(planPath, built, authorization);
 
     expect(plan.runner).toEqual({ repository: 'harness-benchmark', commit: fixture.executionCommit });
-    expect(plan.runId).toBe('e13-gate-d0-calibration-v3');
+    expect(plan.runId).toBe('e13-gate-d0-calibration-v4');
     expect(plan.cells.map((cell) => cell.id)).toEqual(
       Array.from({ length: 18 }, (_, index) => `C${String(index + 1).padStart(2, '0')}`),
     );
@@ -262,16 +262,16 @@ async function inputsFixture(): Promise<Fixture> {
   const toolPolicyPath = path.join(root, 'tools.json');
   const governance: CalibrationGovernanceInput = {
     schemaVersion: 1,
-    protocolId: 'e13-gate-d0-calibration-v3',
-    packetId: 'e13-gate-d0-held-out-v3',
+    protocolId: 'e13-gate-d0-calibration-v4',
+    packetId: 'e13-gate-d0-held-out-v4',
     runner: {
       repository: 'harness-benchmark',
       executionCommit,
       qualifiedBaseCommit: '2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef',
     },
     run: {
-      runId: 'e13-gate-d0-calibration-v3',
-      relativeDirectory: 'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v3',
+      runId: 'e13-gate-d0-calibration-v4',
+      relativeDirectory: 'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v4',
       concurrency: 1,
       retries: 0,
       infrastructureFailureDisposition: 'invalidate-complete-calibration-packet',
@@ -302,7 +302,7 @@ async function inputsFixture(): Promise<Fixture> {
     benchmarkRoot: fixtureBenchmarkRoot,
     sourceRoot,
     artifactCache: path.join(fixtureBenchmarkRoot, 'benchmark/evaluation/artifact-cache'),
-    runDirectory: path.join(fixtureBenchmarkRoot, 'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v3'),
+    runDirectory: path.join(fixtureBenchmarkRoot, 'benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v4'),
     platform: 'macos-arm64',
     nodeRuntime: process.version,
     executable: {
