@@ -191,7 +191,10 @@ export class CodexEvaluationAgent implements EvaluationCellExecutor {
     });
     const stdout = result.stdout.toString('utf8');
     const stderr = result.stderr.toString('utf8');
-    if (result.exitCode !== 0 || result.timedOut || result.signal || stdout.trim() !== 'Logged in using ChatGPT' || stderr !== '') {
+    if (
+      result.exitCode !== 0 || result.timedOut || result.signal ||
+      !isExactChatGptLoginStatus(stdout, stderr)
+    ) {
       throw new Error('Codex executable is not authenticated with the approved ChatGPT plan mode');
     }
     return {
@@ -209,6 +212,13 @@ export class CodexEvaluationAgent implements EvaluationCellExecutor {
     if (remaining <= 0) throw new Error('Codex execution budget stopped: elapsed-time ceiling reached');
     return Math.min(perProcessMaximum, remaining);
   }
+}
+
+function isExactChatGptLoginStatus(stdout: string, stderr: string): boolean {
+  return (
+    (stdout.trim() === 'Logged in using ChatGPT' && stderr === '') ||
+    (stdout === '' && stderr.trim() === 'Logged in using ChatGPT')
+  );
 }
 
 function sha256Buffer(value: Buffer): string {

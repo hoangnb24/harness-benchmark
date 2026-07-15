@@ -391,13 +391,19 @@ function validateCodexPreflight(
     version?.stdoutSha256 !== sha256(versionStdout) ||
     version?.stderrSha256 !== sha256(versionStderr) ||
     authentication?.mode !== 'chatgpt' ||
-    authStdout.trim() !== 'Logged in using ChatGPT' ||
-    authStderr !== '' ||
+    !isExactChatGptLoginStatus(authStdout, authStderr) ||
     authentication?.stdoutSha256 !== sha256(authStdout) ||
     authentication?.stderrSha256 !== sha256(authStderr)
   ) {
     throw new Error(`cumulative Codex preflight receipt mismatch: ${stepId}`);
   }
+}
+
+function isExactChatGptLoginStatus(stdout: string, stderr: string): boolean {
+  return (
+    (stdout.trim() === 'Logged in using ChatGPT' && stderr === '') ||
+    (stdout === '' && stderr.trim() === 'Logged in using ChatGPT')
+  );
 }
 
 async function validatePlanCredits(

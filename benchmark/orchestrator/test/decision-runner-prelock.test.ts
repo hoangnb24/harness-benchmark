@@ -59,7 +59,7 @@ describe('US-029 decision runner prelock', () => {
       "import {appendFileSync} from 'node:fs';",
       `appendFileSync(${JSON.stringify(invocationMarker)},JSON.stringify(process.argv.slice(2))+'\\n');`,
       "if(process.argv[2]==='--version'){process.stdout.write('codex-cli 0.test-offline\\n');process.exit(0)}",
-      "if(process.argv[2]==='login'&&process.argv[3]==='status'){process.stdout.write('Logged in using ChatGPT\\n');process.exit(0)}",
+      "if(process.argv[2]==='login'&&process.argv[3]==='status'){process.stderr.write('Logged in using ChatGPT\\n');process.exit(0)}",
       "import {mkdir,readFile,writeFile} from 'node:fs/promises';",
       "const args=process.argv.slice(2); const submission=args[args.indexOf('--add-dir')+1];",
       "const readme=await readFile('README.md','utf8'); await writeFile('README.md',readme.replace('npm start','npm run dev'));",
@@ -295,6 +295,12 @@ describe('US-029 decision runner prelock', () => {
     await executableFile(apiAuth, "#!/usr/bin/env node\nif(process.argv[2]==='--version'){process.stdout.write('codex-cli 0.test-offline\\n');process.exit(0)}\nif(process.argv[2]==='login'&&process.argv[3]==='status'){process.stdout.write('Logged in using API Key\\n');process.exit(0)}\n");
     await expect(adapter(apiAuth).execute({
       cell: cell('api-auth-rejected', 2), workspaceDir, submissionDir, prompt: 'offline',
+    })).rejects.toThrow('not authenticated with the approved ChatGPT plan mode');
+
+    const mixedAuthOutput = path.join(root, 'codex-mixed-auth-output.mjs');
+    await executableFile(mixedAuthOutput, "#!/usr/bin/env node\nif(process.argv[2]==='--version'){process.stdout.write('codex-cli 0.test-offline\\n');process.exit(0)}\nif(process.argv[2]==='login'&&process.argv[3]==='status'){process.stdout.write('Logged in using ChatGPT\\n');process.stderr.write('unexpected\\n');process.exit(0)}\n");
+    await expect(adapter(mixedAuthOutput).execute({
+      cell: cell('mixed-auth-output-rejected', 2), workspaceDir, submissionDir, prompt: 'offline',
     })).rejects.toThrow('not authenticated with the approved ChatGPT plan mode');
 
     const slowPreflight = path.join(root, 'codex-slow-preflight.mjs');

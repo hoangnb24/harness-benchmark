@@ -64,7 +64,8 @@ The executable must pass, in order:
 
 1. canonical-path and SHA-256 validation;
 2. exact `--version` output;
-3. exact `login status` output of `Logged in using ChatGPT`; and
+3. exact `login status` output of `Logged in using ChatGPT` on either its sole
+   stdout or sole stderr channel (Codex 0.144.3 emits the status on stderr); and
 4. a second executable identity check.
 
 The identity is checked again immediately before every model subprocess. The

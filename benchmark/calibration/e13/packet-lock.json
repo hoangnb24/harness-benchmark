@@ -105,11 +105,11 @@
     },
     {
       "path": "benchmark/orchestrator/application/GenerateCumulativeEvaluationAggregate.ts",
-      "sha256": "670fcc585d09ade1b0255e7fd0ac92773c8f86a5dab9000d4f7fec2a9d68df95"
+      "sha256": "a94d259341c7b70d37bdc69f93db2430fda8ae9ad30ec3f52b6be18a2048c9a4"
     },
     {
       "path": "benchmark/orchestrator/application/GenerateEvaluationAggregate.ts",
-      "sha256": "604a6104c228cf2bfca09fd873188dd352aad563395ea5985fdb91eef2f6033e"
+      "sha256": "9a1af71a7c4c5d2e69ffe69d166d083ba3fe4b2d752f3ead3828301fe969d58b"
     },
     {
       "path": "benchmark/orchestrator/application/GenerateReport.ts",
@@ -205,7 +205,7 @@
     },
     {
       "path": "benchmark/orchestrator/infrastructure/CodexEvaluationAgent.ts",
-      "sha256": "cd4b04e70176095e3984e76e240743ceaa433d373f7949161f77a4cd04dcba41"
+      "sha256": "9142309fefd4b9c01a108db802749b28b9a040fcd651b2bb70cc591813343c4a"
     },
     {
       "path": "benchmark/orchestrator/infrastructure/CodexExecutionAuthorization.ts",
@@ -453,7 +453,7 @@
     },
     {
       "path": "benchmark/orchestrator/test/decision-runner-prelock.test.ts",
-      "sha256": "d785e3481ae9866bd18fc696407686a0e037149519c2bfd04c4ddff6ddf861ba"
+      "sha256": "28eafa9407623003b4a538fd037404ca756c40935d84181f8c4baed9088f1247"
     },
     {
       "path": "benchmark/orchestrator/test/declarative-functional-probe.test.ts",
