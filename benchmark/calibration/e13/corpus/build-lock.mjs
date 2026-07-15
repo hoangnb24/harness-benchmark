@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -50,5 +50,7 @@ export async function buildCalibrationCorpusLock() {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  process.stdout.write(`${JSON.stringify(await buildCalibrationCorpusLock(), null, 2)}\n`);
+  const output = `${JSON.stringify(await buildCalibrationCorpusLock(), null, 2)}\n`;
+  if (process.argv.includes('--write')) await writeFile(path.join(ROOT, 'corpus-lock.json'), output);
+  else process.stdout.write(output);
 }

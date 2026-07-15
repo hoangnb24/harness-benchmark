@@ -82,7 +82,7 @@ export class CodexEvaluationAgent implements EvaluationCellExecutor {
       cwd: input.workspaceDir,
       stdin: input.prompt,
       timeoutSeconds: this.remainingSeconds(input.cell.timeoutSeconds),
-      env: codexEnvironment(),
+      env: codexEnvironment({ EVALUATION_SUBMISSION: input.submissionDir }),
     });
     const usage = parseUsage(processResult.stdout, this.pricing.rates);
     const policyError = usage.policyViolation
@@ -225,7 +225,7 @@ function sha256Buffer(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
-function codexEnvironment(): NodeJS.ProcessEnv {
+function codexEnvironment(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   const names = [
     'PATH', 'HOME', 'USER', 'LOGNAME', 'TMPDIR', 'TMP', 'TEMP', 'LANG', 'LC_ALL',
     'TERM', 'SSL_CERT_FILE', 'SSL_CERT_DIR', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY',
@@ -234,7 +234,7 @@ function codexEnvironment(): NodeJS.ProcessEnv {
     const value = process.env[name];
     return value === undefined ? [] : [[name, value]];
   });
-  return Object.fromEntries(entries);
+  return { ...Object.fromEntries(entries), ...overrides };
 }
 
 async function runProcessGroup(

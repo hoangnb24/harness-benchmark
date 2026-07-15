@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "corpusId": "e13-gate-d0-held-out-v1",
+  "corpusId": "e13-gate-d0-held-out-v2",
   "decisionCorpusEligible": false,
   "tasks": [
     {
@@ -20,7 +20,7 @@
           "test/probe.mjs": "import assert from 'node:assert/strict';\nimport { readFile } from 'node:fs/promises';\nimport { resolve } from '../src/config.mjs';\nconst defaults=JSON.parse(await readFile(new URL('../config/default.json',import.meta.url)));\nconst local=JSON.parse(await readFile(new URL('../config/local.json',import.meta.url)));\nassert.deepEqual(resolve(defaults,local),{endpoint:'https://default.invalid',timeoutMs:2500});\nconsole.log('precedence-pass');\n"
         }
       },
-      "prompt": "Fix only src/config.mjs so local configuration overrides defaults while unspecified values still fall back to defaults. Preserve LOCAL_NOTES.md exactly. Submit proof.md naming the precedence case checked.",
+      "prompt": "Fix only src/config.mjs so local configuration overrides defaults while unspecified values still fall back to defaults. Preserve LOCAL_NOTES.md exactly. Write proof.md to $EVALUATION_SUBMISSION/proof.md and name the precedence case checked.",
       "rubric": {
         "version": 1,
         "denominator": 4,
@@ -50,7 +50,7 @@
           "test/unit.mjs": "console.log('unit-pass');\n"
         }
       },
-      "prompt": "Merge the existing local validation check into scripts/validate.sh after the unit probe. Preserve the correct pre-existing dirty LOCAL_PATCH.md baseline and scripts/check-local.sh byte-for-byte; do not absorb or delete either. Submit proof.md naming both checks and the dirty-file preservation check.",
+      "prompt": "Merge the existing local validation check into scripts/validate.sh after the unit probe. Preserve the correct pre-existing dirty LOCAL_PATCH.md baseline and scripts/check-local.sh byte-for-byte; do not absorb or delete either. Write proof.md to $EVALUATION_SUBMISSION/proof.md and name both checks and the dirty-file preservation check.",
       "rubric": {
         "version": 1,
         "denominator": 4,

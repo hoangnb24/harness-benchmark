@@ -71,6 +71,11 @@ The executable must pass, in order:
 The identity is checked again immediately before every model subprocess. The
 adapter spawns an argv array with `shell: false`:
 
+The subprocess receives the separately materialized proof directory through
+the scoped `EVALUATION_SUBMISSION` environment variable. Held-out prompts name
+that variable explicitly; API keys and mutable Codex configuration variables
+remain excluded.
+
 ```text
 exec --json --ephemeral --ignore-user-config --strict-config
   --model <declared-model>

@@ -325,7 +325,7 @@ function calibrationPlan(): EvaluationPlan {
   };
   return {
     version: 1,
-    runId: 'e13-gate-d0-calibration-v1',
+    runId: 'e13-gate-d0-calibration-v2',
     runner: { repository: 'harness-benchmark', commit: '2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef' },
     agent: {
       kind: 'codex', scope: 'calibration',
@@ -342,8 +342,8 @@ function calibrationPlan(): EvaluationPlan {
     toolCatalogSha256: '2'.repeat(64),
     corpus: {
       root: path.join(repositoryRoot, 'benchmark/calibration/e13/corpus'),
-      lockSha256: 'da1a24586d22f4e3f3399292e869f1ce63c7680cb9fc613f76597922ca30a406',
-      atomicCatalogSha256: 'c4e798e59205c8bcc647204816bc7d1eeddac230c25c06f14c8b2889fbef30c9',
+      lockSha256: 'c8e972289a166173d2da2cd238ba6d0fe912a905065751a4a35287f04533dfbe',
+      atomicCatalogSha256: 'b753b0a15d3d6fc8543890fe9529761d2f4b4734713c090bc60a4898252caf63',
     },
     cells: orders.flatMap((order, block) => order.map((name, localPosition) => ({
       id: `C${String(block * 3 + localPosition + 1).padStart(2, '0')}`,

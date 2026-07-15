@@ -113,7 +113,10 @@ describe('US-029 decision runner prelock', () => {
     ]);
     expect(events[0].cwd.replace(/^\/private(?=\/var\/)/, '')).toBe(workspace);
     const { __CF_USER_TEXT_ENCODING: macOsInjectedEncoding, ...controlledEnvironment } = events[0].env;
-    expect(controlledEnvironment).toEqual(expectedCodexEnvironment());
+    expect(controlledEnvironment).toEqual({
+      ...expectedCodexEnvironment(),
+      EVALUATION_SUBMISSION: submission,
+    });
     if (process.platform === 'darwin') expect(macOsInjectedEncoding).toMatch(/^0x[0-9A-F]+:/);
     expect(events[0].env).not.toHaveProperty('OPENAI_API_KEY');
     expect(events[0].env).not.toHaveProperty('CODEX_HOME');

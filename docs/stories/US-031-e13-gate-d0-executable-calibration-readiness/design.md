@@ -20,9 +20,9 @@ the manifest.
   committed. Plan construction proves that every packet identity and every
   execution artifact still matches that commit.
 - Qualified base: `2013dd55bac4c4bbc5bd9eff950eeb6f24d999ef`, verified as an ancestor.
-- Run ID: `e13-gate-d0-calibration-v1`.
+- Run ID: `e13-gate-d0-calibration-v2`.
 - Result directory:
-  `benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v1`.
+  `benchmark/evaluation/calibration-runs/e13-gate-d0-calibration-v2`.
 - Cells: C01–C18 in the US-030 six-block schedule.
 - Concurrency: one; retries: zero.
 
@@ -32,6 +32,12 @@ model, reasoning effort, sandbox, executable, policies, corpus, and paths.
 The execution CLI repeats the repository, packet-member, candidate-source, and
 executable checks immediately before any exact calibration command. Building a
 valid plan and then editing the working tree therefore stops before admission.
+
+The superseded v1 run stopped after C01 because the prompt did not identify
+the rubric's separate submission directory. V2 freezes an explicit
+`$EVALUATION_SUBMISSION/proof.md` contract and injects only that scoped path
+into the otherwise sanitized Codex environment. V1 evidence remains retained
+under its original run ID and cannot be resumed or counted in v2.
 
 ## Fail-Fast State Machine
 
