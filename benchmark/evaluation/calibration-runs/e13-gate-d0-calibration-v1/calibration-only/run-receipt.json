@@ -1,0 +1,17 @@
+{
+  "attemptedInvocations": 1,
+  "authorizationSha256": "d256ebe36077396baab398b68f29d1e277dcc0e306d11764633d86504a9b387a",
+  "completedInvocations": 1,
+  "executableSha256": "718724d7221cf1298071ca92411cb74caa8422809154150cedca7b569a4518e3",
+  "executionPlanSha256": "ba057609e40868a734282edad2ba620e059abd9e5b84d57d815cec228787fb44",
+  "plannedInvocations": 18,
+  "pricingPolicySha256": "d51dec15004a4c071fd81698c9cc2e52131f6882d98aa8d0cf0dd5281cc57144",
+  "protocolSha256": "29ec68601bc466adb0fdcca7657d868e4d9f5b30941dfd0cb092b4823d87d51d",
+  "runId": "e13-gate-d0-calibration-v1",
+  "runnerCommit": "f796551fe6a3f8e7bf4dace50ae1d02b1ad760b7",
+  "schemaVersion": 1,
+  "scope": "held-out-calibration-only",
+  "status": "stopped-invalid",
+  "stopReason": "rubric-failure:C01",
+  "toolPolicySha256": "f94356121cce92464c7192e022d1fab1aec51e604f3649edeef7e55f1a890825"
+}

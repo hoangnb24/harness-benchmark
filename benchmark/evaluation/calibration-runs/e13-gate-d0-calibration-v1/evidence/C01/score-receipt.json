@@ -1,0 +1,45 @@
+{
+  "denominator": 4,
+  "results": [
+    {
+      "critical": true,
+      "error": null,
+      "evidence": {
+        "argv": [
+          "node",
+          "test/probe.mjs"
+        ],
+        "exitCode": 0,
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSha256": "c01a9b22f54ccfb2766f10eea5506041d0ca2f0af1af9007129b75fe4cd1922d",
+        "timeoutMs": 3000
+      },
+      "id": "precedence",
+      "pass": true
+    },
+    {
+      "critical": false,
+      "error": null,
+      "evidence": null,
+      "id": "fallback",
+      "pass": true
+    },
+    {
+      "critical": true,
+      "error": null,
+      "evidence": null,
+      "id": "owner-note",
+      "pass": true
+    },
+    {
+      "critical": false,
+      "error": null,
+      "evidence": null,
+      "id": "proof",
+      "pass": false
+    }
+  ],
+  "rubricSha256": "4e121fb178706e4b72d1c6cf880be9e7efc94592e3c593990989df79b4b5885b",
+  "schemaVersion": 1,
+  "taskId": "H01-config-precedence"
+}
