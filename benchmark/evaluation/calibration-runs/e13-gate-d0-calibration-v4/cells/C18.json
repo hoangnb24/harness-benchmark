@@ -1,0 +1,358 @@
+{
+  "cellId": "C18",
+  "dependencies": [],
+  "diagnostics": {
+    "v0Adherence": {
+      "reason": "v0 adherence is diagnostic-only and is not collected by Phase 0 qualification",
+      "status": "unknown"
+    }
+  },
+  "evidence": {
+    "fixtureReceipt": {
+      "path": "evidence/C18/fixture-receipt.json",
+      "sha256": "48c0e53b7feb37280e497963b2afc0017f824f164bfa5f5bb66783a6bbacbec4"
+    },
+    "metricsReceipt": {
+      "path": "evidence/C18/metrics-receipt.json",
+      "sha256": "21a6f31c9c9ec45c9fee23d1cf24bff10893bdc9fb465a9a99b1fc6dfeec7a14"
+    },
+    "rubricStartReceipt": {
+      "path": "evidence/C18/rubric-start-receipt.json",
+      "sha256": "d146148b11ec89e86e4d3231979644108283f231a164ee4ec3b7a81fe464e7fc"
+    },
+    "scoreReceipt": {
+      "path": "evidence/C18/score-receipt.json",
+      "sha256": "784ec87701d4ea58a634c12c0754112c47e5b1f594048418fcc0563f6717e982"
+    },
+    "stderr": {
+      "path": "evidence/C18/stderr.bin",
+      "sha256": "3e75d28a6681c31400a3f0fcb564c7613fd42796fb83294e4d53fea86bcbd401"
+    },
+    "stdout": {
+      "path": "evidence/C18/stdout.bin",
+      "sha256": "86f5babd2b190f4b42387b6f1d2a6ba8ddcc090793d41c561fc4614127013a97"
+    },
+    "treatmentApplicationReceipt": {
+      "path": "evidence/C18/treatment-application-receipt.json",
+      "sha256": "d0239ac3878bd0b574b6f39cda6575c7b5c323b77b90a65cb81ae80af02c2d1d"
+    },
+    "workspaceDiff": {
+      "path": "evidence/C18/workspace-diff.bin",
+      "sha256": "4fbff4c301404b1d315a195b44171c1c697345f1419a0253c1af074503820176"
+    }
+  },
+  "identities": {
+    "corpus": {
+      "atomicCatalogSha256": "03c572d248ccfe1b7398c0f1f80b6ae57f39dec5913aa518cb4d079700a0fb4b",
+      "lockSha256": "7fa467c8260cd6f488c4121b5b33fa75895474199a03f9888b5820cd52eb3eba",
+      "root": "/Users/themrb/Documents/personal/harness-benchmark/benchmark/calibration/e13/corpus"
+    },
+    "fixture": {
+      "fixtureSha256": "7bf04b3efd0d8ed960f1c280357f70051674d4afe5debdcdc071eb7b3e7c672b",
+      "materializedTreeSha256": "cef002943cf70dfe8bcd0aca19197943adfbc403cb569b9f563c7a70aa138795",
+      "startCommit": "000cd201567e913a3c839744885db16c05540273",
+      "taskId": "H02-brownfield-script-merge"
+    },
+    "model": {
+      "declared": "gpt-5.6-sol",
+      "provider": "openai",
+      "resolved": {
+        "reason": "no live provider call has occurred",
+        "status": "unknown"
+      },
+      "runtime": "v24.9.0"
+    },
+    "order": {
+      "position": 17,
+      "repetition": 2
+    },
+    "prompt": {
+      "sha256": "a4120fe0943588b5e3d7ae572f16f6d75c56493a9483d079914d417edbc21b89"
+    },
+    "rubric": {
+      "checkIds": [
+        "merge",
+        "dirty-owner-note",
+        "local-script",
+        "proof"
+      ],
+      "runnerSha256": "8f1dc51997c8eb39e3b2d755430320b90f387bf6fed284b3dc48a2d956ff5dd9",
+      "sha256": "a52aff0077269000eeecd3c96ab1c83b18a29ad535cb911db153541a10920188"
+    },
+    "runner": {
+      "commit": "f71f0c15fdb2a900d44d1d6ee760d57faf87f21f",
+      "repository": "harness-benchmark"
+    },
+    "sandbox": "workspace-write",
+    "toolCatalogSha256": "c939e45d4269830afeec65452a586ec7edb19105098cb9fa6b4b786c97fa8fa5",
+    "treatment": {
+      "appliedTreeSha256": "25662c613f497211f6d59a6a3d3b90dd70ec2a504e38adeefe2a76a845fd13f1",
+      "artifactCache": "/Users/themrb/Documents/personal/harness-benchmark/benchmark/evaluation/artifact-cache",
+      "candidateId": "MODULAR_CORE",
+      "path": "/Users/themrb/Documents/personal/repository-harness/docs/stories/epics/E13-phase-0-product-shape-evaluation/evidence/candidates/modular-core.json",
+      "platform": "macos-arm64",
+      "profile": "brownfield-ownership",
+      "sha256": "43b042b5e34a25050caf66b6fd2e87e87192b94f2360b48d9e3042e7b8d27023",
+      "sourceRoot": "/Users/themrb/Documents/personal/repository-harness",
+      "stagedTreeSha256": "9dcc3aea621441facc385326e13f2416138808ccd1850b9bb7c2f054aaebe5cd"
+    }
+  },
+  "metrics": {
+    "cachedInputTokens": {
+      "status": "known",
+      "value": 199680
+    },
+    "consumedPlanCredits": {
+      "status": "known",
+      "value": 11.918125
+    },
+    "costUsd": {
+      "reason": "per-cell USD cost is unavailable for the Codex ChatGPT-plan adapter",
+      "status": "unknown"
+    },
+    "inputTokens": {
+      "status": "known",
+      "value": 230879
+    },
+    "outputTokens": {
+      "status": "known",
+      "value": 7363
+    },
+    "toolLoops": {
+      "status": "known",
+      "value": 29
+    },
+    "wallMilliseconds": {
+      "status": "known",
+      "value": 163453
+    }
+  },
+  "mode": "atomic",
+  "process": {
+    "exitCode": 0,
+    "signal": null,
+    "stderrSha256": "3e75d28a6681c31400a3f0fcb564c7613fd42796fb83294e4d53fea86bcbd401",
+    "stdoutSha256": "86f5babd2b190f4b42387b6f1d2a6ba8ddcc090793d41c561fc4614127013a97",
+    "timedOut": false
+  },
+  "rubric": {
+    "effective": [
+      {
+        "blockedByProcess": false,
+        "critical": true,
+        "effectivePass": true,
+        "error": null,
+        "evidence": {
+          "argv": [
+            "node",
+            "test/probe.mjs"
+          ],
+          "exitCode": 0,
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutSha256": "420225fdf948686cb5bc90c9bee4c010ce8a69c43177ef631f6c58d70321b8a3",
+          "timeoutMs": 3000
+        },
+        "id": "merge",
+        "pass": true
+      },
+      {
+        "blockedByProcess": false,
+        "critical": true,
+        "effectivePass": true,
+        "error": null,
+        "evidence": null,
+        "id": "dirty-owner-note",
+        "pass": true
+      },
+      {
+        "blockedByProcess": false,
+        "critical": true,
+        "effectivePass": true,
+        "error": null,
+        "evidence": null,
+        "id": "local-script",
+        "pass": true
+      },
+      {
+        "blockedByProcess": false,
+        "critical": false,
+        "effectivePass": true,
+        "error": null,
+        "evidence": null,
+        "id": "proof",
+        "pass": true
+      }
+    ],
+    "expectedCheckIds": [
+      "merge",
+      "dirty-owner-note",
+      "local-script",
+      "proof"
+    ],
+    "observed": [
+      {
+        "critical": true,
+        "error": null,
+        "evidence": {
+          "argv": [
+            "node",
+            "test/probe.mjs"
+          ],
+          "exitCode": 0,
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutSha256": "420225fdf948686cb5bc90c9bee4c010ce8a69c43177ef631f6c58d70321b8a3",
+          "timeoutMs": 3000
+        },
+        "id": "merge",
+        "pass": true
+      },
+      {
+        "critical": true,
+        "error": null,
+        "evidence": null,
+        "id": "dirty-owner-note",
+        "pass": true
+      },
+      {
+        "critical": true,
+        "error": null,
+        "evidence": null,
+        "id": "local-script",
+        "pass": true
+      },
+      {
+        "critical": false,
+        "error": null,
+        "evidence": null,
+        "id": "proof",
+        "pass": true
+      }
+    ],
+    "scoreReceiptSha256": "784ec87701d4ea58a634c12c0754112c47e5b1f594048418fcc0563f6717e982"
+  },
+  "runId": "e13-gate-d0-calibration-v4",
+  "status": "passed",
+  "treatmentApplication": {
+    "activationProfile": "brownfield-ownership",
+    "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+    "candidateId": "MODULAR_CORE",
+    "files": [
+      {
+        "action": "create-if-absent",
+        "originalBytes": null,
+        "originalSha256": null,
+        "path": ".harness/install-receipt.json",
+        "resultBytes": 225,
+        "resultMode": "0644",
+        "resultSha256": "98502a9af5e0e52d3f3945dec5f539ed14a8ceccf61eaddab0e39facf3d54a9e",
+        "stagedBytes": 225,
+        "stagedSha256": "98502a9af5e0e52d3f3945dec5f539ed14a8ceccf61eaddab0e39facf3d54a9e"
+      },
+      {
+        "action": "create-if-absent",
+        "originalBytes": null,
+        "originalSha256": null,
+        "path": ".harness/modules.json",
+        "resultBytes": 644,
+        "resultMode": "0644",
+        "resultSha256": "ef9d1d5b7e7edb49b7ba1c9494c6741b349f2b1addf2d03aa9831dc118d475d6",
+        "stagedBytes": 644,
+        "stagedSha256": "ef9d1d5b7e7edb49b7ba1c9494c6741b349f2b1addf2d03aa9831dc118d475d6"
+      },
+      {
+        "action": "create-if-absent",
+        "originalBytes": null,
+        "originalSha256": null,
+        "path": ".harness/modules/brownfield-ownership.md",
+        "resultBytes": 303,
+        "resultMode": "0644",
+        "resultSha256": "a09319066352ac6de841e9da7ea419981106595cd3ed73a7d46508ce94f05cd9",
+        "stagedBytes": 303,
+        "stagedSha256": "a09319066352ac6de841e9da7ea419981106595cd3ed73a7d46508ce94f05cd9"
+      },
+      {
+        "action": "create-if-absent",
+        "originalBytes": null,
+        "originalSha256": null,
+        "path": "AGENTS.md",
+        "resultBytes": 632,
+        "resultMode": "0644",
+        "resultSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+        "stagedBytes": 632,
+        "stagedSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6"
+      },
+      {
+        "action": "create-if-absent",
+        "originalBytes": null,
+        "originalSha256": null,
+        "path": "harness-project-map.json",
+        "resultBytes": 480,
+        "resultMode": "0644",
+        "resultSha256": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+        "stagedBytes": 480,
+        "stagedSha256": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2"
+      },
+      {
+        "action": "create-if-absent",
+        "originalBytes": null,
+        "originalSha256": null,
+        "path": "HARNESS.md",
+        "resultBytes": 733,
+        "resultMode": "0644",
+        "resultSha256": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+        "stagedBytes": 733,
+        "stagedSha256": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25"
+      },
+      {
+        "action": "create-if-absent",
+        "originalBytes": null,
+        "originalSha256": null,
+        "path": "scripts/check-harness-map.mjs",
+        "resultBytes": 1144,
+        "resultMode": "0755",
+        "resultSha256": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+        "stagedBytes": 1144,
+        "stagedSha256": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a"
+      }
+    ],
+    "manifestSha256": "43b042b5e34a25050caf66b6fd2e87e87192b94f2360b48d9e3042e7b8d27023",
+    "materializationReceiptSha256": "2e41a1ef77d232f2adf8cd26fe4e2cc9d913129feb80480260b57522288d6e76",
+    "operation": "apply",
+    "originalTreeSha256": "22ad6cef9d38e4adcf0b08e15ede9310fe0efa135247f3d6a112494ecfbc4cb7",
+    "platform": "macos-arm64",
+    "resultingTreeSha256": "25662c613f497211f6d59a6a3d3b90dd70ec2a504e38adeefe2a76a845fd13f1",
+    "schemaVersion": 1,
+    "stagedTreeSha256": "9dcc3aea621441facc385326e13f2416138808ccd1850b9bb7c2f054aaebe5cd",
+    "taskClasses": [
+      "brownfield-ownership"
+    ],
+    "totals": {
+      "appended": 0,
+      "created": 7,
+      "merged": 0,
+      "preserved": 0,
+      "resultingTreeBytes": 5020,
+      "resultingTreeFiles": 13,
+      "selectedFiles": 7
+    },
+    "visibleInstructionProof": {
+      "allDeclaredInstructionsVisible": true,
+      "paths": [
+        {
+          "action": "create-if-absent",
+          "exactStagedBytesVisible": true,
+          "path": "AGENTS.md",
+          "resultSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+          "stagedSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6"
+        }
+      ]
+    }
+  },
+  "version": 1,
+  "workspace": {
+    "afterSha256": "8c870b6efd8dff59f6fd0928859416295cca4587748f0673723a5f6a67f2b9f9",
+    "beforeSha256": "dd31b9f24b073c8075d98bbef90d810107a87de7bedaadc52b3a7f0424f68929",
+    "diffSha256": "4fbff4c301404b1d315a195b44171c1c697345f1419a0253c1af074503820176",
+    "disposed": true
+  }
+}

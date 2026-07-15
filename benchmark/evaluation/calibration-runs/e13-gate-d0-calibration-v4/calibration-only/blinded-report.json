@@ -1,0 +1,229 @@
+{
+  "blindState": "group-identities-withheld",
+  "futureDecisionCreditCeiling": {
+    "inputSha256": "85ab96f6732c6d56532865b32bf329e660d3c20ff8e5f9721bdb46aa9403d0db"
+  },
+  "report": {
+    "ablationBudgetStatus": "requires-separate-gate-d-budget-or-approved-e13-amendment",
+    "approvedHumanCreditCeiling": {
+      "status": "known",
+      "value": 27360
+    },
+    "balancedRequiredRepetitions": 426,
+    "blindState": "group-identities-withheld",
+    "blocker": "precision-and-power-design-exceeds-approved-credit-ceiling",
+    "creditProjectionBasis": "published-average-range-upper-end-not-cap",
+    "endpointRequirements": [
+      {
+        "decisionTaskCountK": 2,
+        "endpoint": "correctness",
+        "endpointRequiredRepetitions": 9,
+        "familyAlpha": 0.0017857142857142859,
+        "planningBasis": {
+          "kind": "absolute-margin",
+          "plannedValue": 0,
+          "threshold": -0.05,
+          "transformedGap": 0.05
+        },
+        "powerRequiredRepetitions": 4,
+        "precisionRequiredRepetitions": 9,
+        "purpose": "non-inferiority",
+        "residualVariance": 0,
+        "transformed": false,
+        "upperVariance": 0.000625,
+        "varianceFloor": 0.000625
+      },
+      {
+        "decisionTaskCountK": 2,
+        "endpoint": "proof",
+        "endpointRequiredRepetitions": 9,
+        "familyAlpha": 0.0017857142857142859,
+        "planningBasis": {
+          "kind": "absolute-margin",
+          "plannedValue": 0,
+          "threshold": -0.05,
+          "transformedGap": 0.05
+        },
+        "powerRequiredRepetitions": 4,
+        "precisionRequiredRepetitions": 9,
+        "purpose": "non-inferiority",
+        "residualVariance": 0,
+        "transformed": false,
+        "upperVariance": 0.000625,
+        "varianceFloor": 0.000625
+      },
+      {
+        "decisionTaskCountK": 16,
+        "endpoint": "inputTokens",
+        "endpointRequiredRepetitions": 111,
+        "familyAlpha": 0.025,
+        "planningBasis": {
+          "kind": "ratio-bound",
+          "plannedValue": 0.8,
+          "threshold": 0.85,
+          "transformedGap": 0.06062462181643484
+        },
+        "powerRequiredRepetitions": 57,
+        "precisionRequiredRepetitions": 111,
+        "purpose": "material-benefit",
+        "residualVariance": 0.01428436452885663,
+        "transformed": true,
+        "upperVariance": 0.21160834706014037,
+        "varianceFloor": 0.0004
+      },
+      {
+        "decisionTaskCountK": 16,
+        "endpoint": "wallMilliseconds",
+        "endpointRequiredRepetitions": 47,
+        "familyAlpha": 0.016666666666666666,
+        "planningBasis": {
+          "kind": "ratio-bound",
+          "plannedValue": 1,
+          "threshold": 1.1,
+          "transformedGap": 0.09531017980432493
+        },
+        "powerRequiredRepetitions": 23,
+        "precisionRequiredRepetitions": 47,
+        "purpose": "guardrail",
+        "residualVariance": 0.012490720852578498,
+        "transformed": true,
+        "upperVariance": 0.1850373384034137,
+        "varianceFloor": 0.0004
+      },
+      {
+        "decisionTaskCountK": 16,
+        "endpoint": "toolLoops",
+        "endpointRequiredRepetitions": 422,
+        "familyAlpha": 0.016666666666666666,
+        "planningBasis": {
+          "kind": "ratio-bound",
+          "plannedValue": 1,
+          "threshold": 1.1,
+          "transformedGap": 0.09531017980432493
+        },
+        "powerRequiredRepetitions": 206,
+        "precisionRequiredRepetitions": 422,
+        "purpose": "guardrail",
+        "residualVariance": 0.114257030013658,
+        "transformed": true,
+        "upperVariance": 1.6926018103464269,
+        "varianceFloor": 0.0004
+      },
+      {
+        "decisionTaskCountK": 16,
+        "endpoint": "consumedPlanCredits",
+        "endpointRequiredRepetitions": 29,
+        "familyAlpha": 0.016666666666666666,
+        "planningBasis": {
+          "kind": "ratio-bound",
+          "plannedValue": 1,
+          "threshold": 1.1,
+          "transformedGap": 0.09531017980432493
+        },
+        "powerRequiredRepetitions": 14,
+        "precisionRequiredRepetitions": 29,
+        "purpose": "guardrail",
+        "residualVariance": 0.007674837571678328,
+        "transformed": true,
+        "upperVariance": 0.11369492070977749,
+        "varianceFloor": 0.0004
+      }
+    ],
+    "groupCount": 3,
+    "observationCount": 18,
+    "oneCallCreditOvershootPossible": true,
+    "policyId": "e13-gate-d0-blinded-sizing-v1",
+    "pooledDegreesOfFreedom": 4,
+    "prohibitedFieldsAbsent": true,
+    "projectedPlanningCredits": 971280,
+    "requiredDecisionInvocations": 24282,
+    "residualModel": "task-specific-latin-square-additive",
+    "schemaVersion": 1,
+    "selectedBalancedRepetitions": null,
+    "status": "evidence-design-blocker"
+  },
+  "runId": "e13-gate-d0-calibration-v4",
+  "schemaVersion": 1,
+  "scope": "held-out-calibration-only",
+  "sourceHashes": {
+    "atomicCatalogSha256": "03c572d248ccfe1b7398c0f1f80b6ae57f39dec5913aa518cb4d079700a0fb4b",
+    "calibrationAggregateSha256": "a55bd8ab4bd0cb75f9cb76af4c907f1b8d6ea044ce4017a944d57e4303e47634",
+    "calibrationRunReceiptSha256": "13c53502e6c1aa2836b2549f50571eef8f8751c1397d692995452388543d41fb",
+    "corpusLockSha256": "7fa467c8260cd6f488c4121b5b33fa75895474199a03f9888b5820cd52eb3eba",
+    "frozenPolicySha256": "6a02be188fe08465b3d8d761e990bf90051990962576e93583379ecf78650ac4",
+    "rawCells": [
+      {
+        "cellId": "C01",
+        "sha256": "04c0d2ddd5a9567a04628c8dcddf7684bf0eb0fd5dc5cdac82db88a4e657b220"
+      },
+      {
+        "cellId": "C02",
+        "sha256": "26bb972175aa3f1485376c6d5465e7238523c964f5ac4f1a9a68d2f8f14de8a9"
+      },
+      {
+        "cellId": "C03",
+        "sha256": "78a26e048c6fb6fb17a45dfe3d33dcc9b5240e323888acf3b4c578b80bee4f84"
+      },
+      {
+        "cellId": "C04",
+        "sha256": "15f3318af39e0ce5bd4573ad5053b04fcb9401bbefe900e4eafe35da0bbb2fb4"
+      },
+      {
+        "cellId": "C05",
+        "sha256": "95e7ea8ebe51f145f22068e5766fba1c1335aa007efadf14347d4f96f8906ce3"
+      },
+      {
+        "cellId": "C06",
+        "sha256": "e97dace23c5b7dfe840fca4ad659238d5856075844926b42a14194757b75075b"
+      },
+      {
+        "cellId": "C07",
+        "sha256": "022ca63084167341118fb949d47def4515fefd17ecec70380acdb6030c572fa0"
+      },
+      {
+        "cellId": "C08",
+        "sha256": "d129c76b0a2e428f8cdfe45ec2106ca94865491d75af0d923785a4837dc8be8e"
+      },
+      {
+        "cellId": "C09",
+        "sha256": "32cc93f4847f540c8a44c8a73ba7ec15216d5e3f4a20ff9f2a9d89b33c361473"
+      },
+      {
+        "cellId": "C10",
+        "sha256": "c73ceb346046fea5785882815ac582f1dbcdc918e808a4c1610c24f0293fc9e6"
+      },
+      {
+        "cellId": "C11",
+        "sha256": "255c030761d52557794069c5f0413a2ccd546b9c12f07f6b20dba8a6a478a79f"
+      },
+      {
+        "cellId": "C12",
+        "sha256": "e611f651222be03c3442a71b63fb1d6e71974d0412e962a010dcbd029a6a0e8c"
+      },
+      {
+        "cellId": "C13",
+        "sha256": "89de5c810ac919f4a2ff569954048ac67857a16a98f9776fab7c8f930cf1a9de"
+      },
+      {
+        "cellId": "C14",
+        "sha256": "0aa4e19fcb0ffec9c636ae269ab313af948de4e0ab84ad008b080e0d846973e3"
+      },
+      {
+        "cellId": "C15",
+        "sha256": "54c61bfbd35bbb6fba40dd09a16ac6c6ddacbb7bb779ee69f7bfee13b1292126"
+      },
+      {
+        "cellId": "C16",
+        "sha256": "30f727a676b639a202f6612047498bf6ce2dbd6216ac2185ec663abdceda953b"
+      },
+      {
+        "cellId": "C17",
+        "sha256": "35b1691c516ac73f3a5b0850df93087c76e96d5a15cdb2a1b3789d3b8e44d93c"
+      },
+      {
+        "cellId": "C18",
+        "sha256": "433594213744b3a686bab840481310e55c88f43230d71091f69a4b2b3c69ccc6"
+      }
+    ]
+  }
+}

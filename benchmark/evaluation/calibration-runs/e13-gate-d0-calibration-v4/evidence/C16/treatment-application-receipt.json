@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "operation": "apply",
+  "candidateId": "COPY_ONCE",
+  "activationProfile": "brownfield-ownership",
+  "taskClasses": [
+    "brownfield-ownership"
+  ],
+  "platform": "macos-arm64",
+  "manifestSha256": "5b77e5b48dc4b9df3712e9f0239a5a219a3615644c8de317deaadc3eafcbc8dd",
+  "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+  "materializationReceiptSha256": "a325bbe1ee029b80aede9bbe169d86b1dd0e54605b98e9d6842e651dbb8f6d65",
+  "originalTreeSha256": "22ad6cef9d38e4adcf0b08e15ede9310fe0efa135247f3d6a112494ecfbc4cb7",
+  "stagedTreeSha256": "ed5df92817d52d5783fbe94e1b8231869a9fcd3ca31fc3e44b87e15895bc939e",
+  "resultingTreeSha256": "2e1e26db7b026860238170d31c794c820b5e8ed845d654ccf0b08b0d73cd03dd",
+  "totals": {
+    "selectedFiles": 4,
+    "created": 4,
+    "preserved": 0,
+    "appended": 0,
+    "merged": 0,
+    "resultingTreeFiles": 10,
+    "resultingTreeBytes": 3848
+  },
+  "visibleInstructionProof": {
+    "allDeclaredInstructionsVisible": true,
+    "paths": [
+      {
+        "path": "AGENTS.md",
+        "action": "create-if-absent",
+        "stagedSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+        "resultSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+        "exactStagedBytesVisible": true
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+      "resultSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+      "originalBytes": null,
+      "stagedBytes": 632,
+      "resultBytes": 632,
+      "resultMode": "0644"
+    },
+    {
+      "path": "harness-project-map.json",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+      "resultSha256": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+      "originalBytes": null,
+      "stagedBytes": 480,
+      "resultBytes": 480,
+      "resultMode": "0644"
+    },
+    {
+      "path": "HARNESS.md",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+      "resultSha256": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+      "originalBytes": null,
+      "stagedBytes": 733,
+      "resultBytes": 733,
+      "resultMode": "0644"
+    },
+    {
+      "path": "scripts/check-harness-map.mjs",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+      "resultSha256": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+      "originalBytes": null,
+      "stagedBytes": 1144,
+      "resultBytes": 1144,
+      "resultMode": "0755"
+    }
+  ]
+}

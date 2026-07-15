@@ -1,0 +1,45 @@
+{
+  "denominator": 4,
+  "results": [
+    {
+      "critical": true,
+      "error": null,
+      "evidence": {
+        "argv": [
+          "node",
+          "test/probe.mjs"
+        ],
+        "exitCode": 0,
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSha256": "420225fdf948686cb5bc90c9bee4c010ce8a69c43177ef631f6c58d70321b8a3",
+        "timeoutMs": 3000
+      },
+      "id": "merge",
+      "pass": true
+    },
+    {
+      "critical": true,
+      "error": null,
+      "evidence": null,
+      "id": "dirty-owner-note",
+      "pass": true
+    },
+    {
+      "critical": true,
+      "error": null,
+      "evidence": null,
+      "id": "local-script",
+      "pass": true
+    },
+    {
+      "critical": false,
+      "error": null,
+      "evidence": null,
+      "id": "proof",
+      "pass": true
+    }
+  ],
+  "rubricSha256": "a52aff0077269000eeecd3c96ab1c83b18a29ad535cb911db153541a10920188",
+  "schemaVersion": 1,
+  "taskId": "H02-brownfield-script-merge"
+}

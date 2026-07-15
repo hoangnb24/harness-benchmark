@@ -1,0 +1,12 @@
+{
+  "changes": [
+    {
+      "afterSha256": "f9051f628e49a3a67118e934705099c585444a7668348a50f4c384e9c6f30f17",
+      "beforeSha256": "787b9fba12255154c3ab3abff9f3b270759f91bb931a9a90d16657b06d065957",
+      "contentBase64": "ZXhwb3J0IGZ1bmN0aW9uIHJlc29sdmUoZGVmYXVsdHMsIGxvY2FsKSB7IHJldHVybiB7Li4uZGVmYXVsdHMsIC4uLmxvY2FsfTsgfQo=",
+      "mode": 420,
+      "path": "src/config.mjs"
+    }
+  ],
+  "schemaVersion": 1
+}

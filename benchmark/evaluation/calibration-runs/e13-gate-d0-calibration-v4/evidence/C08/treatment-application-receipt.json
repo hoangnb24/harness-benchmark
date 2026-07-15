@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "operation": "apply",
+  "candidateId": "MODULAR_CORE",
+  "activationProfile": "bounded-defect-repair",
+  "taskClasses": [
+    "bounded-defect-repair"
+  ],
+  "platform": "macos-arm64",
+  "manifestSha256": "43b042b5e34a25050caf66b6fd2e87e87192b94f2360b48d9e3042e7b8d27023",
+  "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+  "materializationReceiptSha256": "8ec72e2b7556871c56adc9ed3eb71e930c1a13b3a0fcd6feca6ae98de3cffa46",
+  "originalTreeSha256": "46b71e28f08acbea033e58ef7fb8bc81b42ed77b5177fc19ca9360c50b09c149",
+  "stagedTreeSha256": "57ca07283338e728ef4d6b2fae8d2943e08f5168f318422aab72de52a97b1e44",
+  "resultingTreeSha256": "115224aa678a2ac052d9c49ec1c9d1f664c4859e9db555428aab37b0779523ac",
+  "totals": {
+    "selectedFiles": 7,
+    "created": 7,
+    "preserved": 0,
+    "appended": 0,
+    "merged": 0,
+    "resultingTreeFiles": 12,
+    "resultingTreeBytes": 4843
+  },
+  "visibleInstructionProof": {
+    "allDeclaredInstructionsVisible": true,
+    "paths": [
+      {
+        "path": "AGENTS.md",
+        "action": "create-if-absent",
+        "stagedSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+        "resultSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+        "exactStagedBytesVisible": true
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": ".harness/install-receipt.json",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "98502a9af5e0e52d3f3945dec5f539ed14a8ceccf61eaddab0e39facf3d54a9e",
+      "resultSha256": "98502a9af5e0e52d3f3945dec5f539ed14a8ceccf61eaddab0e39facf3d54a9e",
+      "originalBytes": null,
+      "stagedBytes": 225,
+      "resultBytes": 225,
+      "resultMode": "0644"
+    },
+    {
+      "path": ".harness/modules.json",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "ef9d1d5b7e7edb49b7ba1c9494c6741b349f2b1addf2d03aa9831dc118d475d6",
+      "resultSha256": "ef9d1d5b7e7edb49b7ba1c9494c6741b349f2b1addf2d03aa9831dc118d475d6",
+      "originalBytes": null,
+      "stagedBytes": 644,
+      "resultBytes": 644,
+      "resultMode": "0644"
+    },
+    {
+      "path": ".harness/modules/evidence.md",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "81439655d1565f91e8daf9ec8659edfe872d4441f715b7120f3561582195efd3",
+      "resultSha256": "81439655d1565f91e8daf9ec8659edfe872d4441f715b7120f3561582195efd3",
+      "originalBytes": null,
+      "stagedBytes": 299,
+      "resultBytes": 299,
+      "resultMode": "0644"
+    },
+    {
+      "path": "AGENTS.md",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+      "resultSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+      "originalBytes": null,
+      "stagedBytes": 632,
+      "resultBytes": 632,
+      "resultMode": "0644"
+    },
+    {
+      "path": "harness-project-map.json",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+      "resultSha256": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+      "originalBytes": null,
+      "stagedBytes": 480,
+      "resultBytes": 480,
+      "resultMode": "0644"
+    },
+    {
+      "path": "HARNESS.md",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+      "resultSha256": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+      "originalBytes": null,
+      "stagedBytes": 733,
+      "resultBytes": 733,
+      "resultMode": "0644"
+    },
+    {
+      "path": "scripts/check-harness-map.mjs",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+      "resultSha256": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+      "originalBytes": null,
+      "stagedBytes": 1144,
+      "resultBytes": 1144,
+      "resultMode": "0755"
+    }
+  ]
+}

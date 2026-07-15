@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "taskId": "H02-brownfield-script-merge",
+  "seedId": "heldout-brownfield-merge-8ba2",
+  "fixtureSha256": "7bf04b3efd0d8ed960f1c280357f70051674d4afe5debdcdc071eb7b3e7c672b",
+  "startCommit": "000cd201567e913a3c839744885db16c05540273",
+  "materializedTreeSha256": "da94ed13950cf8ee22596942ba1d80baac3c27c285773d74168ccdb752d7cde1",
+  "files": {
+    ".harness/install-receipt.json": "98502a9af5e0e52d3f3945dec5f539ed14a8ceccf61eaddab0e39facf3d54a9e",
+    ".harness/modules/brownfield-ownership.md": "a09319066352ac6de841e9da7ea419981106595cd3ed73a7d46508ce94f05cd9",
+    ".harness/modules.json": "ef9d1d5b7e7edb49b7ba1c9494c6741b349f2b1addf2d03aa9831dc118d475d6",
+    "AGENTS.md": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+    "config/local.json": "a050ef06ea542b8fd8781f1e945f9adcd03c7ae5190719e66ba826e2059fce12",
+    "harness-project-map.json": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+    "HARNESS.md": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+    "LOCAL_PATCH.md": "3a355382a928feb09dfd7b2900e6893aaf760509a4678214163b7ca5c61ab4f7",
+    "scripts/check-harness-map.mjs": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+    "scripts/check-local.sh": "daf4ca76446aeb4ef73bb231cadc8b53a00c01b2df01026f3d4e80ccb9d0454c",
+    "scripts/validate.sh": "4f203d95e092e2cd93f12f4ed1d70e6582e2f5248cf3c3db520cad9262f685d9",
+    "test/probe.mjs": "75ba81a08ae171bcf964d02b1bb1564985d4eae5dd4005f1a0e17d2224a3bd6e",
+    "test/unit.mjs": "a6ca8493b9529b53329cab7bbffbf2e904353f2cf0a68b6e4955e41eecfefddf"
+  },
+  "dirtyBaseline": {
+    "correctBeforeTreatment": true,
+    "status": [
+      "?? LOCAL_PATCH.md"
+    ]
+  }
+}

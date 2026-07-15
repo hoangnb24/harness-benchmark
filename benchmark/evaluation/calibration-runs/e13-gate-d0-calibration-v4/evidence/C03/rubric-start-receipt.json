@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "taskId": "H01-config-precedence",
+  "seedId": "heldout-config-precedence-41d7",
+  "fixtureSha256": "5607f138a76777cd90a21c50d9e0ccf4a49a90a012e30f9836dd4bef5b534cc1",
+  "startCommit": "747fff0fd0a44671952bf7ecb8208974aa21fc27",
+  "materializedTreeSha256": "06d057d02a3f6f7ab2c4874044551f1bb1e7c925c1fca96176e0ca1b475a1d09",
+  "files": {
+    ".harness/install-receipt.json": "98502a9af5e0e52d3f3945dec5f539ed14a8ceccf61eaddab0e39facf3d54a9e",
+    ".harness/modules/evidence.md": "81439655d1565f91e8daf9ec8659edfe872d4441f715b7120f3561582195efd3",
+    ".harness/modules.json": "ef9d1d5b7e7edb49b7ba1c9494c6741b349f2b1addf2d03aa9831dc118d475d6",
+    "AGENTS.md": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+    "config/default.json": "79201f29b48e2555548f7cf98b48d546b183a6d7fed84c74c7084063387749fc",
+    "config/local.json": "788e5b627ac43d354f8866f360aa79ec6d72c6f74707db8966da073bbf17c4e8",
+    "harness-project-map.json": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+    "HARNESS.md": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+    "LOCAL_NOTES.md": "498d8cac5af561f8b343266bfb1dbde1376ddd099a455cae156ea5f14925f704",
+    "scripts/check-harness-map.mjs": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+    "src/config.mjs": "787b9fba12255154c3ab3abff9f3b270759f91bb931a9a90d16657b06d065957",
+    "test/probe.mjs": "36e949708c5a5038f8ac5b410020e4b15e1e816aa8edd71ea423fed552190ca7"
+  },
+  "dirtyBaseline": {
+    "correctBeforeTreatment": true,
+    "status": []
+  }
+}
