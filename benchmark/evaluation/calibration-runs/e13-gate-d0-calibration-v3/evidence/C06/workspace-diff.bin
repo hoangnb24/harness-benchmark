@@ -1,0 +1,12 @@
+{
+  "changes": [
+    {
+      "afterSha256": "b120edc668548d7c81e97ecde477a7e702b8595b94d5a1ff21a8634dd64e0846",
+      "beforeSha256": "4f203d95e092e2cd93f12f4ed1d70e6582e2f5248cf3c3db520cad9262f685d9",
+      "contentBase64": "IyEvYmluL3NoCnNldCAtZXUKbm9kZSB0ZXN0L3VuaXQubWpzCnNoIHNjcmlwdHMvY2hlY2stbG9jYWwuc2gK",
+      "mode": 420,
+      "path": "scripts/validate.sh"
+    }
+  ],
+  "schemaVersion": 1
+}

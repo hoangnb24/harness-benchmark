@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "operation": "apply",
+  "candidateId": "MODULAR_CORE",
+  "activationProfile": "brownfield-ownership",
+  "taskClasses": [
+    "brownfield-ownership"
+  ],
+  "platform": "macos-arm64",
+  "manifestSha256": "43b042b5e34a25050caf66b6fd2e87e87192b94f2360b48d9e3042e7b8d27023",
+  "applicationPolicySha256": "e79764ed27680307c067751514595d88807f480c87b14511b6ac5f8a061e7044",
+  "materializationReceiptSha256": "2e41a1ef77d232f2adf8cd26fe4e2cc9d913129feb80480260b57522288d6e76",
+  "originalTreeSha256": "22ad6cef9d38e4adcf0b08e15ede9310fe0efa135247f3d6a112494ecfbc4cb7",
+  "stagedTreeSha256": "9dcc3aea621441facc385326e13f2416138808ccd1850b9bb7c2f054aaebe5cd",
+  "resultingTreeSha256": "25662c613f497211f6d59a6a3d3b90dd70ec2a504e38adeefe2a76a845fd13f1",
+  "totals": {
+    "selectedFiles": 7,
+    "created": 7,
+    "preserved": 0,
+    "appended": 0,
+    "merged": 0,
+    "resultingTreeFiles": 13,
+    "resultingTreeBytes": 5020
+  },
+  "visibleInstructionProof": {
+    "allDeclaredInstructionsVisible": true,
+    "paths": [
+      {
+        "path": "AGENTS.md",
+        "action": "create-if-absent",
+        "stagedSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+        "resultSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+        "exactStagedBytesVisible": true
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": ".harness/install-receipt.json",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "98502a9af5e0e52d3f3945dec5f539ed14a8ceccf61eaddab0e39facf3d54a9e",
+      "resultSha256": "98502a9af5e0e52d3f3945dec5f539ed14a8ceccf61eaddab0e39facf3d54a9e",
+      "originalBytes": null,
+      "stagedBytes": 225,
+      "resultBytes": 225,
+      "resultMode": "0644"
+    },
+    {
+      "path": ".harness/modules.json",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "ef9d1d5b7e7edb49b7ba1c9494c6741b349f2b1addf2d03aa9831dc118d475d6",
+      "resultSha256": "ef9d1d5b7e7edb49b7ba1c9494c6741b349f2b1addf2d03aa9831dc118d475d6",
+      "originalBytes": null,
+      "stagedBytes": 644,
+      "resultBytes": 644,
+      "resultMode": "0644"
+    },
+    {
+      "path": ".harness/modules/brownfield-ownership.md",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "a09319066352ac6de841e9da7ea419981106595cd3ed73a7d46508ce94f05cd9",
+      "resultSha256": "a09319066352ac6de841e9da7ea419981106595cd3ed73a7d46508ce94f05cd9",
+      "originalBytes": null,
+      "stagedBytes": 303,
+      "resultBytes": 303,
+      "resultMode": "0644"
+    },
+    {
+      "path": "AGENTS.md",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+      "resultSha256": "f34cb54601325c421c920b82457f52bc94224d7dea6e88c8d37337085324a8c6",
+      "originalBytes": null,
+      "stagedBytes": 632,
+      "resultBytes": 632,
+      "resultMode": "0644"
+    },
+    {
+      "path": "harness-project-map.json",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+      "resultSha256": "0f4f33907d10b0316f0bd81d8d99b00d0b060a4f9601febd2f492884c2cd20b2",
+      "originalBytes": null,
+      "stagedBytes": 480,
+      "resultBytes": 480,
+      "resultMode": "0644"
+    },
+    {
+      "path": "HARNESS.md",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+      "resultSha256": "7083ba48ebb98246e8148fc286e97390cb106a1fefc16e3178bd7a88264a6b25",
+      "originalBytes": null,
+      "stagedBytes": 733,
+      "resultBytes": 733,
+      "resultMode": "0644"
+    },
+    {
+      "path": "scripts/check-harness-map.mjs",
+      "action": "create-if-absent",
+      "originalSha256": null,
+      "stagedSha256": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+      "resultSha256": "8026ebd3bd0f245767d17940e64bad49c4dfb7b1d4b1b58a4219205ef592836a",
+      "originalBytes": null,
+      "stagedBytes": 1144,
+      "resultBytes": 1144,
+      "resultMode": "0755"
+    }
+  ]
+}
